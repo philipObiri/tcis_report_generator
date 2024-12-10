@@ -44,7 +44,7 @@ admin.site.register(Student, StudentAdmin)
 class ScoreAdmin(admin.ModelAdmin):
     list_display = ('student', 'subject', 'term', 'continuous_assessment', 'exam_score', 'total_score', 'grade')
     search_fields = ('student__fullname', 'subject__name', 'term__term_name')
-    list_filter = ('term', 'subject')
+    list_filter = ('term', 'subject','created_by')
 
 admin.site.register(Score, ScoreAdmin)
 

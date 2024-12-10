@@ -61,8 +61,7 @@ def custom_logout(request):
     return redirect('login')  # Redirect to home or the desired page after logout
 
 
-
-# Display saved scores for the user
+# Process and Display saved scores for the user
 @login_required(login_url='login')
 def process_scores_view(request):
     formset = None
@@ -70,7 +69,7 @@ def process_scores_view(request):
     scores = []
 
     students = Student.objects.all()  # Adjust as per your filter
-    scores = Score.objects.filter(created_by=request.user)  # Fetch all scores, can be filtered if needed
+    scores = Score.objects.filter(created_by=request.user)  # Fetch scores entered by the logged-in user
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Process the submitted scores and save them to the database
@@ -88,6 +87,17 @@ def process_scores_view(request):
             students = Student.objects.filter(class_year=class_year)
 
         for student in students:
+            # Check if the score for the student, subject, and term already exists
+            existing_score = Score.objects.filter(
+                student=student,
+                term=term,
+                subject=subject,
+                created_by=request.user
+            ).exists()
+
+            if existing_score:
+                return JsonResponse({'status': 'error', 'message': f'Scores for {student.fullname} have already been recorded for the selected subject and term.'})
+
             continuous_assessment = request.POST.get(f'continuous_assessment_{student.id}')
             exam_score = request.POST.get(f'exam_score_{student.id}')
             
@@ -133,8 +143,9 @@ def process_scores_view(request):
 
 @login_required(login_url='login')
 def get_saved_scores(request):
+    # Restrict the query to only the scores created by the logged-in user
     scores = Score.objects.filter(created_by=request.user).select_related('student')
-    
+
     # Serialize scores into a dictionary format for rendering
     scores_data = [{
         'student_name': score.student.fullname,
@@ -144,6 +155,8 @@ def get_saved_scores(request):
     } for score in scores]
 
     return JsonResponse({'scores': scores_data})
+
+
 
 
 @login_required(login_url='login')
@@ -306,8 +319,6 @@ def delete_score(request, score_id):
 
 
 
-
-
 @login_required(login_url='login')
 def generate_report(request):
     if request.method == 'POST':
@@ -322,7 +333,7 @@ def generate_report(request):
             class_year_obj = ClassYear.objects.get(name=class_year)
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            # Check if there are scores for the student in the selected term
+            # Fetch all scores for the student in the selected term (regardless of the user who created them)
             scores = Score.objects.filter(student=student, term=term)
 
             if not scores.exists():
@@ -367,8 +378,6 @@ def generate_report(request):
             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-
-
 
 
 @login_required(login_url='login')
@@ -421,7 +430,6 @@ def generate_academic_report(request):
             return JsonResponse({'error': str(e)}, status=500)
 
 
-
 def calculate_gpa(scores):
     """
     Calculate the GPA from a list of scores using simple logic.
@@ -442,6 +450,6 @@ def calculate_gpa(scores):
         else:
             total_points += 0.0
 
-    return total_points / total_subjects if total_subjects > 0 else 0.0
-
+    # Return the GPA rounded to two decimal places
+    return round(total_points / total_subjects, 2) if total_subjects > 0 else 0.0
 

@@ -24,6 +24,14 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .models import Student, Term, Score, AcademicReport
 import json
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from .models import AcademicReport, Student, Term, ClassYear, Score
+import json
+
+
 
 def custom_login(request):
     if request.method == 'POST':
@@ -55,6 +63,7 @@ def custom_logout(request):
 
 
 # Display saved scores for the user
+@login_required(login_url='login')
 def process_scores_view(request):
     formset = None
     students = []
@@ -122,7 +131,7 @@ def process_scores_view(request):
 
 
 
-@login_required
+@login_required(login_url='login')
 def get_saved_scores(request):
     scores = Score.objects.filter(created_by=request.user).select_related('student')
     
@@ -137,7 +146,7 @@ def get_saved_scores(request):
     return JsonResponse({'scores': scores_data})
 
 
-
+@login_required(login_url='login')
 def view_academic_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -280,7 +289,7 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
 
 
 
-
+@login_required(login_url='login')
 def delete_score(request, score_id):
     if request.method == 'DELETE':
         try:
@@ -296,12 +305,10 @@ def delete_score(request, score_id):
 
 
 
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.template.loader import render_to_string
-from .models import AcademicReport, Student, Term, ClassYear, Score
-import json
 
+
+
+@login_required(login_url='login')
 def generate_report(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -364,7 +371,7 @@ def generate_report(request):
 
 
 
-
+@login_required(login_url='login')
 def generate_academic_report(request):
     if request.method == 'POST':
         try:

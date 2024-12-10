@@ -1,111 +1,195 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="{% static 'favicon/favicon-96x96.png' %}" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="{% static 'favicon/favicon.svg' %}" />
     <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}" />
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}" />
     <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
+    <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
+
     <title>Academic Report - {{ student_name }}</title>
-    <!-- Optional: Add Bootstrap CSS for a better table layout -->
-    <!-- <link rel="stylesheet" href="path/to/bootstrap.css"> -->
+
     <style>
-        /* Custom styles for better readability */
-        body {
-            font-family: Arial, sans-serif;
+        *{
             margin: 0;
             padding: 0;
-            background-color: #f8f9fa;
+            box-sizing: border-box;
         }
-        .container {
-            margin-top: 50px;
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      /* Custom styles for better readability */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+      }
+      .container {
+        margin-top: 50px;
+        background-color: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      h3 {
+        color: #007bff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .total-cell {
+        font-weight: bold;
+      }
+      .print-btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .print-btn:hover {
+        background-color: #0056b3;
+      }
+      .grayscale-logo {
+        filter: grayscale(50%) brightness(0.8);
+      }
+
+      .heading-text{
+        font-size: 2rem;
+      }
+
+      @media(max-width:800px){
+        .navbar{
+            display: flex !important;
+            justify-content: center !important;
+            align-content: center !important;
         }
-        h3 {
-            color: #007bff;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .total-cell {
-            font-weight: bold;
-        }
-        .print-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .print-btn:hover {
-            background-color: #0056b3;
-        }
+
+        .heading-text{
+            font-size: 1.2rem;
+          }
+
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container mt-5">
-        <h3>Academic Report for {{ student_name }}</h3>
-        <p><strong>Class/Year:</strong> {{ class_year }}</p>
-        <p><strong>Term:</strong> {{ term_name }}</p>
+      <div class="navbar">
+        <h1 class="heading-text">Temple Christian International School</h1>
+        <div class="text-center mb-4">
+          <a href="." class="navbar-brand navbar-brand-autodark"><img src="{% static 'images/tcis_logo.png' %}" height="60" alt="TCIS Logo" class="grayscale-logo" /></a>
 
-        <!-- Table to display subjects and scores -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>CA (30%)</th>
-                    <th>Exam (70%)</th>
-                    <th>Total</th>
-                    <th>Grade</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in report_data %}
-                    <tr>
-                        <td>{{ item.subject }}</td>
-                        <td>{{ item.continuous_assessment }}</td>
-                        <td>{{ item.exam_score }}</td>
-                        <td class="total-cell">{{ item.total_score }}</td>
-                        <td>{{ item.grade }}</td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No scores available for this student in this term.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
+        </div>
+      </div>
+      <h3>Academic Report for {{ student_name }}</h3>
+      <p>
+        <strong>Class/Year:</strong> {{ class_year }}
+      </p>
+      <p>
+        <strong>Term:</strong> {{ term_name }}
+      </p>
+
+      <!-- Table to display subjects and scores -->
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>CA (30%)</th>
+            <th>Exam (70%)</th>
+            <th>Total</th>
+            <th>Grade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in report_data %}
+            <tr>
+              <td>{{ item.subject }}</td>
+              <td>{{ item.continuous_assessment }}</td>
+              <td>{{ item.exam_score }}</td>
+              <td class="total-cell">{{ item.total_score }}</td>
+              <td>{{ item.grade }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center">No scores available for this student in this term.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Display GPA -->
+      <p>
+        <strong>GPA:</strong> {{ gpa }}
+      </p>
+
+      <div class="gpa-table">
+        <p>
+          <strong>GPA Table</strong>
+        </p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Grade</th>
+              <th scope="col">Percentage Range</th>
+              <th scope="col">Grade Point</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A</td>
+              <td>80% - 89%</td>
+              <td>3.75</td>
+            </tr>
+            <tr>
+              <td>B</td>
+              <td>70% - 79%</td>
+              <td>3.0</td>
+            </tr>
+            <tr>
+              <td>C</td>
+              <td>60% - 69%</td>
+              <td>2.0</td>
+            </tr>
+            <tr>
+              <td>D</td>
+              <td>50% - 59%</td>
+              <td>1.0</td>
+            </tr>
+            <tr>
+              <td>F</td>
+              <td>0% - 49%</td>
+              <td>0.0</td>
+            </tr>
+          </tbody>
         </table>
+      </div>
 
-        <!-- Display GPA -->
-        <p><strong>GPA:</strong> {{ gpa }}</p>
-
-        <!-- Print Button -->
-        <button class="print-btn" onclick="window.print();">Print Report</button>
+      <!-- Print Button -->
+      <button class="print-btn" onclick="window.print();">Print Report</button>
     </div>
 
     <script>
-        // Ensure that the print button works properly
-        document.querySelector('.print-btn').addEventListener('click', function() {
-            window.print();
-        });
+      // Ensure that the print button works properly
+      document.querySelector('.print-btn').addEventListener('click', function () {
+        window.print()
+      })
     </script>
-</body>
+  </body>
 </html>

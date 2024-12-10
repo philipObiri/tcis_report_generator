@@ -379,12 +379,6 @@ def delete_score(request, score_id):
 #         except Exception as e:
 #             return JsonResponse({'success': False, 'error': str(e)})
 
-
-from django.http import JsonResponse
-from django.template.loader import render_to_string
-from .models import Student, ClassYear, Term, Score, AcademicReport
-import json
-
 @login_required(login_url='login')
 def generate_report(request):
     if request.method == 'POST':
@@ -427,7 +421,7 @@ def generate_report(request):
                 'class_year': class_year,
                 'term_name': term_name,
                 'gpa': academic_report.student_gpa,
-                'report_data': academic_report.student_scores.all(),  # Assuming student_scores are needed
+                'report_data': scores,  # Pass the scores directly
             })
 
             # Return the HTML content in the JSON response
@@ -444,7 +438,6 @@ def generate_report(request):
             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-
 
 
 @login_required(login_url='login')

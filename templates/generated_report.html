@@ -11,49 +11,88 @@
     <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
     <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
-
     <title>Academic Report - {{ student_name }}</title>
 
     <style>
-        *{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-      /* Custom styles for better readability */
+      /* Import the font */
+      @import url('https://fonts.googleapis.com/css?family=Denk+One');
+      @import url('https://fonts.googleapis.com/css?family=Arimo');
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #f8f9fa;
+        background-color: rgba(248, 249, 250, 0.5); /* Light gray with transparency */
+        position: relative; /* This makes the watermark align relative to the body */
       }
+
+      /* Watermark styling */
+      .watermark {
+        position: absolute;
+        top: 50%; /* Center vertically */
+        left: 50%; /* Center horizontally */
+        transform: translate(-50%, -50%) rotate(331deg); /* Rotate the watermark */
+        opacity: 0.05; /* Very subtle watermark */
+        font-size: 12em; /* Size of the watermark text */
+        color: rgba(255, 5, 5, 0.17); /* Light red color with transparency */
+        font-family: 'Denk One', sans-serif;
+        text-transform: uppercase;
+        pointer-events: none; /* Prevent watermark from interfering with content */
+        z-index: -1; /* Keep the watermark behind the content */
+        width: 100%; /* Ensure it stretches across the screen */
+        text-align: center; /* Center the text */
+      }
+
+      .header {
+        width: 100%;
+        height: 150px;
+        background-image: url("{% static 'images/tcis_report_logo.png' %}");
+        filter: grayscale(60%) brightness(1);
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
       .container {
-        margin-top: 50px;
+        margin-top: 20px;
         background-color: white;
         padding: 30px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative; /* Ensures content is above watermark */
+        z-index: 1;
       }
+
       h3 {
         color: #007bff;
       }
+
       table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
       }
-      th,
-      td {
+
+      th, td {
         padding: 12px;
         text-align: center;
         border: 1px solid #ddd;
       }
+
       th {
         background-color: #f2f2f2;
       }
+
       .total-cell {
         font-weight: bold;
       }
+
       .print-btn {
         margin-top: 20px;
         padding: 10px 20px;
@@ -64,40 +103,45 @@
         cursor: pointer;
         font-size: 16px;
       }
+
       .print-btn:hover {
         background-color: #0056b3;
       }
-      .grayscale-logo {
-        filter: grayscale(50%) brightness(0.8);
+
+      /* Responsive design for smaller screens */
+      @media (max-width: 800px) {
+        .navbar {
+          display: flex !important;
+          justify-content: center !important;
+          align-content: center !important;
+        }
       }
 
-      .heading-text{
-        font-size: 2rem;
-      }
-
-      @media(max-width:800px){
-        .navbar{
-            display: flex !important;
-            justify-content: center !important;
-            align-content: center !important;
+      @media (max-width: 600px) {
+        .header {
+          height: 150px;
         }
 
-        .heading-text{
-            font-size: 1.2rem;
-          }
+        .container {
+          padding: 20px;
+        }
 
+        .print-btn {
+          width: 100%;
+          padding: 15px;
+        }
       }
     </style>
   </head>
-  <body>
-    <div class="container mt-5">
-      <div class="navbar">
-        <h1 class="heading-text">Temple Christian International School</h1>
-        <div class="text-center mb-4">
-          <a href="." class="navbar-brand navbar-brand-autodark"><img src="{% static 'images/tcis_logo.png' %}" height="60" alt="TCIS Logo" class="grayscale-logo" /></a>
 
-        </div>
-      </div>
+  <body>
+    <!-- Watermark Text -->
+    <div class="watermark">Watermark</div>
+
+    <!-- Header with flexible background image -->
+    <div class="header"></div>
+
+    <div class="container mt-5">
       <h3>Academic Report for {{ student_name }}</h3>
       <p>
         <strong>Class/Year:</strong> {{ class_year }}
@@ -120,7 +164,7 @@
         <tbody>
           {% for item in report_data %}
             <tr>
-              <td>{{ item.subject }}</td>
+              <td>{{ item.subject.name }}</td>
               <td>{{ item.continuous_assessment }}</td>
               <td>{{ item.exam_score }}</td>
               <td class="total-cell">{{ item.total_score }}</td>
@@ -186,10 +230,9 @@
     </div>
 
     <script>
-      // Ensure that the print button works properly
       document.querySelector('.print-btn').addEventListener('click', function () {
-        window.print()
-      })
+        window.print();
+      });
     </script>
   </body>
 </html>

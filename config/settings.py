@@ -22,7 +22,7 @@ SECRET_KEY = env('SECRET_KEY', default='A$47&jg^&8@dnwdt67-g@w*ob@2#od*uvb51c+it
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS =  ["127.0.0.1", "localhost", "tcis-results.onrender.com"]
+ALLOWED_HOSTS =  ["127.0.0.1", "localhost", "tcis-reports.onrender.com"]
 
 
 # Application definition

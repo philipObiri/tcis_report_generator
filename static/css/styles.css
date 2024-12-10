@@ -1,0 +1,67 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', 'sans-serif';
+}
+body{
+    background-color: #f2f3f5;
+    /* height:100vh; */
+    overflow-x: scroll;
+}
+
+.header {
+    background: #2664eb;
+    height: 96px;
+    padding: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.header h1 {
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+#tcis_logo{
+    /* transform: scale(0.2); */
+    height:3rem;
+    width: 7rem;
+}
+
+/* Floating logout button */
+.logout-btn {
+    position: fixed;
+    right: 10px; /* Distance from the right edge */
+    bottom: 10px; /* Distance from the bottom edge */
+    transform: translateY(0); /* No vertical transformation */
+    z-index: 1000; /* Ensure it stays on top of other elements */
+    background-color: #2664eb; /* Red color for danger */
+    color: white;
+    padding: 12px;
+    border-radius: 50%;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+.logout-btn:hover {
+    background-color: #2664eb; /* Darker red on hover */
+    transform: scale(1.1); /* Slightly enlarge the button on hover */
+}
+
+/* Optional: for making the icon more visually appealing */
+.logout-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+/* Adjust the button's appearance on smaller screens */
+@media (max-width: 768px) {
+    .logout-btn {
+        padding: 10px; /* Smaller padding for smaller screens */
+    }
+}

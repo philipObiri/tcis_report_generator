@@ -1,0 +1,4 @@
+Fix the issue with subjects not automatically being assigned to student on creation and saving 
+
+Set Up the UI and formsets for scores entries 
+

@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Sign In | TCIS</title>
+    <!-- CSS files -->
+    <link href="{% static 'css/tabler.min.css' %}" rel="stylesheet" />
+
+    <style>
+      @import url('https://rsms.me/inter/inter.css');
+      
+      :root {
+        --tblr-font-sans-serif: 'Inter Var', -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif;
+      }
+      
+      body {
+        font-feature-settings: 'cv03', 'cv04', 'cv11';
+      }
+      
+      .grayscale-logo {
+        filter: grayscale(50%) brightness(0.8);
+      }
+    </style>
+  </head>
+
+  <body class="d-flex flex-column bg-white">
+    <div class="row g-0 flex-fill">
+      <div class="col-12 col-lg-6 col-xl-4 border-top-wide border-primary d-flex flex-column justify-content-center">
+        <div class="container container-tight my-5 px-lg-5">
+          <div class="text-center mb-4">
+            <a href="." class="navbar-brand navbar-brand-autodark"><img src="{% static 'images/tcis_logo.png' %}" height="60" alt="TCIS Logo" class="grayscale-logo" /></a>
+          </div>
+          <h2 class="h3 text-center mb-3">Login to your Account</h2>
+
+          <!-- Display alert messages -->
+          {% if messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              {% for message in messages %}
+                <p>{{ message }}</p>
+              {% endfor %}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endif %}
+
+          <!-- Login Form -->
+          <form id="loginForm" action="{% url 'login' %}" method="post" autocomplete="off">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Staff ID</label>
+              <input type="text" name="username" class="form-control" placeholder="" autocomplete="off" required />
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Staff Password</label>
+              <div class="input-group input-group-flat">
+                <input type="password" name="password" class="form-control" placeholder="Your password" autocomplete="off" id="passwordField" required />
+                <span class="input-group-text">
+                  <a href="#" class="link-secondary" title="Show/Hide Password" data-bs-toggle="tooltip" id="togglePassword">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                      <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-eye-x d-none" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2c3e50" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                      <path d="M13.048 17.942a9.298 9.298 0 0 1 -1.048 .058c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6a17.986 17.986 0 0 1 -1.362 1.975" />
+                      <path d="M22 22l-5 -5" />
+                      <path d="M17 22l5 -5" />
+                    </svg>
+                  </a>
+                </span>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button type="submit" class="btn btn-primary w-100">Sign in</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6 col-xl-8 d-none d-lg-block">
+        <!-- Photo -->
+        <div class="bg-cover h-100 min-vh-100" style="background-image: url({% static 'images/abs-img.webp' %})"></div>
+      </div>
+    </div>
+    <!-- Libs JS -->
+    <!-- Tabler Core -->
+    <script src="{% static 'js/tabler.min.js' %}" defer></script>
+    <!-- Toggle Password Visibility -->
+    <script>
+      const togglePasswordVisibility = (togglePasswordId, passwordFieldId) => {
+        const togglePassword = document.getElementById(togglePasswordId)
+        const passwordField = document.getElementById(passwordFieldId)
+        const eyeIcon = togglePassword.querySelector('.icon')
+        const eyeXIcon = togglePassword.querySelector('.icon-tabler-eye-x')
+      
+        togglePassword.addEventListener('click', function (e) {
+          e.preventDefault()
+      
+          if (eyeIcon.classList.contains('d-none')) {
+            eyeIcon.classList.remove('d-none')
+            eyeXIcon.classList.add('d-none')
+            passwordField.type = 'password'
+          } else {
+            eyeIcon.classList.add('d-none')
+            eyeXIcon.classList.remove('d-none')
+            passwordField.type = 'text'
+          }
+        })
+      }
+      
+      togglePasswordVisibility('togglePassword', 'passwordField')
+      
+      setTimeout(function () {
+        const alert = document.querySelector('.alert')
+        if (alert) {
+          alert.remove()
+        }
+      }, 5000) // auto dismiss alert message after 5s.
+    </script>
+  </body>
+</html>

@@ -22,7 +22,7 @@ SECRET_KEY = env('SECRET_KEY', default='A$47&jg^&8@dnwdt67-g@w*ob@2#od*uvb51c+it
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 # DEBUG = True
-ALLOWED_HOSTS =  ["127.0.0.1", "localhost", "tcis-reports.onrender.com"]
+ALLOWED_HOSTS =  ["127.0.0.1", "localhost", "tcis-reports.onrender.com", "209.74.77.238","reports.tcis.edu.gh"]
 
 
 # Application definition
@@ -73,12 +73,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
 # if DEBUG==True:
 #     DATABASES = {
 #         'default': {
@@ -100,6 +100,16 @@ DATABASES = {
 #     }
 
 
+DATABASES = {
+        'default': {
+            'ENGINE': env('DB_ENGINE'),
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env('DB_PORT'),
+        }
+    }
 
 
 

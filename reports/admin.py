@@ -28,6 +28,7 @@ admin.site.register(Term, TermAdmin)
 class SubjectAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+    list_filter=('class_year',)
 
 admin.site.register(Subject, SubjectAdmin)
 

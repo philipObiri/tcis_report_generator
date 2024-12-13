@@ -251,6 +251,8 @@ def get_subjects_by_class_year(request, class_year_id):
         return JsonResponse({'error': 'Class Year not found'}, status=404)
 
 
+
+
 # Fetch students based on selected filters
 def get_students_by_filters(request, level_id, class_year_id, term_id, subject_id):
     try:
@@ -260,8 +262,8 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
 
-        # Fetch students based on the selected class year
-        students = Student.objects.filter(class_year=class_year)
+        # Fetch students based on the selected class year and subject
+        students = Student.objects.filter(class_year=class_year, subjects=subject)
 
         # Fetch the corresponding scores for each student for the selected term and subject
         scores = Score.objects.filter(student__in=students, term=term, subject=subject)

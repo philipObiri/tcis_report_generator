@@ -52,11 +52,13 @@
       .header {
         width: 100%;
         height: 150px;
-        background-image: url("{% static 'images/tcis_report_logo.png' %}");
+        text-align: center;
+      }
+
+      .header img {
+        width: auto;
+        height: 100%;
         filter: grayscale(60%) brightness(1);
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
       }
 
       .container {
@@ -108,6 +110,10 @@
         background-color: #0056b3;
       }
 
+      .gpa_grade{
+        margin-top: 1rem;
+      }
+
       /* Responsive design for smaller screens */
       @media (max-width: 800px) {
         .navbar {
@@ -138,8 +144,10 @@
     <!-- Watermark Text -->
     <div class="watermark">Watermark</div>
 
-    <!-- Header with flexible background image -->
-    <div class="header"></div>
+    <!-- Header with image -->
+    <div class="header">
+      <img src="{% static 'images/tcis_report_logo.png' %}" alt="Report Logo">
+    </div>
 
     <div class="container mt-5">
       <h3>Academic Report for {{ student_name }}</h3>
@@ -179,7 +187,7 @@
       </table>
 
       <!-- Display GPA -->
-      <p>
+      <p class="gpa_grade">
         <strong>GPA:</strong> {{ gpa }}
       </p>
 

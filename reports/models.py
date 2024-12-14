@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User  
+from decimal import Decimal
 
 # Create your models here.
 class Level(models.Model):
@@ -106,11 +107,11 @@ class Score(models.Model):
     grade = models.CharField(max_length=3, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True) 
+    updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        # Calculate total score based on 30% continuous assessment and 70% exam score
-        self.total_score = (self.continuous_assessment * 0.3) + (self.exam_score * 0.7)
+        # Use Decimal instead of float for calculations
+        self.total_score = (self.continuous_assessment * Decimal('0.3')) + (self.exam_score * Decimal('0.7'))
         super().save(*args, **kwargs)
 
     def __str__(self):

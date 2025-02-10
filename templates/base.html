@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="{% static 'favicon/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
+    <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
+    <title>
+      {% block page_title %}
+        TCIS Academic Report Generator
+      {% endblock %}
+    </title>
+  </head>
+  <body>
+    <header class="header text-center mb-3">
+      <h1>
+        {% block page_header %}
+          TCIS Academic Report Generator
+        {% endblock %}
+      </h1>
+    </header>
+    <div class="container layout-fluid">
+      {% block main_content %}
+
+      {% endblock %}
+    </div>
+    <!-- Include Bootstrap JS -->
+    <script src="{% static 'js/tabler.min.js' %}"></script>
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/sweetalert2.js' %}"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      // Check if the user has received a message
+      {% if messages %}
+        {% for message in messages %}
+          // Dynamically set the icon based on the message level
+          let iconType = 'info'; // Default icon
+          if ("{{ message.tags }}" === "success") {
+            iconType = 'success';
+          } else if ("{{ message.tags }}" === "error") {
+            iconType = 'error';
+          } else if ("{{ message.tags }}" === "warning") {
+            iconType = 'warning';
+          }
+  
+          // Display SweetAlert with dynamic icon
+          Swal.fire({
+            icon: iconType,  // Set the icon dynamically
+            title: 'Notification',
+            text: '{{ message }}',  // Message will be inserted here
+            confirmButtonText: 'OK'
+          });
+        {% endfor %}
+      {% endif %}
+    </script>
+
+
+    {% block extra_js %}
+    
+    
+    {% endblock extra_js %}
+  </body>
+</html>

@@ -17,13 +17,13 @@
       /* Import the font */
       @import url('https://fonts.googleapis.com/css?family=Denk+One');
       @import url('https://fonts.googleapis.com/css?family=Arimo');
-
+      
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-
+      
       body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -31,7 +31,7 @@
         background-color: rgba(248, 249, 250, 0.5); /* Light gray with transparency */
         position: relative; /* This makes the watermark align relative to the body */
       }
-
+      
       /* Watermark styling */
       .watermark {
         position: absolute;
@@ -48,19 +48,19 @@
         width: 100%; /* Ensure it stretches across the screen */
         text-align: center; /* Center the text */
       }
-
+      
       .header {
         width: 100%;
         height: 150px;
         text-align: center;
       }
-
+      
       .header img {
         width: auto;
         height: 100%;
         filter: grayscale(60%) brightness(1);
       }
-
+      
       .container {
         margin-top: 20px;
         background-color: white;
@@ -70,31 +70,32 @@
         position: relative; /* Ensures content is above watermark */
         z-index: 1;
       }
-
+      
       h3 {
         color: #007bff;
       }
-
+      
       table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
       }
-
-      th, td {
+      
+      th,
+      td {
         padding: 12px;
         text-align: center;
         border: 1px solid #ddd;
       }
-
+      
       th {
         background-color: #f2f2f2;
       }
-
+      
       .total-cell {
         font-weight: bold;
       }
-
+      
       .print-btn {
         margin-top: 20px;
         padding: 10px 20px;
@@ -105,15 +106,15 @@
         cursor: pointer;
         font-size: 16px;
       }
-
+      
       .print-btn:hover {
         background-color: #0056b3;
       }
-
-      .gpa_grade{
+      
+      .gpa_grade {
         margin-top: 1rem;
       }
-
+      
       /* Responsive design for smaller screens */
       @media (max-width: 800px) {
         .navbar {
@@ -122,16 +123,16 @@
           align-content: center !important;
         }
       }
-
+      
       @media (max-width: 600px) {
         .header {
           height: 150px;
         }
-
+      
         .container {
           padding: 20px;
         }
-
+      
         .print-btn {
           width: 100%;
           padding: 15px;
@@ -146,7 +147,7 @@
 
     <!-- Header with image -->
     <div class="header">
-      <img src="{% static 'images/tcis_report_logo.png' %}" alt="Report Logo">
+      <img src="{% static 'images/tcis_report_logo.png' %}" alt="Report Logo" />
     </div>
 
     <div class="container mt-5">
@@ -239,8 +240,8 @@
 
     <script>
       document.querySelector('.print-btn').addEventListener('click', function () {
-        window.print();
-      });
+        window.print()
+      })
     </script>
   </body>
 </html>

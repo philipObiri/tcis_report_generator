@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_title %}
+  TCIS Academic Report Generator
+{% endblock %}
+
+{% block page_header %}
+  Record Class/ Home Work Scores
+{% endblock %}
+
+{% block main_content %}
+  <div class="container layout-fluid">
+
+      <section class="class_info">
+        <form id="class-scores-form" method="POST" action="" class="bg-white p-4">
+          {% csrf_token %}
+          <input type="hidden" name="level" id="hidden-level" />
+          <input type="hidden" name="class_year" id="hidden-class-year" />
+          <input type="hidden" name="term" id="hidden-term" />
+          <input type="hidden" name="subject" id="hidden-subject" />
+          <section>
+            <h3 class="mb-3">Class Information</h3>
+            <div class="form-group">
+              <label for="level-select">Level</label>
+              <select id="level-select" class="form-control">
+                <option value="">Select Level</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="class-year-select">Class Year</label>
+              <select id="class-year-select" class="form-control" disabled>
+                <option value="">Select Class Year</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="term-select">Term</label>
+              <select id="term-select" class="form-control" disabled>
+                <option value="">Select Term</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="subject-select">Subject</label>
+              <select id="subject-select" class="form-control" disabled>
+                <option value="">Select Subject</option>
+              </select>
+            </div>
+
+            <!-- Student Scores Section -->
+            <div class="p-4 d-none table-responsive" id="student-scores-section">
+              <h3 class="card-title mb-3" id="student-scores-title">Student Scores</h3>
+              <table id="students-table" class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Class/Homework Score</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="student-rows"></tbody>
+              </table>
+              <button type="submit" id="save-scores-btn" class="btn btn-primary my-2">Record Scores</button>
+            </div>
+          </section>
+        </form>
+        <div class="d-flex" style="justify-content:center; align-items: center;">
+          <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button>
+          <a href="{% url 'select_option' %}" class="d-block btn btn-outline-secondary">Change Entry Option</a>
+        </div>
+      </section>
+
+  </div>
+
+  <!-- Logout Button -->
+  <a href="{% url 'logout' %}" class="btn btn-danger logout-btn" id="logout-btn" data-bs-toggle="modal" data-bs-target="#cancel-logout">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-logout">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+      <path d="M9 12h12l-3 -3" />
+      <path d="M18 15l3 -3" />
+    </svg>
+  </a>
+
+  <!-- Confirm Logout Modal -->
+  <div class="modal modal-blur fade" id="cancel-logout" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-logout">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+            <path d="M9 12h12l-3 -3" />
+            <path d="M18 15l3 -3" />
+          </svg>
+          <h3>Are you sure?</h3>
+          <div class="text-muted">You're about to logout of your account.Click Yes to proceed or no otherwise?</div>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="{% url 'logout' %}" class="btn btn-outline-primary w-100">Yes</a>
+              </div>
+              <div class="col">
+                <a href="#" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">No</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Saved Scores Modal -->
+  <div class="modal fade" id="scoresModal" tabindex="-1" aria-labelledby="scoresModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="scoresModalLabel">Saved Scores</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Term</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for score in scores %}
+                <tr>
+                  <td>{{ score.student.fullname }}</td>
+                  <td>{{ score.term.term_name }}</td>
+                  <td>
+                    <a class="btn btn-info btn-sm" href="#" data-student-id="{{ score.student.id }}" data-term-id="{{ score.term.id }}">View</a>
+                    <button class="btn btn-danger btn-sm delete-score-btn" data-score-id="{{ score.id }}">Delete</button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center">No scores available.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/class_test.js' %}"></script>
+{% endblock extra_js %}

@@ -86,93 +86,6 @@ def select_progressive_option(request):
 
 
 #============ Process Class Scores ================
-# @login_required(login_url='login')
-# def class_scores(request):
-#     students = []
-#     scores = []
-#     term = None
-#     subject = None
-
-#     # Fetch students (adjust filter as needed)
-#     students = Student.objects.all()
-
-#     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#         # Retrieve POST parameters for filters
-#         level_id = request.POST.get('level')
-#         class_year_id = request.POST.get('class_year')
-#         term_id = request.POST.get('term')
-#         subject_id = request.POST.get('subject')
-
-#         level = Level.objects.get(id=level_id) if level_id else None
-#         class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
-#         term = Term.objects.get(id=term_id) if term_id else None
-#         subject = Subject.objects.get(id=subject_id) if subject_id else None
-
-#         if class_year:
-#             students = Student.objects.filter(class_year=class_year)
-
-#         # Process the submitted classwork scores
-#         for student in students:
-#             # Check if the score already exists for this student, term, and subject
-#             existing_score = Score.objects.filter(
-#                 student=student,
-#                 term=term,
-#                 subject=subject,
-#                 created_by=request.user
-#             ).first()  # Use .first() to get the actual score instance if exists
-
-#             class_work_score = 0  # Default score if no existing score is found
-
-#             if existing_score:
-#                 class_work_score = existing_score.class_work_score  # Existing score if it exists
-
-#             # Retrieve classwork score for the student from the POST data
-#             posted_class_score = request.POST.get(f'class_score_{student.id}')
-#             if posted_class_score:
-#                 try:
-#                     # Convert classwork score to Decimal
-#                     class_work_score = Decimal(posted_class_score)  # Converting to Decimal
-
-#                     # Create or update the score for this student
-#                     score_instance, created = Score.objects.update_or_create(
-#                         student=student,
-#                         term=term,
-#                         subject=subject,
-#                         created_by=request.user,
-#                         defaults={'class_work_score': class_work_score}
-#                     )
-
-#                     # After the score is updated or created, save the instance again to ensure automatic recalculations
-#                     score_instance.save()
-
-#                 except ValueError:
-#                     return JsonResponse({
-#                         'status': 'error',
-#                         'message': f'Invalid score value for {student.fullname}.'
-#                     })
-
-#         # Return success message if scores are saved correctly
-#         return JsonResponse({
-#             'status': 'success',
-#             'message': 'Classwork scores saved successfully!'
-#         })
-
-#     # Ensure term and subject are defined before filtering scores
-#     term_id = request.GET.get('term')
-#     subject_id = request.GET.get('subject')
-    
-#     if term_id and subject_id:
-#         term = Term.objects.get(id=term_id)
-#         subject = Subject.objects.get(id=subject_id)
-#         scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
-
-#     return render(request, 'class_scores.html', {
-#         'students': students,
-#         'scores': scores,
-#     })
-
-
-#============ Process Class Scores ================
 @login_required(login_url='login')
 def class_scores(request):
     students = []
@@ -180,6 +93,7 @@ def class_scores(request):
     term = None
     subject = None
 
+    # Fetch students (adjust filter as needed)
     students = Student.objects.all()
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -199,23 +113,27 @@ def class_scores(request):
 
         # Process the submitted classwork scores
         for student in students:
+            # Check if the score already exists for this student, term, and subject
             existing_score = Score.objects.filter(
                 student=student,
                 term=term,
                 subject=subject,
                 created_by=request.user
-            ).first()
+            ).first()  # Use .first() to get the actual score instance if exists
 
-            class_work_score = 0
+            class_work_score = 0  # Default score if no existing score is found
 
             if existing_score:
-                class_work_score = existing_score.class_work_score
+                class_work_score = existing_score.class_work_score  # Existing score if it exists
 
+            # Retrieve classwork score for the student from the POST data
             posted_class_score = request.POST.get(f'class_score_{student.id}')
             if posted_class_score:
                 try:
-                    class_work_score = Decimal(posted_class_score)
+                    # Convert classwork score to Decimal
+                    class_work_score = Decimal(posted_class_score)  # Converting to Decimal
 
+                    # Create or update the score for this student
                     score_instance, created = Score.objects.update_or_create(
                         student=student,
                         term=term,
@@ -224,7 +142,7 @@ def class_scores(request):
                         defaults={'class_work_score': class_work_score}
                     )
 
-                    # Recalculate after saving the class score
+                    # After the score is updated or created, save the instance again to ensure automatic recalculations
                     score_instance.save()
 
                 except ValueError:
@@ -233,11 +151,13 @@ def class_scores(request):
                         'message': f'Invalid score value for {student.fullname}.'
                     })
 
+        # Return success message if scores are saved correctly
         return JsonResponse({
             'status': 'success',
             'message': 'Classwork scores saved successfully!'
         })
 
+    # Ensure term and subject are defined before filtering scores
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
     
@@ -252,77 +172,6 @@ def class_scores(request):
     })
 
 
-
-#=========== Process First Progressive Test Scores =====================
-# @login_required(login_url='login')
-# def progressive_test_scores_one(request):
-#     students = []
-#     scores = []
-#     term = None
-#     subject = None
-
-#     if request.method == 'POST':
-#         # Get the form data
-#         level_id = request.POST.get('level')
-#         class_year_id = request.POST.get('class_year')
-#         term_id = request.POST.get('term')
-#         subject_id = request.POST.get('subject')
-
-#         # Fetch the students based on the class year (if provided)
-#         if class_year_id:
-#             class_year = ClassYear.objects.get(id=class_year_id)
-#             students = Student.objects.filter(class_year=class_year)
-#         else:
-#             students = Student.objects.all()
-
-#         # Fetch the term and subject
-#         term = Term.objects.get(id=term_id) if term_id else None
-#         subject = Subject.objects.get(id=subject_id) if subject_id else None
-
-#         # Process each student's score
-#         for student in students:
-#             progressive_test_1_score = request.POST.get(f'progressive_test_1_score_{student.id}')
-#             if progressive_test_1_score:
-#                 try:
-#                     # Convert to Decimal for saving
-#                     progressive_test_1_score = Decimal(progressive_test_1_score)
-#                 except ValueError:
-#                     progressive_test_1_score = None
-                
-#                 # Save or update the score for the student, including created_by
-#                 Score.objects.update_or_create(
-#                     student=student,
-#                     term=term,
-#                     subject=subject,
-#                     created_by=request.user,  # Include created_by in lookup
-#                     defaults={
-#                         'progressive_test_1_score': progressive_test_1_score,
-#                     }
-#                 )
-
-#         # Add a success message to be displayed using SweetAlert
-#         messages.success(request, 'Progressive test data saved successfully.')
-
-#         # Redirect back to the same page after form submission
-#         return redirect('progressive_score_one')  # Replace 'your-view-name' with the correct URL name
-
-#     # For GET requests, render the page
-#     term_id = request.GET.get('term')
-#     subject_id = request.GET.get('subject')
-
-#     if term_id and subject_id:
-#         term = Term.objects.get(id=term_id)
-#         subject = Subject.objects.get(id=subject_id)
-#         scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
-
-#     context = {
-#         'students': students,
-#         'scores': scores,
-#     }
-
-#     return render(request, 'progressive_tests/progressive_test_1.html', context)
-
-
 #=========== Process First Progressive Test Scores =====================
 @login_required(login_url='login')
 def progressive_test_scores_one(request):
@@ -332,44 +181,51 @@ def progressive_test_scores_one(request):
     subject = None
 
     if request.method == 'POST':
+        # Get the form data
         level_id = request.POST.get('level')
         class_year_id = request.POST.get('class_year')
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
+        # Fetch the students based on the class year (if provided)
         if class_year_id:
             class_year = ClassYear.objects.get(id=class_year_id)
             students = Student.objects.filter(class_year=class_year)
         else:
             students = Student.objects.all()
 
+        # Fetch the term and subject
         term = Term.objects.get(id=term_id) if term_id else None
         subject = Subject.objects.get(id=subject_id) if subject_id else None
 
+        # Process each student's score
         for student in students:
             progressive_test_1_score = request.POST.get(f'progressive_test_1_score_{student.id}')
             if progressive_test_1_score:
                 try:
+                    # Convert to Decimal for saving
                     progressive_test_1_score = Decimal(progressive_test_1_score)
                 except ValueError:
                     progressive_test_1_score = None
-
+                
+                # Save or update the score for the student, including created_by
                 Score.objects.update_or_create(
                     student=student,
                     term=term,
                     subject=subject,
-                    created_by=request.user,
-                    defaults={'progressive_test_1_score': progressive_test_1_score}
+                    created_by=request.user,  # Include created_by in lookup
+                    defaults={
+                        'progressive_test_1_score': progressive_test_1_score,
+                    }
                 )
 
-                # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject, created_by=request.user)
-                score_instance.save()
-
+        # Add a success message to be displayed using SweetAlert
         messages.success(request, 'Progressive test data saved successfully.')
 
-        return redirect('progressive_score_one')
+        # Redirect back to the same page after form submission
+        return redirect('progressive_score_one')  # Replace 'your-view-name' with the correct URL name
 
+    # For GET requests, render the page
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
 
@@ -386,78 +242,6 @@ def progressive_test_scores_one(request):
     return render(request, 'progressive_tests/progressive_test_1.html', context)
 
 
-
-
-#=========== Process Second Progressive Test Scores =====================
-# @login_required(login_url='login')
-# def progressive_test_scores_two(request):
-#     students = []
-#     scores = []
-#     term = None
-#     subject = None
-
-#     if request.method == 'POST':
-#         # Get the form data
-#         level_id = request.POST.get('level')
-#         class_year_id = request.POST.get('class_year')
-#         term_id = request.POST.get('term')
-#         subject_id = request.POST.get('subject')
-
-#         # Fetch the students based on the class year (if provided)
-#         if class_year_id:
-#             class_year = ClassYear.objects.get(id=class_year_id)
-#             students = Student.objects.filter(class_year=class_year)
-#         else:
-#             students = Student.objects.all()
-
-#         # Fetch the term and subject
-#         term = Term.objects.get(id=term_id) if term_id else None
-#         subject = Subject.objects.get(id=subject_id) if subject_id else None
-
-#         # Process each student's score for progressive test 2
-#         for student in students:
-#             progressive_test_2_score = request.POST.get(f'progressive_test_2_score_{student.id}')
-#             if progressive_test_2_score:
-#                 try:
-#                     # Convert to Decimal for saving
-#                     progressive_test_2_score = Decimal(progressive_test_2_score)
-#                 except ValueError:
-#                     progressive_test_2_score = None
-                
-#                 # Save or update the score for the student, including created_by
-#                 Score.objects.update_or_create(
-#                     student=student,
-#                     term=term,
-#                     subject=subject,
-#                     created_by=request.user,  # Include created_by in lookup
-#                     defaults={
-#                         'progressive_test_2_score': progressive_test_2_score,
-#                     }
-#                 )
-
-#         # Add a success message to be displayed using SweetAlert
-#         messages.success(request, 'Progressive Test 2 data saved successfully.')
-
-#         # Redirect back to the same page after form submission
-#         return redirect('progressive_score_two')  # Replace with the correct URL name
-
-#     # For GET requests, render the page
-#     term_id = request.GET.get('term')
-#     subject_id = request.GET.get('subject')
-
-#     if term_id and subject_id:
-#         term = Term.objects.get(id=term_id)
-#         subject = Subject.objects.get(id=subject_id)
-#         scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
-
-#     context = {
-#         'students': students,
-#         'scores': scores,
-#     }
-
-#     return render(request, 'progressive_tests/progressive_test_2.html', context)
-
-
 #=========== Process Second Progressive Test Scores =====================
 @login_required(login_url='login')
 def progressive_test_scores_two(request):
@@ -467,44 +251,51 @@ def progressive_test_scores_two(request):
     subject = None
 
     if request.method == 'POST':
+        # Get the form data
         level_id = request.POST.get('level')
         class_year_id = request.POST.get('class_year')
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
+        # Fetch the students based on the class year (if provided)
         if class_year_id:
             class_year = ClassYear.objects.get(id=class_year_id)
             students = Student.objects.filter(class_year=class_year)
         else:
             students = Student.objects.all()
 
+        # Fetch the term and subject
         term = Term.objects.get(id=term_id) if term_id else None
         subject = Subject.objects.get(id=subject_id) if subject_id else None
 
+        # Process each student's score for progressive test 2
         for student in students:
             progressive_test_2_score = request.POST.get(f'progressive_test_2_score_{student.id}')
             if progressive_test_2_score:
                 try:
+                    # Convert to Decimal for saving
                     progressive_test_2_score = Decimal(progressive_test_2_score)
                 except ValueError:
                     progressive_test_2_score = None
-
+                
+                # Save or update the score for the student, including created_by
                 Score.objects.update_or_create(
                     student=student,
                     term=term,
                     subject=subject,
-                    created_by=request.user,
-                    defaults={'progressive_test_2_score': progressive_test_2_score}
+                    created_by=request.user,  # Include created_by in lookup
+                    defaults={
+                        'progressive_test_2_score': progressive_test_2_score,
+                    }
                 )
 
-                # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject, created_by=request.user)
-                score_instance.save()
-
+        # Add a success message to be displayed using SweetAlert
         messages.success(request, 'Progressive Test 2 data saved successfully.')
 
-        return redirect('progressive_score_two')
+        # Redirect back to the same page after form submission
+        return redirect('progressive_score_two')  # Replace with the correct URL name
 
+    # For GET requests, render the page
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
 
@@ -523,75 +314,6 @@ def progressive_test_scores_two(request):
 
 
 #=========== Process Third Progressive Test Scores =====================
-# @login_required(login_url='login')
-# def progressive_test_scores_three(request):
-#     students = []
-#     scores = []
-#     term = None
-#     subject = None
-
-#     if request.method == 'POST':
-#         # Get the form data
-#         level_id = request.POST.get('level')
-#         class_year_id = request.POST.get('class_year')
-#         term_id = request.POST.get('term')
-#         subject_id = request.POST.get('subject')
-
-#         # Fetch the students based on the class year (if provided)
-#         if class_year_id:
-#             class_year = ClassYear.objects.get(id=class_year_id)
-#             students = Student.objects.filter(class_year=class_year)
-#         else:
-#             students = Student.objects.all()
-
-#         # Fetch the term and subject
-#         term = Term.objects.get(id=term_id) if term_id else None
-#         subject = Subject.objects.get(id=subject_id) if subject_id else None
-
-#         # Process each student's score for progressive test 3
-#         for student in students:
-#             progressive_test_3_score = request.POST.get(f'progressive_test_3_score_{student.id}')
-#             if progressive_test_3_score:
-#                 try:
-#                     # Convert to Decimal for saving
-#                     progressive_test_3_score = Decimal(progressive_test_3_score)
-#                 except ValueError:
-#                     progressive_test_3_score = None
-                
-#                 # Save or update the score for the student, including created_by
-#                 Score.objects.update_or_create(
-#                     student=student,
-#                     term=term,
-#                     subject=subject,
-#                     created_by=request.user,  # Include created_by in lookup
-#                     defaults={
-#                         'progressive_test_3_score': progressive_test_3_score,
-#                     }
-#                 )
-
-#         # Add a success message to be displayed using SweetAlert
-#         messages.success(request, 'Progressive Test 3 data saved successfully.')
-
-#         # Redirect back to the same page after form submission
-#         return redirect('progressive_score_three')  # Replace with the correct URL name
-
-#     # For GET requests, render the page
-#     term_id = request.GET.get('term')
-#     subject_id = request.GET.get('subject')
-
-#     if term_id and subject_id:
-#         term = Term.objects.get(id=term_id)
-#         subject = Subject.objects.get(id=subject_id)
-#         scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
-
-#     context = {
-#         'students': students,
-#         'scores': scores,
-#     }
-
-#     return render(request, 'progressive_tests/progressive_test_3.html', context)
-
-#=========== Process Third Progressive Test Scores =====================
 @login_required(login_url='login')
 def progressive_test_scores_three(request):
     students = []
@@ -600,44 +322,51 @@ def progressive_test_scores_three(request):
     subject = None
 
     if request.method == 'POST':
+        # Get the form data
         level_id = request.POST.get('level')
         class_year_id = request.POST.get('class_year')
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
+        # Fetch the students based on the class year (if provided)
         if class_year_id:
             class_year = ClassYear.objects.get(id=class_year_id)
             students = Student.objects.filter(class_year=class_year)
         else:
             students = Student.objects.all()
 
+        # Fetch the term and subject
         term = Term.objects.get(id=term_id) if term_id else None
         subject = Subject.objects.get(id=subject_id) if subject_id else None
 
+        # Process each student's score for progressive test 3
         for student in students:
             progressive_test_3_score = request.POST.get(f'progressive_test_3_score_{student.id}')
             if progressive_test_3_score:
                 try:
+                    # Convert to Decimal for saving
                     progressive_test_3_score = Decimal(progressive_test_3_score)
                 except ValueError:
                     progressive_test_3_score = None
-
+                
+                # Save or update the score for the student, including created_by
                 Score.objects.update_or_create(
                     student=student,
                     term=term,
                     subject=subject,
-                    created_by=request.user,
-                    defaults={'progressive_test_3_score': progressive_test_3_score}
+                    created_by=request.user,  # Include created_by in lookup
+                    defaults={
+                        'progressive_test_3_score': progressive_test_3_score,
+                    }
                 )
 
-                # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject, created_by=request.user)
-                score_instance.save()
-
+        # Add a success message to be displayed using SweetAlert
         messages.success(request, 'Progressive Test 3 data saved successfully.')
 
-        return redirect('progressive_score_three')
+        # Redirect back to the same page after form submission
+        return redirect('progressive_score_three')  # Replace with the correct URL name
 
+    # For GET requests, render the page
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
 
@@ -654,95 +383,6 @@ def progressive_test_scores_three(request):
     return render(request, 'progressive_tests/progressive_test_3.html', context)
 
 
-#========== Process MidTerm Scores ====================
-# @login_required(login_url='login')
-# def midterm_scores(request):
-#     students = []
-#     scores = []
-#     term = None
-#     subject = None
-
-#     # Fetch students (adjust filter as needed)
-#     students = Student.objects.all()
-
-#     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#         # Retrieve POST parameters for filters
-#         level_id = request.POST.get('level')
-#         class_year_id = request.POST.get('class_year')
-#         term_id = request.POST.get('term')
-#         subject_id = request.POST.get('subject')
-
-#         level = Level.objects.get(id=level_id) if level_id else None
-#         class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
-#         term = Term.objects.get(id=term_id) if term_id else None
-#         subject = Subject.objects.get(id=subject_id) if subject_id else None
-
-#         if class_year:
-#             students = Student.objects.filter(class_year=class_year)
-
-#         # Process the submitted midterm scores
-#         for student in students:
-#             # Check if the score already exists for this student, term, and subject
-#             existing_score = Score.objects.filter(
-#                 student=student,
-#                 term=term,
-#                 subject=subject,
-#                 created_by=request.user
-#             ).first()  # Use .first() to get the actual score instance if exists
-
-#             midterm_score = 0  # Default score if no existing score is found
-
-#             if existing_score:
-#                 midterm_score = existing_score.midterm_score  # Existing score if it exists
-
-#             # Retrieve midterm score for the student from the POST data
-#             posted_midterm_score = request.POST.get(f'midterm_score_{student.id}')
-#             if posted_midterm_score:
-#                 try:
-#                     # Convert midterm score to Decimal
-#                     midterm_score = Decimal(posted_midterm_score)  # Converting to Decimal
-
-#                     # Create or update the score for this student
-#                     score_instance, created = Score.objects.update_or_create(
-#                         student=student,
-#                         term=term,
-#                         subject=subject,
-#                         created_by=request.user,
-#                         defaults={'midterm_score': midterm_score}
-#                     )
-
-#                     # After the score is updated or created, save the instance again to ensure automatic recalculations
-#                     score_instance.save()
-
-#                 except ValueError:
-#                     return JsonResponse({
-#                         'status': 'error',
-#                         'message': f'Invalid midterm score value for {student.fullname}.'
-#                     })
-
-#         # Return success message if scores are saved correctly
-#         return JsonResponse({
-#             'status': 'success',
-#             'message': 'Midterm scores saved successfully!'
-#         })
-
-#     # Ensure term and subject are defined before filtering scores
-#     term_id = request.GET.get('term')
-#     subject_id = request.GET.get('subject')
-    
-#     if term_id and subject_id:
-#         term = Term.objects.get(id=term_id)
-#         subject = Subject.objects.get(id=subject_id)
-#         scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
-
-#     # Add the scores and students to context for rendering the template
-#     context = {
-#         'students': students,
-#         'scores': scores,
-#     }
-
-#     return render(request, 'midterm.html', context)
-
 
 #========== Process MidTerm Scores ====================
 @login_required(login_url='login')
@@ -752,6 +392,7 @@ def midterm_scores(request):
     term = None
     subject = None
 
+    # Fetch students (adjust filter as needed)
     students = Student.objects.all()
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -769,24 +410,29 @@ def midterm_scores(request):
         if class_year:
             students = Student.objects.filter(class_year=class_year)
 
+        # Process the submitted midterm scores
         for student in students:
+            # Check if the score already exists for this student, term, and subject
             existing_score = Score.objects.filter(
                 student=student,
                 term=term,
                 subject=subject,
                 created_by=request.user
-            ).first()
+            ).first()  # Use .first() to get the actual score instance if exists
 
-            midterm_score = 0
+            midterm_score = 0  # Default score if no existing score is found
 
             if existing_score:
-                midterm_score = existing_score.midterm_score
+                midterm_score = existing_score.midterm_score  # Existing score if it exists
 
+            # Retrieve midterm score for the student from the POST data
             posted_midterm_score = request.POST.get(f'midterm_score_{student.id}')
             if posted_midterm_score:
                 try:
-                    midterm_score = Decimal(posted_midterm_score)
+                    # Convert midterm score to Decimal
+                    midterm_score = Decimal(posted_midterm_score)  # Converting to Decimal
 
+                    # Create or update the score for this student
                     score_instance, created = Score.objects.update_or_create(
                         student=student,
                         term=term,
@@ -795,7 +441,7 @@ def midterm_scores(request):
                         defaults={'midterm_score': midterm_score}
                     )
 
-                    # Recalculate after saving the midterm score
+                    # After the score is updated or created, save the instance again to ensure automatic recalculations
                     score_instance.save()
 
                 except ValueError:
@@ -804,19 +450,22 @@ def midterm_scores(request):
                         'message': f'Invalid midterm score value for {student.fullname}.'
                     })
 
+        # Return success message if scores are saved correctly
         return JsonResponse({
             'status': 'success',
             'message': 'Midterm scores saved successfully!'
         })
 
+    # Ensure term and subject are defined before filtering scores
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
-
+    
     if term_id and subject_id:
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
         scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
 
+    # Add the scores and students to context for rendering the template
     context = {
         'students': students,
         'scores': scores,
@@ -825,21 +474,18 @@ def midterm_scores(request):
     return render(request, 'midterm.html', context)
 
 
-
-
-##=============== Process and Display Saved End of Term Scores for the user ===============
-
+#=============== Process and Display Saved End of Term Scores for the user ===============
 @login_required(login_url='login')
 def process_scores_view(request):
     formset = None
     students = []
     scores = []
 
-    # Fetch all students and their scores (including continuous_assessment) for the logged-in user
     students = Student.objects.all()  # Adjust as per your filter
     scores = Score.objects.filter(created_by=request.user)  # Fetch scores entered by the logged-in user
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Process the submitted scores and save them to the database
         level_id = request.POST.get('level')
         class_year_id = request.POST.get('class_year')
         term_id = request.POST.get('term')
@@ -854,47 +500,57 @@ def process_scores_view(request):
             students = Student.objects.filter(class_year=class_year)
 
         for student in students:
-            # Fetch existing score for the student, term, and subject
+            # Check if the score for the student, subject, and term already exists
             existing_score = Score.objects.filter(
                 student=student,
                 term=term,
                 subject=subject,
                 created_by=request.user
-            ).first()
+            ).exists()
 
-            # Fetch the exam score from POST request (it may not exist if the user didn't input it)
-            exam_score = request.POST.get(f'exam_score_{student.id}', 0.0)
-
-            try:
-                # Convert exam_score to Decimal, if it's not 0.0
-                exam_score = Decimal(str(exam_score)) if exam_score else Decimal('0.0')
-            except:
-                exam_score = Decimal('0.0')  # If the value can't be converted, set to 0.0
-
-            # If a score exists for the student, use that to fetch or update the score
             if existing_score:
-                # Update existing score (don't manually recalculate)
-                existing_score.exam_score = exam_score
-                existing_score.save()  # This will trigger the `save()` method to recalculate total_score and grade
-            else:
-                # Create a new score object if no existing score
-                new_score = Score(
+                return JsonResponse({'status': 'error', 'message': f'Scores for {student.fullname} have already been recorded for the selected subject and term.'})
+
+            continuous_assessment = request.POST.get(f'continuous_assessment_{student.id}')
+            exam_score = request.POST.get(f'exam_score_{student.id}')
+            
+            if continuous_assessment and exam_score:
+                continuous_assessment = float(continuous_assessment)
+                exam_score = float(exam_score)
+
+                total_score = (continuous_assessment * 0.3) + (exam_score * 0.7)
+
+                if total_score >= 90:
+                    grade = 'A*'
+                elif total_score >= 80:
+                    grade = 'A'
+                elif total_score >= 70:
+                    grade = 'B'
+                elif total_score >= 60:
+                    grade = 'C'
+                elif total_score >= 50:
+                    grade = 'D'
+                else:
+                    grade = 'F'
+
+                score_instance, created = Score.objects.update_or_create(
                     student=student,
                     term=term,
                     subject=subject,
-                    created_by=request.user,
+                    continuous_assessment=continuous_assessment,
                     exam_score=exam_score,
+                    total_score=total_score,
+                    grade=grade,
+                    created_by=request.user
                 )
-                new_score.save()  # This will trigger the `save()` method to calculate total_score and grade
 
-        return JsonResponse({'status': 'success', 'message': 'End of Term Scores saved successfully!'})
+        return JsonResponse({'status': 'success', 'message': 'Scores saved successfully!'})
 
     return render(request, 'dashboard.html', {
         'formset': formset,
         'students': students,
         'scores': scores,
     })
-
 
 
 

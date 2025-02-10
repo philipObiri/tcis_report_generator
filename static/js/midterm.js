@@ -95,7 +95,8 @@ $(document).ready(function () {
         }
     })
 
-    // Fetch Students when all filters are selected
+
+    // Fetch Students when all filters are selected for midterm
     $('#term-select, #subject-select').change(function () {
         var level_id = $('#level-select').val()
         var class_year_id = $('#class-year-select').val()
@@ -114,17 +115,29 @@ $(document).ready(function () {
                     var studentRows = ''
                     if (data.student_data.length > 0) {
                         data.student_data.forEach(function (item) {
+                            // Default to 0 if midterm_score doesn't exist
+                            var midtermScore = 0;
+
+                            // Check if 'scores' is an array and then find midterm_score
+                            if (item.scores && Array.isArray(item.scores)) {
+                                item.scores.forEach(function (scoreItem) {
+                                    // Check if midterm_score exists in the current score item
+                                    if (scoreItem.midterm_score && scoreItem.midterm_score !== '0.00') {
+                                        midtermScore = scoreItem.midterm_score;
+                                    }
+                                });
+                            }
+
                             studentRows += '<tr>'
                             studentRows += '<td>' + item.student_name + '</td>'
-                            studentRows += '<td><input type="number" name="continuous_assessment_' + item.student_id + '" value="' + (item.scores.continuous_assessment || '') + '" class="form-control" min="0" max="100"></td>'
-                            studentRows += '<td><input type="number" name="exam_score_' + item.student_id + '" value="' + (item.scores.exam_score || '') + '" class="form-control" min="0" max="100"></td>'
-                            studentRows += '<td><button type="button" class="btn btn-danger btn-sm remove-entry" data-student-id="' + item.student_id + '"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></td>'
+                            studentRows += '<td><input type="number" name="midterm_score_' + item.student_id + '" value="' + midtermScore + '" class="form-control shadow-none" min="0" max="100" step="any"></td>'
+                            studentRows += '<td><button type="button" class="btn btn-danger btn-sm remove-entry" data-student-id="' + item.student_id + '"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12" /></svg></button></td>'
                             studentRows += '</tr>'
                         })
                         $('#student-rows').html(studentRows)
                         // Show the student scores section and update the title
                         $('#student-scores-section').removeClass('d-none')
-                        $('#student-scores-title').text('Student Scores for ' + data.subject_name) // Update the subject name dynamically
+                        $('#student-scores-title').text('Student Midterm Scores for ' + data.subject_name) // Update the subject name dynamically
                     } else {
                         $('#student-rows').html('<tr><td colspan="4">No students found for the selected filters.</td></tr>')
                         $('#student-scores-section').removeClass('d-none') // Show the section even if no students are found
@@ -134,14 +147,15 @@ $(document).ready(function () {
         }
     })
 
+
     // Handle formset deletion
     $(document).on('click', '.remove-entry', function () {
         var student_id = $(this).data('student-id')
         $(this).closest('tr').remove() // Remove the row from the table
     })
 
-    // Handle AJAX form submission
-    $('#scores-form').submit(function (e) {
+    // Handle AJAX form submission for midterm scores
+    $('#midterm-scores-form').submit(function (e) {
         e.preventDefault() // Prevent regular form submission
 
         var formValid = true
@@ -152,21 +166,18 @@ $(document).ready(function () {
             var inputName = input.attr('name')
             var studentId = inputName.split('_')[2] // Extract the student ID from the name
 
-            var continuousAssessment = $('[name="continuous_assessment_' + studentId + '"]').val()
-            var examScore = $('[name="exam_score_' + studentId + '"]').val()
+            var midtermScore = $('[name="midterm_score_' + studentId + '"]').val()
 
-            if (!continuousAssessment || !examScore) {
+            if (!midtermScore) {
                 formValid = false
                 // Highlight the fields with missing data
-                $('[name="continuous_assessment_' + studentId + '"]').addClass('is-invalid')
-                $('[name="exam_score_' + studentId + '"]').addClass('is-invalid')
+                $('[name="midterm_score_' + studentId + '"]').addClass('is-invalid')
                 // Optionally, show an error message in each input's parent
                 if (!$('.invalid-feedback').length) {
                     $('<div class="invalid-feedback">This field is required</div>').insertAfter(input)
                 }
             } else {
-                $('[name="continuous_assessment_' + studentId + '"]').removeClass('is-invalid')
-                $('[name="exam_score_' + studentId + '"]').removeClass('is-invalid')
+                $('[name="midterm_score_' + studentId + '"]').removeClass('is-invalid')
                 $(input).siblings('.invalid-feedback').remove()
             }
         })
@@ -208,19 +219,17 @@ $(document).ready(function () {
         }
     })
 
+
     // Reset form fields after successful form submission
     function resetFormFields() {
         $('#hidden-level').val('')
         $('#hidden-class-year').val('')
         $('#hidden-term').val('')
         $('#hidden-subject').val('')
-
         $('#student-rows').html('')
         $('#student-scores-section').addClass('d-none')
         $('#student-scores-title').text('Student Scores')
-
         $('.form-control').removeClass('is-invalid')
         $('.invalid-feedback').remove()
     }
 })
-

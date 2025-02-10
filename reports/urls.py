@@ -5,6 +5,17 @@ urlpatterns = [
     # Main view for class information and rendering forms
     path('', views.custom_login, name='login'),
 
+    path('dashboard/scores-entry/select-option/', views.select_option, name='select_option'),
+    
+    path('dashboard/progressive-test-scores/entry-options/', views.select_progressive_option, name="select_progressive_option"),
+
+    path('dashboard/entries/class-scores/', views.class_scores, name="class_scores"),
+    path('dashboard/entries/midterm-scores/', views.midterm_scores, name="midterm"),
+
+    path('dashboard/entries/first-progressive-scores/', views.progressive_test_scores_one, name="progressive_score_one"),
+    path('dashboard/entries/second-progressive-scores/', views.progressive_test_scores_two, name="progressive_score_two"),
+    path('third-progressive-scores/', views.progressive_test_scores_three, name="progressive_score_three"),
+
     path('reports/scores/delete-score/<int:score_id>/', views.delete_score, name='delete_score'),
 
     path('reports/', views.process_scores_view, name='process_scores'),

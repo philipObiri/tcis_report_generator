@@ -81,12 +81,12 @@
         {% csrf_token %}
         <div class="mb-3">
           <label class="form-label">Staff ID</label>
-          <input type="text" name="username" class="form-control" placeholder="" autocomplete="off" required />
+          <input type="text" name="username" class="form-control shadow-none" placeholder="" autocomplete="off" required />
         </div>
         <div class="mb-2">
           <label class="form-label">Staff Password</label>
-          <div class="input-group input-group-flat">
-            <input type="password" name="password" class="form-control" placeholder="Your password" autocomplete="off" id="passwordField" required />
+          <div class="input-group input-group-flat shadow-none">
+            <input type="password" name="password" class="form-control shadow-none" placeholder="Your password" autocomplete="off" id="passwordField" required />
             <span class="input-group-text">
               <a href="#" class="link-secondary" title="Show/Hide Password" data-bs-toggle="tooltip" id="togglePassword">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -107,7 +107,7 @@
         </div>
 
         <div class="form-footer">
-          <button type="submit" class="btn btn-primary w-100">Sign in</button>
+          <button type="submit" class="btn btn-primary w-100" id="submitButton">Sign in</button>
         </div>
       </form>
     </div>
@@ -123,6 +123,7 @@
         const passwordField = document.getElementById(passwordFieldId);
         const eyeIcon = togglePassword.querySelector('.icon');
         const eyeXIcon = togglePassword.querySelector('.icon-tabler-eye-x');
+
       
         togglePassword.addEventListener('click', function (e) {
           e.preventDefault();
@@ -140,6 +141,17 @@
       }
       
       togglePasswordVisibility('togglePassword', 'passwordField');
+
+
+
+      const form = document.getElementById('loginForm')
+      const submitButton = document.getElementById('submitButton')
+
+      form.addEventListener('submit', function () {
+        // Change button text and disable it
+        submitButton.textContent = 'Signing in...'
+        submitButton.disabled = true
+      })
       
       setTimeout(function () {
         const alert = document.querySelector('.alert');

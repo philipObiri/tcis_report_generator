@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% block page_header %}
-  Select an Option
+  Select Progressive Test Option :
 {% endblock %}
 
 {% block main_content %}
   <div class="row row-cards">
     <div class="">
-      <div class="card card-link card-link-pop border-round abs-card mt-3">
+      <div class="card card-link card-link-pop border-round abs-card">
         <div class="card-stamp">
           <div class="card-stamp-icon bg-blue">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-text">
@@ -19,10 +19,10 @@
             </svg>
           </div>
         </div>
-        <a href="{% url 'class_scores' %}" style="text-decoration: none; color:inherit;">
+        <a href="{% url 'progressive_score_one' %}" style="text-decoration: none; color:inherit;">
           <div class="card-body">
-            <h3 class="card-title text-abs-red">Home Work / Class Tests</h3>
-            <p class="text-muted">Allows you to record home work and class work /test scores for the students on your subject and generate reports on the scores entered.</p>
+            <h3 class="card-title text-abs-red">Progressive Test One</h3>
+            <p class="text-muted">Enter scores for progressive test one</p>
           </div>
         </a>
       </div>
@@ -32,7 +32,6 @@
       <div class="card card-link card-link-pop border-round abs-card">
         <div class="card-stamp">
           <div class="card-stamp-icon bg-blue">
-            <!-- Download SVG icon from http://tabler-icons.io/i/bell -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-tools">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
               <path d="M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4" />
@@ -44,31 +43,10 @@
             </svg>
           </div>
         </div>
-        <a href="{% url 'select_progressive_option' %}" style="text-decoration: none; color:inherit;">
+        <a href="{% url 'progressive_score_two' %}" style="text-decoration: none; color:inherit;">
           <div class="card-body">
-            <h3 class="card-title text-abs-red">Progressive Tests</h3>
-            <p class="text-muted">Allows you to record progressive test scores for your students and generate reports on the scores entered.</p>
-          </div>
-        </a>
-      </div>
-    </div>
-
-    <div class="">
-      <div class="card card-link card-link-pop border-round abs-card">
-        <div class="card-stamp">
-          <div class="card-stamp-icon bg-blue">
-            <!-- Download SVG icon from http://tabler-icons.io/i/bell -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
-              <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
-            </svg>
-          </div>
-        </div>
-        <a href="{% url 'midterm' %}" style="text-decoration: none; color:inherit;">
-          <div class="card-body">
-            <h3 class="card-title text-abs-red">Mid Term</h3>
-            <p class="text-muted">Allows you to record mid term scores for students on your subject and generate reports on the scores entered</p>
+            <h3 class="card-title text-abs-red">Progressive Test Two</h3>
+            <p class="text-muted">Enter scores for progressive test two</p>
           </div>
         </a>
       </div>
@@ -87,18 +65,16 @@
             </svg>
           </div>
         </div>
-        <a href="{% url 'process_scores' %}" style="text-decoration: none; color: inherit;">
+        <a href="{% url 'progressive_score_three' %}" style="text-decoration: none; color:inherit;">
           <div class="card-body">
-            <h3 class="card-title text-abs-red">End Of Term</h3>
-            <p class="text-muted">Allows you to record scores for the end of term and generate reports on the scores entered</p>
+            <h3 class="card-title text-abs-red">Progressive Test Three</h3>
+            <p class="text-muted">
+              Enter scores for progressive test three <small style="color:red;">*(this is optional)</small>
+            </p>
           </div>
         </a>
       </div>
     </div>
   </div>
-
- <div class="d-flex" style="justify-content:space-between; align-items: center;">
-  <a href="{% url 'logout' %}" class="my-4 btn btn-outline-secondary">Logout</a>
-  <a href="{% url 'process_scores' %}" class="my-4 btn btn-outline-primary">Skip to Dashboard</a>
- </div>
+  <a href="{% url 'select_option' %}" class="btn btn-primary my-2">Go Back</a>
 {% endblock %}

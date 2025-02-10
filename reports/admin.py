@@ -28,7 +28,7 @@ admin.site.register(Term, TermAdmin)
 class SubjectAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    list_filter=('class_year',)
+    list_filter = ('class_year',)
     filter_horizontal = ('class_year',)
 
 admin.site.register(Subject, SubjectAdmin)
@@ -44,9 +44,10 @@ admin.site.register(Student, StudentAdmin)
 
 # Register the Score model
 class ScoreAdmin(admin.ModelAdmin):
-    list_display = ('student', 'subject', 'term', 'continuous_assessment', 'exam_score', 'total_score', 'grade')
+    list_display = ('student', 'subject', 'term', 'class_work_score', 'progressive_test_1_score', 'progressive_test_2_score', 'progressive_test_3_score', 'midterm_score', 'exam_score', 'continuous_assessment', 'total_score', 'grade')
     search_fields = ('student__fullname', 'subject__name', 'term__term_name')
-    list_filter = ('term', 'subject','created_by')
+    list_filter = ('term', 'subject', 'created_by')
+    readonly_fields = ('continuous_assessment', 'total_score', 'grade')  # Make these fields readonly as they are auto-calculated
 
 admin.site.register(Score, ScoreAdmin)
 

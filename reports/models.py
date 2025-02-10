@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User  
 from decimal import Decimal
 
-# Create your models here.
 class Level(models.Model):
     LOWER = 'Lower Secondary'
     UPPER = 'Upper Secondary'
@@ -19,9 +18,6 @@ class Level(models.Model):
     def __str__(self):
         return self.name
 
-
-
-# ClassYear model
 class ClassYear(models.Model):
     level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='level')
     name = models.CharField(max_length=100)
@@ -33,7 +29,6 @@ class ClassYear(models.Model):
     def __str__(self):
         return f"{self.level.name} - {self.name}"
 
-# Term model to represent the three terms
 class Term(models.Model):
     TERM_1 = 'Term 1'
     TERM_2 = 'Term 2'
@@ -51,17 +46,12 @@ class Term(models.Model):
     def __str__(self):
         return f"{self.term_name} - {self.class_year.name}"
 
-
-
-# Subject model
 class Subject(models.Model):
     name = models.CharField(max_length=100)
-    class_year = models.ManyToManyField(ClassYear,related_name='subjects')
+    class_year = models.ManyToManyField(ClassYear, related_name='subjects')
+
     def __str__(self):
         return self.name
-
-
-
 
 class Student(models.Model):
     fullname = models.CharField(max_length=255)
@@ -72,52 +62,84 @@ class Student(models.Model):
         return self.fullname
 
     def save(self, *args, **kwargs):
-        # First save the student to generate the primary key (if it's a new instance)
         created = self.pk is None
         super().save(*args, **kwargs)
 
-        # After the student is saved, assign subjects based on class_year
         if created or self._state.fields_cache.get('class_year') != self.class_year:
-            # Assign the subjects based on the class_year
             self.subjects.set(self.class_year.subjects.all())
 
-        # Save the many-to-many relationship
-        self.save_m2m()  # This ensures the many-to-many relationship is saved after it's updated
+        self.save_m2m()
 
     def save_m2m(self):
-        # Django requires a separate call to save many-to-many fields
-        if self.pk:  # Ensure that the student has been saved and has an ID before saving m2m
-            self.subjects.clear()  # Clear any existing subjects before setting new ones
-            self.subjects.add(*self.class_year.subjects.all())  # Add the subjects
+        if self.pk:
+            self.subjects.clear()
+            self.subjects.add(*self.class_year.subjects.all())
 
 
-
-
-# Score model to store each student's assessment and exam score
 class Score(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scores')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='scores')
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='scores')  # Link score to term
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='scores')
 
-    continuous_assessment = models.DecimalField(max_digits=5, decimal_places=2)
-    exam_score = models.DecimalField(max_digits=5, decimal_places=2)
-    total_score = models.DecimalField(max_digits=5, decimal_places=2)
+    # New fields for individual scores
+    class_work_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    progressive_test_1_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    progressive_test_2_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    progressive_test_3_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    midterm_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
 
+    # Exam score (main exam at the end of the term)
+    exam_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+
+    continuous_assessment = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    total_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
     grade = models.CharField(max_length=3, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        # Use Decimal instead of float for calculations
-        self.total_score = (self.continuous_assessment * Decimal('0.3')) + (self.exam_score * Decimal('0.7'))
+        # Ensure that exam_score is never None, default to 0.0 if missing
+        if self.exam_score is None:
+            self.exam_score = Decimal('0.0')
+
+        # Convert exam_score to Decimal in case it's a float or non-decimal value
+        exam_score = Decimal(self.exam_score)
+
+        # Calculate Continuous Assessment score: Sum of classwork, progressive tests, and midterm scores
+        continuous_assessment = (
+            self.class_work_score + 
+            self.progressive_test_1_score + 
+            self.progressive_test_2_score + 
+            self.progressive_test_3_score + 
+            self.midterm_score
+        )  # Sum all the scores
+
+        self.continuous_assessment = continuous_assessment
+
+        # Calculate Total Score: 30% of Continuous Assessment + 70% of Exam Score
+        self.total_score = (self.continuous_assessment * Decimal('0.30')) + (exam_score * Decimal('0.70'))
+
+        # Assign grade based on the total_score
+        if self.total_score >= Decimal('90'):
+            self.grade = 'A*'
+        elif self.total_score >= Decimal('80'):
+            self.grade = 'A'
+        elif self.total_score >= Decimal('70'):
+            self.grade = 'B'
+        elif self.total_score >= Decimal('60'):
+            self.grade = 'C'
+        elif self.total_score >= Decimal('50'):
+            self.grade = 'D'
+        else:
+            self.grade = 'F'
+
+        # Call the superclass save method to store the object in the database
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.student.fullname} - {self.subject.name} - {self.total_score}"
-
-
 
 
 
@@ -127,17 +149,12 @@ class AcademicReport(models.Model):
     
     # Many to Many rel to the Score model to represent the student's individual scores
     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
-    # The student's GPA for the given term
     student_gpa = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # Fetch all scores for the student in the given term
         scores = Score.objects.filter(student=self.student, term=self.term)
-        
-        # Calculate GPA using the grade point scale
         grade_points = self.calculate_gpa(scores)
         
-        # Calculate GPA by averaging the grade points
         if grade_points:
             self.student_gpa = sum(grade_points) / len(grade_points)
         
@@ -147,8 +164,6 @@ class AcademicReport(models.Model):
         grade_points = []
         for score in scores:
             grade = score.grade
-            
-            # Mapping grades to grade points
             if grade == 'A*':
                 grade_points.append(4.0)
             elif grade == 'A':
@@ -161,7 +176,6 @@ class AcademicReport(models.Model):
                 grade_points.append(1.0)
             elif grade == 'F':
                 grade_points.append(0.0)
-        
         return grade_points
 
     def __str__(self):

@@ -56,7 +56,7 @@
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Progressive Test Score</th>
+                  <th title="Caculate the score out of 100%">Progressive Test Score</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -68,8 +68,9 @@
       </form>
 
       <div class="d-flex" style="justify-content:center; align-items: center;">
-        <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button>
-        <a href="{% url 'select_progressive_option' %}" class="d-block btn btn-outline-secondary">Change Progressive Option</a>
+        {% comment %} <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button> {% endcomment %}
+        <a href="{% url 'process_scores' %}" class="my-4 btn btn-outline-primary">Go to Dashboard</a>
+        <a href="{% url 'select_progressive_option' %}" class="d-block btn btn-outline-secondary mx-2">Change Progressive Option</a>
       </div>
     </section>
   </div>
@@ -173,13 +174,13 @@
           })
         }
       })
-  
+    
       // Fetch Class Years, Terms, and Subjects based on selected Level
       $('#level-select').change(function () {
         var level_id = $(this).val()
         // Update hidden level field
         $('#hidden-level').val(level_id)
-  
+    
         if (level_id) {
           // Fetch Class Years for the selected Level
           $.ajax({
@@ -213,14 +214,14 @@
           $('#hidden-subject').val('')
         }
       })
-  
+    
       // Fetch Terms and Subjects when Class Year is selected
       $('#class-year-select').change(function () {
         var class_year_id = $(this).val()
         var level_id = $('#level-select').val()
         // Update hidden class-year field
         $('#hidden-class-year').val(class_year_id)
-  
+    
         if (class_year_id) {
           // Fetch Terms for the selected Class Year
           $.ajax({
@@ -233,7 +234,7 @@
               data.terms.forEach(function (term) {
                 termSelect.append('<option value="' + term.id + '">' + term.name + '</option>')
               })
-  
+    
               // Fetch Subjects for the selected Class Year
               $.ajax({
                 url: '/get-subjects-by-class-year/' + class_year_id + '/',
@@ -257,18 +258,18 @@
           $('#hidden-subject').val('')
         }
       })
-  
+    
       // Fetch Students when all filters are selected for progressive test 1
       $('#term-select, #subject-select').change(function () {
         var level_id = $('#level-select').val()
         var class_year_id = $('#class-year-select').val()
         var term_id = $('#term-select').val()
         var subject_id = $('#subject-select').val()
-  
+    
         // Update hidden fields
         $('#hidden-term').val(term_id)
         $('#hidden-subject').val(subject_id)
-  
+    
         if (level_id && class_year_id && term_id && subject_id) {
           $.ajax({
             url: '/get-students-by-filters/' + level_id + '/' + class_year_id + '/' + term_id + '/' + subject_id + '/',
@@ -278,15 +279,13 @@
               if (data.student_data.length > 0) {
                 data.student_data.forEach(function (item) {
                   // Check for progressive_test_1_score and ensure it's valid
-                  var progressiveTest1Score = item.scores && Array.isArray(item.scores) ? 
-                    item.scores.find(score => score.progressive_test_1_score && score.progressive_test_1_score !== '0.00')?.progressive_test_1_score : 
-                    null;
-  
+                  var progressiveTest1Score = item.scores && Array.isArray(item.scores) ? item.scores.find((score) => score.progressive_test_1_score && score.progressive_test_1_score !== '0.00')?.progressive_test_1_score : null
+    
                   // If progressive_test_1_score is not found or invalid, default to 0
                   if (progressiveTest1Score === null || progressiveTest1Score === undefined || isNaN(progressiveTest1Score) || progressiveTest1Score === '0.00') {
-                    progressiveTest1Score = '0.00';
+                    progressiveTest1Score = '0.00'
                   }
-  
+    
                   studentRows += '<tr>'
                   studentRows += '<td>' + item.student_name + '</td>'
                   studentRows += '<td><input type="number" name="progressive_test_1_score_' + item.student_id + '" value="' + progressiveTest1Score + '" class="form-control shadow-none" min="0" max="100" step="any"></td>'
@@ -305,17 +304,17 @@
           })
         }
       })
-  
+    
       // Handle formset deletion
       $(document).on('click', '.remove-entry', function () {
         var student_id = $(this).data('student-id')
         $(this).closest('tr').remove() // Remove the row from the table
       })
-  
+    
       // Handle regular form submission for progressive test 1 scores
       $('#first-progressive-test-form').submit(function (e) {
         // Form will now be submitted as usual. No AJAX handling is required here.
       })
     })
-  </script>  
+  </script>
 {% endblock %}

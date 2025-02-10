@@ -10,67 +10,66 @@
 
 {% block main_content %}
   <div class="container layout-fluid">
+    <section class="class_info">
+      <form id="midterm-scores-form" method="POST" action="" class="bg-white p-4">
+        {% csrf_token %}
+        <input type="hidden" name="level" id="hidden-level" />
+        <input type="hidden" name="class_year" id="hidden-class-year" />
+        <input type="hidden" name="term" id="hidden-term" />
+        <input type="hidden" name="subject" id="hidden-subject" />
+        <section>
+          <h3 class="mb-3">Class Information</h3>
+          <div class="form-group">
+            <label for="level-select">Level</label>
+            <select id="level-select" class="form-control">
+              <option value="">Select Level</option>
+            </select>
+          </div>
 
-      <section class="class_info">
-        <form id="midterm-scores-form" method="POST" action="" class="bg-white p-4">
-          {% csrf_token %}
-          <input type="hidden" name="level" id="hidden-level" />
-          <input type="hidden" name="class_year" id="hidden-class-year" />
-          <input type="hidden" name="term" id="hidden-term" />
-          <input type="hidden" name="subject" id="hidden-subject" />
-          <section>
-            <h3 class="mb-3">Class Information</h3>
-            <div class="form-group">
-              <label for="level-select">Level</label>
-              <select id="level-select" class="form-control">
-                <option value="">Select Level</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label for="class-year-select">Class Year</label>
+            <select id="class-year-select" class="form-control" disabled>
+              <option value="">Select Class Year</option>
+            </select>
+          </div>
 
-            <div class="form-group">
-              <label for="class-year-select">Class Year</label>
-              <select id="class-year-select" class="form-control" disabled>
-                <option value="">Select Class Year</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label for="term-select">Term</label>
+            <select id="term-select" class="form-control" disabled>
+              <option value="">Select Term</option>
+            </select>
+          </div>
 
-            <div class="form-group">
-              <label for="term-select">Term</label>
-              <select id="term-select" class="form-control" disabled>
-                <option value="">Select Term</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label for="subject-select">Subject</label>
+            <select id="subject-select" class="form-control" disabled>
+              <option value="">Select Subject</option>
+            </select>
+          </div>
 
-            <div class="form-group">
-              <label for="subject-select">Subject</label>
-              <select id="subject-select" class="form-control" disabled>
-                <option value="">Select Subject</option>
-              </select>
-            </div>
-
-            <!-- Student Scores Section -->
-            <div class="p-4 d-none table-responsive" id="student-scores-section">
-              <h3 class="card-title mb-3" id="student-scores-title">Student Scores</h3>
-              <table id="students-table" class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Midterm Score</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="student-rows"></tbody>
-              </table>
-              <button type="submit" id="save-scores-btn" class="btn btn-primary my-2">Record Scores</button>
-            </div>
-          </section>
-        </form>
-        <div class="d-flex" style="justify-content:center; align-items: center;">
-          <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button>
-          <a href="{% url 'select_option' %}" class="d-block btn btn-outline-secondary">Change Entry Option</a>
-        </div>
-      </section>
-
+          <!-- Student Scores Section -->
+          <div class="p-4 d-none table-responsive" id="student-scores-section">
+            <h3 class="card-title mb-3" id="student-scores-title">Student Scores</h3>
+            <table id="students-table" class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th title="Caculate the midterm score out of 100%">Midterm Score (100%)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="student-rows"></tbody>
+            </table>
+            <button type="submit" id="save-scores-btn" class="btn btn-primary my-2">Record Scores</button>
+          </div>
+        </section>
+      </form>
+      <div class="d-flex" style="justify-content:center; align-items: center;">
+        {% comment %} <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button> {% endcomment %}
+        <a href="{% url 'process_scores' %}" class="my-4 btn btn-outline-primary">Skip to Dashboard</a>
+        <a href="{% url 'select_option' %}" class="d-block btn btn-outline-secondary">Change Entry Option</a>
+      </div>
+    </section>
   </div>
 
   <!-- Logout Button -->
@@ -156,8 +155,7 @@
       </div>
     </div>
   </div>
-  
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/midterm.js' %}"></script>
-{% endblock extra_js %}
+  <script src="{% static 'js/midterm.js' %}"></script>
+{% endblock %}

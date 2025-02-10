@@ -1,104 +1,98 @@
 {% extends 'base.html' %}
+
 {% block page_header %}
   Select an Option
 {% endblock %}
 
 {% block main_content %}
-  <div class="row row-cards">
-    <div class="">
-      <div class="card card-link card-link-pop border-round abs-card mt-3">
-        <div class="card-stamp">
-          <div class="card-stamp-icon bg-blue">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-text">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-              <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
-              <path d="M9 9l1 0" />
-              <path d="M9 13l6 0" />
-              <path d="M9 17l6 0" />
-            </svg>
-          </div>
-        </div>
-        <a href="{% url 'class_scores' %}" style="text-decoration: none; color:inherit;">
-          <div class="card-body">
-            <h3 class="card-title text-abs-red">Home Work / Class Tests</h3>
-            <p class="text-muted">Allows you to record home work and class work /test scores for the students on your subject and generate reports on the scores entered.</p>
-          </div>
-        </a>
+  <div class="row" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;">
+    
+    <!-- Custom Card 1 -->
+    <div class="custom-card" style="flex: 1 1 calc(25% - 16px); min-width: 220px; max-width: 250px; background-color: #f7f7f7; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+      <div class="card-icon" style="padding: 20px; background-color: #007bff; display: flex; justify-content: center; align-items: center;">
+        <!-- SVG Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+          <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+          <path d="M9 9l1 0" />
+          <path d="M9 13l6 0" />
+          <path d="M9 17l6 0" />
+        </svg>
       </div>
+      <a href="{% url 'class_scores' %}" style="text-decoration: none; color: inherit;">
+        <div class="card-body" style="padding: 20px;">
+          <h3 class="card-title" style="font-size: 1.25rem; color: #e74c3c; margin-bottom: 10px;">Home Work / Class Tests</h3>
+          <p class="text-muted" style="font-size: 0.875rem;">Allows you to record home work and class work /test scores for the students on your subject and generate reports on the scores entered.</p>
+        </div>
+      </a>
     </div>
 
-    <div class="">
-      <div class="card card-link card-link-pop border-round abs-card">
-        <div class="card-stamp">
-          <div class="card-stamp-icon bg-blue">
-            <!-- Download SVG icon from http://tabler-icons.io/i/bell -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-tools">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4" />
-              <path d="M14.5 5.5l4 4" />
-              <path d="M12 8l-5 -5l-4 4l5 5" />
-              <path d="M7 8l-1.5 1.5" />
-              <path d="M16 12l5 5l-4 4l-5 -5" />
-              <path d="M16 17l-1.5 1.5" />
-            </svg>
-          </div>
-        </div>
-        <a href="{% url 'select_progressive_option' %}" style="text-decoration: none; color:inherit;">
-          <div class="card-body">
-            <h3 class="card-title text-abs-red">Progressive Tests</h3>
-            <p class="text-muted">Allows you to record progressive test scores for your students and generate reports on the scores entered.</p>
-          </div>
-        </a>
+    <!-- Custom Card 2 -->
+    <div class="custom-card" style="flex: 1 1 calc(25% - 16px); min-width: 220px; max-width: 250px; background-color: #f7f7f7; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+      <div class="card-icon" style="padding: 20px; background-color: #007bff; display: flex; justify-content: center; align-items: center;">
+        <!-- SVG Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4" />
+          <path d="M14.5 5.5l4 4" />
+          <path d="M12 8l-5 -5l-4 4l5 5" />
+          <path d="M7 8l-1.5 1.5" />
+          <path d="M16 12l5 5l-4 4l-5 -5" />
+          <path d="M16 17l-1.5 1.5" />
+        </svg>
       </div>
+      <a href="{% url 'select_progressive_option' %}" style="text-decoration: none; color: inherit;">
+        <div class="card-body" style="padding: 20px;">
+          <h3 class="card-title" style="font-size: 1.25rem; color: #e74c3c; margin-bottom: 10px;">Progressive Tests</h3>
+          <p class="text-muted" style="font-size: 0.875rem;">Allows you to record progressive test scores for your students and generate reports on the scores entered.</p>
+        </div>
+      </a>
     </div>
 
-    <div class="">
-      <div class="card card-link card-link-pop border-round abs-card">
-        <div class="card-stamp">
-          <div class="card-stamp-icon bg-blue">
-            <!-- Download SVG icon from http://tabler-icons.io/i/bell -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
-              <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
-            </svg>
-          </div>
-        </div>
-        <a href="{% url 'midterm' %}" style="text-decoration: none; color:inherit;">
-          <div class="card-body">
-            <h3 class="card-title text-abs-red">Mid Term</h3>
-            <p class="text-muted">Allows you to record mid term scores for students on your subject and generate reports on the scores entered</p>
-          </div>
-        </a>
+    <!-- Custom Card 3 -->
+    <div class="custom-card" style="flex: 1 1 calc(25% - 16px); min-width: 220px; max-width: 250px; background-color: #f7f7f7; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+      <div class="card-icon" style="padding: 20px; background-color: #007bff; display: flex; justify-content: center; align-items: center;">
+        <!-- SVG Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="40" height="40" viewBox="0 0 24 24" stroke-width="2" stroke="white" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
+          <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+        </svg>
       </div>
+      <a href="{% url 'midterm' %}" style="text-decoration: none; color: inherit;">
+        <div class="card-body" style="padding: 20px;">
+          <h3 class="card-title" style="font-size: 1.25rem; color: #e74c3c; margin-bottom: 10px;">Mid Term</h3>
+          <p class="text-muted" style="font-size: 0.875rem;">Allows you to record mid term scores for students on your subject and generate reports on the scores entered</p>
+        </div>
+      </a>
     </div>
 
-    <div class="">
-      <div class="card card-link card-link-pop border-round abs-card">
-        <div class="card-stamp">
-          <div class="card-stamp-icon bg-blue">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-              <path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5" />
-              <path d="M16.5 17.5m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0" />
-              <path d="M18.5 19.5l2.5 2.5" />
-            </svg>
-          </div>
-        </div>
-        <a href="{% url 'process_scores' %}" style="text-decoration: none; color: inherit;">
-          <div class="card-body">
-            <h3 class="card-title text-abs-red">End Of Term</h3>
-            <p class="text-muted">Allows you to record scores for the end of term and generate reports on the scores entered</p>
-          </div>
-        </a>
+    <!-- Custom Card 4 -->
+    <div class="custom-card" style="flex: 1 1 calc(25% - 16px); min-width: 220px; max-width: 250px; background-color: #f7f7f7; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+      <div class="card-icon" style="padding: 20px; background-color: #007bff; display: flex; justify-content: center; align-items: center;">
+        <!-- SVG Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+          <path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5" />
+          <path d="M16.5 17.5m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0" />
+          <path d="M18.5 19.5l2.5 2.5" />
+        </svg>
       </div>
+      <a href="{% url 'process_scores' %}" style="text-decoration: none; color: inherit;">
+        <div class="card-body" style="padding: 20px;">
+          <h3 class="card-title" style="font-size: 1.25rem; color: #e74c3c; margin-bottom: 10px;">End Of Term</h3>
+          <p class="text-muted" style="font-size: 0.875rem;">Allows you to record scores for the end of term and generate reports on the scores entered</p>
+        </div>
+      </a>
     </div>
+
   </div>
 
- <div class="d-flex" style="justify-content:space-between; align-items: center;">
-  <a href="{% url 'logout' %}" class="my-4 btn btn-outline-secondary">Logout</a>
-  <a href="{% url 'process_scores' %}" class="my-4 btn btn-outline-primary">Skip to Dashboard</a>
- </div>
+  <div class="d-flex" style="justify-content:space-between; align-items: center; margin-top: 20px;">
+    <a href="{% url 'logout' %}" class="my-4 btn btn-outline-secondary">Logout</a>
+    <a href="{% url 'process_scores' %}" class="my-4 btn btn-outline-primary">Skip to Dashboard</a>
+  </div>
+
 {% endblock %}

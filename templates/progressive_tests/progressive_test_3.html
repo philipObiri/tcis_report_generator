@@ -56,7 +56,7 @@
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Progressive Test 3 Score</th>
+                  <th title="Caculate the score out of 100%">Progressive Test 3 Score</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -68,8 +68,9 @@
       </form>
 
       <div class="d-flex" style="justify-content:center; align-items: center;">
-        <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button>
-        <a href="{% url 'select_progressive_option' %}" class="d-block btn btn-outline-secondary">Change Progressive Option</a>
+        {% comment %} <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button> {% endcomment %}
+        <a href="{% url 'process_scores' %}" class="my-4 btn btn-outline-primary">Go to Dashboard</a>
+        <a href="{% url 'select_progressive_option' %}" class="d-block btn btn-outline-secondary mx-2">Change Progressive Option</a>
       </div>
     </section>
   </div>

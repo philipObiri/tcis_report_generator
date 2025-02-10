@@ -20,8 +20,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY', default='A$47&jg^&8@dnwdt67-g@w*ob@2#od*uvb51c+it3)8-05dmg8zgkw1')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = False
-DEBUG = True
+DEBUG = False
+# DEBUG = True
 ALLOWED_HOSTS =  ["127.0.0.1", "localhost", "tcis-reports.onrender.com", "209.74.77.238","reports.tcis.edu.gh"]
 
 

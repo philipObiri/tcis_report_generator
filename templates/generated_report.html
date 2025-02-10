@@ -158,13 +158,14 @@
       <p>
         <strong>Term:</strong> {{ term_name }}
       </p>
+  
 
       <!-- Table to display subjects and scores -->
       <table>
         <thead>
           <tr>
             <th>Subject</th>
-            <th>CA (30%)</th>
+            <th>Continous Assessment (30%)</th>
             <th>Exam (70%)</th>
             <th>Total</th>
             <th>Grade</th>
@@ -189,7 +190,7 @@
 
       <!-- Display GPA -->
       <p class="gpa_grade">
-        <strong>GPA:</strong> {{ gpa }}
+        <strong>GPA:</strong> {{ gpa|floatformat:2 }}
       </p>
 
       <div class="gpa-table">
@@ -201,34 +202,59 @@
             <tr>
               <th scope="col">Grade</th>
               <th scope="col">Percentage Range</th>
-              <th scope="col">Grade Point</th>
+              <th scope="col">Grade Point Range</th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td>A+</td>
+              <td>90% - 100%</td>
+              <td>4.5 - 5.0</td>
+            </tr>
+            <tr>
               <td>A</td>
               <td>80% - 89%</td>
-              <td>3.75</td>
+              <td>4.0 - 4.4</td>
+            </tr>
+            <tr>
+              <td>B+</td>
+              <td>75% - 79%</td>
+              <td>3.5 - 3.9</td>
             </tr>
             <tr>
               <td>B</td>
-              <td>70% - 79%</td>
-              <td>3.0</td>
+              <td>70% - 74%</td>
+              <td>3.0 - 3.4</td>
+            </tr>
+            <tr>
+              <td>C+</td>
+              <td>65% - 69%</td>
+              <td>2.5 - 2.9</td>
             </tr>
             <tr>
               <td>C</td>
-              <td>60% - 69%</td>
-              <td>2.0</td>
+              <td>60% - 64%</td>
+              <td>2.0 - 2.4</td>
             </tr>
             <tr>
               <td>D</td>
               <td>50% - 59%</td>
-              <td>1.0</td>
+              <td>1.5 - 1.9</td>
+            </tr>
+            <tr>
+              <td>E</td>
+              <td>45% - 49%</td>
+              <td>1.0 - 1.4</td>
             </tr>
             <tr>
               <td>F</td>
-              <td>0% - 49%</td>
-              <td>0.0</td>
+              <td>35% - 44%</td>
+              <td>0 - 1.0</td>
+            </tr>
+            <tr>
+              <td>Ungraded</td>
+              <td>0% - 34%</td>
+              <td>No Grade</td>
             </tr>
           </tbody>
         </table>

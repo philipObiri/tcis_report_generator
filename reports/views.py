@@ -817,24 +817,35 @@ def generate_academic_report(request):
 
 def calculate_gpa(scores):
     """
-    Calculate the GPA from a list of scores using simple logic.
-    Adjust this logic if necessary.
+    Calculate the GPA from a list of scores using a proportional scale.
+    If the total score is 100, GPA is 5.0, and if the total score is 0, GPA is 0.0.
+    The GPA is calculated proportionally for other scores.
     """
     total_points = 0
     total_subjects = len(scores)
     
+    if total_subjects == 0:
+        print("No scores available to calculate GPA.")
+        return 0.0
+
+    # Iterate over each score and calculate GPA based on total_score
     for score in scores:
-        if score.grade == 'A':
-            total_points += 4.0
-        elif score.grade == 'B':
-            total_points += 3.0
-        elif score.grade == 'C':
-            total_points += 2.0
-        elif score.grade == 'D':
-            total_points += 1.0
-        else:
-            total_points += 0.0
+        try:
+            # Get the total score from the Score object
+            total_score = Decimal(score.total_score)
+
+            # GPA calculation based on total_score (0 to 100 scale)
+            gpa = (total_score / Decimal(100)) * Decimal(5.0)
+            
+            # Add the calculated GPA to the total points
+            total_points += gpa
+
+        except Exception as e:
+            # If there's an error, log it and skip this score
+            print(f"Error calculating GPA for score {score}: {e}")
+            total_points += 0  # Add 0 in case of error
 
     # Return the GPA rounded to two decimal places
-    return round(total_points / total_subjects, 2) if total_subjects > 0 else 0.0
-
+    final_gpa = round(total_points / total_subjects, 2) if total_subjects > 0 else 0.0
+    print(f"Final GPA: {final_gpa}")
+    return final_gpa

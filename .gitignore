@@ -78,6 +78,6 @@ target/
 
 notes.txt
 
-
+db.sqlite3
 staticfiles
 gunicorn_setup.txt

@@ -167,8 +167,6 @@ def class_scores(request):
 
 
 
-
-
 #=========== Process First Progressive Test Scores =====================
 @login_required(login_url='login')
 def progressive_test_scores_one(request):
@@ -448,7 +446,6 @@ def midterm_scores(request):
 
 
 ##=============== Process and Display Saved End of Term Scores for the user ===============
-
 @login_required(login_url='login')
 def process_scores_view(request):
     formset = None
@@ -520,24 +517,6 @@ def process_scores_view(request):
 
 
 @login_required(login_url='login')
-def get_saved_scores(request):
-    # Restrict the query to only the scores created by the logged-in user
-    scores = Score.objects.filter(created_by=request.user).select_related('student')
-
-    # Serialize scores into a dictionary format for rendering
-    scores_data = [{
-        'student_name': score.student.fullname,
-        'score_id': score.id,
-        'grade': score.grade,
-        'student_id': score.student.id
-    } for score in scores]
-
-    return JsonResponse({'scores': scores_data})
-
-
-
-
-@login_required(login_url='login')
 def view_academic_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -575,6 +554,7 @@ def view_academic_report(request, student_id, term_id):
         return JsonResponse({'error': 'Student not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
 
 
 

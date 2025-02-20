@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
     <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
+    {% block extra_css %}{% endblock extra_css %}
     <title>
       {% block page_title %}
         TCIS Academic Report Generator

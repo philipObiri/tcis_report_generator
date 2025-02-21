@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User  
 from decimal import Decimal
+# from django.contrib.auth.models import User  # Import User model
 
 class Level(models.Model):
     LOWER = 'Lower Secondary'
@@ -125,32 +126,78 @@ class Score(models.Model):
         self.total_score = (self.continuous_assessment * Decimal('0.30')) + (exam_score * Decimal('0.70'))
 
         # Assign grade based on the total_score with the new grading scale
-        if self.total_score >= Decimal('90'):
-            self.grade = 'A*'
-        elif self.total_score >= Decimal('80'):
-            self.grade = 'A'
-        elif self.total_score >= Decimal('75'):
-            self.grade = 'B+'
-        elif self.total_score >= Decimal('70'):
-            self.grade = 'B'
-        elif self.total_score >= Decimal('65'):
-            self.grade = 'C+'
-        elif self.total_score >= Decimal('60'):
-            self.grade = 'C'
-        elif self.total_score >= Decimal('50'):
-            self.grade = 'D'
-        elif self.total_score >= Decimal('45'):
-            self.grade = 'E'
-        elif self.total_score >= Decimal('35'):
-            self.grade = 'F'
+        if self.total_score >= Decimal('95') and self.total_score <= Decimal('100'):
+            self.grade = 'A*'  # GPA: 4.00
+        elif self.total_score >= Decimal('80') and self.total_score <= Decimal('94'):
+            self.grade = 'A'   # GPA: 3.67
+        elif self.total_score >= Decimal('75') and self.total_score <= Decimal('79'):
+            self.grade = 'B+'  # GPA: 3.33
+        elif self.total_score >= Decimal('70') and self.total_score <= Decimal('74'):
+            self.grade = 'B'   # GPA: 3.00
+        elif self.total_score >= Decimal('65') and self.total_score <= Decimal('69'):
+            self.grade = 'C+'  # GPA: 2.67
+        elif self.total_score >= Decimal('60') and self.total_score <= Decimal('64'):
+            self.grade = 'C'   # GPA: 2.33
+        elif self.total_score >= Decimal('50') and self.total_score <= Decimal('59'):
+            self.grade = 'D'   # GPA: 2.00
+        elif self.total_score >= Decimal('45') and self.total_score <= Decimal('49'):
+            self.grade = 'E'   # GPA: 1.67
+        elif self.total_score >= Decimal('35') and self.total_score <= Decimal('44'):
+            self.grade = 'F'   # GPA: 1.00
         else:
-            self.grade = 'Ungraded'
+            self.grade = 'Ungraded'  # GPA: 0.00
 
         # Call the superclass save method to store the object in the database
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.student.fullname} - {self.subject.name} - {self.total_score}"
+
+
+
+# class AcademicReport(models.Model):
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
+#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
+    
+#     # Many to Many relation to the Score model to represent the student's individual scores
+#     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
+#     student_gpa = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
+
+    
+
+#     def save(self, *args, **kwargs):
+#         scores = Score.objects.filter(student=self.student, term=self.term)
+#         grade_points = self.calculate_gpa(scores)
+        
+#         if grade_points:
+#             self.student_gpa = sum(grade_points) / len(grade_points)
+        
+#         super().save(*args, **kwargs)
+
+#     def calculate_gpa(self, scores):
+#         grade_points = []
+#         for score in scores:
+#             try:
+#                 # Get the total score from the Score object (percentage out of 100)
+#                 total_score = Decimal(score.total_score)
+
+#                 # Calculate GPA based on proportional scale (0 - 100 scale)
+#                 gpa = (total_score / Decimal(100)) * Decimal(4.0)
+                
+#                 # Add the GPA for this score to the list
+#                 grade_points.append(gpa)
+#             except Exception as e:
+#                 print(f"Error calculating GPA for score {score}: {e}")
+#                 continue
+
+#         # Return the list of GPA points for valid scores
+#         return grade_points
+
+#     def __str__(self):
+#         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
+
+
+
 
 
 
@@ -161,6 +208,9 @@ class AcademicReport(models.Model):
     # Many to Many relation to the Score model to represent the student's individual scores
     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
     student_gpa = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
+    
+    # ForeignKey to the User model (user who generated the report)
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
 
     def save(self, *args, **kwargs):
         scores = Score.objects.filter(student=self.student, term=self.term)
@@ -192,61 +242,3 @@ class AcademicReport(models.Model):
 
     def __str__(self):
         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
-
-
-
-
-# class AcademicReport(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
-#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
-    
-#     # Many to Many relation to the Score model to represent the student's individual scores
-#     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
-#     student_gpa = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
-
-#     def save(self, *args, **kwargs):
-#         scores = Score.objects.filter(student=self.student, term=self.term)
-#         grade_points = self.calculate_gpa(scores)
-        
-#         if grade_points:
-#             self.student_gpa = sum(grade_points) / len(grade_points)
-        
-#         super().save(*args, **kwargs)
-
-#     def calculate_gpa(self, scores):
-#         grade_points = []
-#         for score in scores:
-#             grade = score.grade
-#             # Update the GPA calculation logic based on new grading scale
-#             if grade == 'A+':
-#                 grade_points.append(4.5)
-#             elif grade == 'A':
-#                 grade_points.append(4.0)
-#             elif grade == 'B+':
-#                 grade_points.append(3.5)
-#             elif grade == 'B':
-#                 grade_points.append(3.0)
-#             elif grade == 'C+':
-#                 grade_points.append(2.5)
-#             elif grade == 'C':
-#                 grade_points.append(2.0)
-#             elif grade == 'D':
-#                 grade_points.append(1.0)
-#             elif grade == 'E':
-#                 grade_points.append(0.5)
-#             elif grade == 'F':
-#                 grade_points.append(0.0)
-#             elif grade == 'Ungraded':
-#                 grade_points.append(None)  # If ungraded, we don't calculate GPA for this score
-
-#         # Filter out None values if there are any (students with 'Ungraded' scores won't affect GPA)
-#         grade_points = [gp for gp in grade_points if gp is not None]
-
-#         return grade_points
-
-#     def __str__(self):
-#         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
-
-
-
-

@@ -126,7 +126,7 @@ class Score(models.Model):
 
         # Assign grade based on the total_score with the new grading scale
         if self.total_score >= Decimal('90'):
-            self.grade = 'A+'
+            self.grade = 'A*'
         elif self.total_score >= Decimal('80'):
             self.grade = 'A'
         elif self.total_score >= Decimal('75'):
@@ -179,7 +179,7 @@ class AcademicReport(models.Model):
                 total_score = Decimal(score.total_score)
 
                 # Calculate GPA based on proportional scale (0 - 100 scale)
-                gpa = (total_score / Decimal(100)) * Decimal(5.0)
+                gpa = (total_score / Decimal(100)) * Decimal(4.0)
                 
                 # Add the GPA for this score to the list
                 grade_points.append(gpa)

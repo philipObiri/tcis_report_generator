@@ -118,49 +118,49 @@
             </thead>
             <tbody>
               <tr>
-                <td>A+</td>
+                <td>A*</td>
                 <td>90% - 100%</td>
-                <td>4.5 - 5.0</td>
+                <td>3.6 - 4.0</td>
               </tr>
               <tr>
                 <td>A</td>
                 <td>80% - 89%</td>
-                <td>4.0 - 4.4</td>
+                <td>3.2 - 3.6</td>
               </tr>
               <tr>
                 <td>B+</td>
                 <td>75% - 79%</td>
-                <td>3.5 - 3.9</td>
+                <td>2.8 - 3.2</td>
               </tr>
               <tr>
                 <td>B</td>
                 <td>70% - 74%</td>
-                <td>3.0 - 3.4</td>
+                <td>2.4 - 2.8</td>
               </tr>
               <tr>
                 <td>C+</td>
                 <td>65% - 69%</td>
-                <td>2.5 - 2.9</td>
+                <td>2.0 - 2.4</td>
               </tr>
               <tr>
                 <td>C</td>
                 <td>60% - 64%</td>
-                <td>2.0 - 2.4</td>
+                <td>1.6 - 2.0</td>
               </tr>
               <tr>
                 <td>D</td>
                 <td>50% - 59%</td>
-                <td>1.5 - 1.9</td>
+                <td>1.2 - 1.6</td>
               </tr>
               <tr>
                 <td>E</td>
                 <td>45% - 49%</td>
-                <td>1.0 - 1.4</td>
+                <td>0.8 - 1.2</td>
               </tr>
               <tr>
                 <td>F</td>
                 <td>35% - 44%</td>
-                <td>0 - 1.0</td>
+                <td>0.0 - 0.8</td>
               </tr>
               <tr>
                 <td>Ungraded</td>
@@ -169,8 +169,6 @@
               </tr>
             </tbody>
           </table>
-          
-          
 
           <!-- Dropdown & Generate Report Button -->
           <div class="mt-3">
@@ -242,47 +240,7 @@
           <h5 class="modal-title" id="scoresModalLabel">Saved Scores</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          {% comment %} <table class="table" id="scoresModalTable">
-            <thead>
-              <tr>
-                <th>Student Name</th>
-                <th>Terms</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for student in students %}
-                <tr>
-                  <!-- Student Name only once, rowspan for each student's scores -->
-                  <td rowspan="{{ student.scores.all|length }}">{{ student.fullname }}</td>
-          
-                  <!-- Loop through the student's scores to display terms -->
-                  {% for score in student.scores.all %}
-                    <!-- Only display the term for the first iteration -->
-                    {% if forloop.first %}
-                      <td>{{ score.term.term_name }}</td>
-          
-                      <!-- Show View and Delete buttons only once for the first score -->
-                      <td>
-                        <a class="btn btn-info btn-sm" href="#" data-student-id="{{ score.student.id }}" data-term-id="{{ score.term.id }}">View</a>
-                        <button class="btn btn-danger btn-sm delete-score-btn" data-score-id="{{ score.id }}">Delete</button>
-                      </td>
-                    {% else %}
-                      <!-- For subsequent scores, only show the term -->
-                      <td>{{ score.term.term_name }}</td>
-                   
-                    {% endif %}
-                  </tr>
-                  {% endfor %}
-              {% empty %}
-                <tr>
-                  <td colspan="3">No students available.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table> {% endcomment %}
-          
+        <div class="modal-body">   
           <table class="table" id="scoresModalTable">
             <thead>
               <tr>

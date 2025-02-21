@@ -798,7 +798,7 @@ def generate_academic_report(request):
 def calculate_gpa(scores):
     """
     Calculate the GPA from a list of scores using a proportional scale.
-    If the total score is 100, GPA is 5.0, and if the total score is 0, GPA is 0.0.
+    If the total score is 100, GPA is 4.0, and if the total score is 0, GPA is 0.0.
     The GPA is calculated proportionally for other scores.
     """
     total_points = 0
@@ -815,7 +815,7 @@ def calculate_gpa(scores):
             total_score = Decimal(score.total_score)
 
             # GPA calculation based on total_score (0 to 100 scale)
-            gpa = (total_score / Decimal(100)) * Decimal(5.0)
+            gpa = (total_score / Decimal(100)) * Decimal(4.0)
             
             # Add the calculated GPA to the total points
             total_points += gpa

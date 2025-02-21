@@ -84,18 +84,18 @@ class Score(models.Model):
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='scores')
 
     # New fields for individual scores
-    class_work_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    progressive_test_1_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    progressive_test_2_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    progressive_test_3_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    midterm_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    class_work_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+    progressive_test_1_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+    progressive_test_2_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+    progressive_test_3_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+    midterm_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
 
     # Exam score (main exam at the end of the term)
-    exam_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    exam_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
 
-    continuous_assessment = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    total_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    grade = models.CharField(max_length=5, blank=True)  # Changed max_length from 3 to 5
+    continuous_assessment = models.DecimalField(max_digits=25, decimal_places=2, default=Decimal('0.0'))
+    total_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+    grade = models.CharField(max_length=255, blank=True)  # Changed max_length to 100
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -282,7 +282,7 @@ class AcademicReport(models.Model):
     
     # Many to Many relation to the Score model to represent the student's individual scores
     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
-    student_gpa = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
+    student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     
     # ForeignKey to the User model (user who generated the report)
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')

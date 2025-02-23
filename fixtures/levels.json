@@ -1,0 +1,23 @@
+[
+{
+  "model": "reports.level",
+  "pk": 1,
+  "fields": {
+    "name": "Lower Secondary"
+  }
+},
+{
+  "model": "reports.level",
+  "pk": 2,
+  "fields": {
+    "name": "Upper Secondary"
+  }
+},
+{
+  "model": "reports.level",
+  "pk": 3,
+  "fields": {
+    "name": "Sixth Form"
+  }
+}
+]

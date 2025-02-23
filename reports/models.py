@@ -250,44 +250,6 @@ class ProgressiveTestOneReport(models.Model):
         return f"Progressive Test 1 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test1_gpa}"
 
 
-# class ProgressiveTestTwoReport(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='progressive_test2_reports')
-#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='progressive_test2_reports')
-
-#     # Progressive Test 2 GPA (calculated directly from the progressive_test_2_score field)
-#     progressive_test2_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
-#     # Linking related scores to the report (many-to-many relationship with Score)
-#     student_scores = models.ManyToManyField(Score, related_name='progressive_test2_reports')
-
-#     # User who generated the report
-#     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test2_reports')
-    
-#     class Meta:
-#         verbose_name = "Progressive Two Report "
-#         verbose_name_plural = "Progressive Two Reports"
-
-#     def save(self, *args, **kwargs):
-#         # Get the scores for the student in the current term
-#         scores = Score.objects.filter(student=self.student, term=self.term)
-
-
-#         # Fetch the progressive test score two for each score:
-#         total_scores = [score.progressive_test_2_score for score in scores]
-
-#         # Calculate GPA using the external calculate_gpa function
-#         gpa = calculate_gpa(total_scores)
-
-#         self.progressive_test2_gpa = gpa
-
-#         # Link the scores to the report
-#         self.student_scores.set(scores)  # Many-to-many relationship with Score
-
-#         # Save the report
-#         super().save(*args, **kwargs)
-
-#     def __str__(self):
-#         return f"Progressive Test 2 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test2_gpa}"
 
 
 class ProgressiveTestTwoReport(models.Model):
@@ -335,48 +297,6 @@ class ProgressiveTestTwoReport(models.Model):
 
     def __str__(self):
         return f"Progressive Test 2 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test2_gpa}"
-
-
-# class ProgressiveTestThreeReport(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='progressive_test3_reports')
-#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='progressive_test3_reports')
-
-#     # Progressive Test 3 GPA (calculated directly from the progressive_test_3_score field)
-#     progressive_test3_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
-#     # Linking related scores to the report (many-to-many relationship with Score)
-#     student_scores = models.ManyToManyField(Score, related_name='progressive_test3_reports')
-
-#     # User who generated the report
-#     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test3_reports')
-
-#     class Meta:
-#         verbose_name = "Progressive Three Report "
-#         verbose_name_plural = "Progressive Three Reports"
-
-
-
-#     def save(self, *args, **kwargs):
-#         # Get the scores for the student in the current term
-#         scores = Score.objects.filter(student=self.student, term=self.term)
-
-#         # Fetch the progressive test score two for each score:
-#         total_scores = [score.progressive_test_3_score for score in scores]
-
-#         # Calculate GPA using the external calculate_gpa function
-#         gpa = calculate_gpa(total_scores)
-
-#         self.progressive_test3_gpa = gpa
-
-#         # Link the scores to the report
-#         self.student_scores.set(scores)  # Many-to-many relationship with Score
-
-#         # Save the report
-#         super().save(*args, **kwargs)
-
-#     def __str__(self):
-#         return f"Progressive Test 3 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test3_gpa}"
-
 
 
 class ProgressiveTestThreeReport(models.Model):
@@ -428,6 +348,79 @@ class ProgressiveTestThreeReport(models.Model):
 
 
 
+# class AcademicReport(models.Model):
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
+#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
+
+#     # Many to Many relation to the Score model to represent the student's individual scores
+#     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
+#     student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
+#     # ForeignKey to the User model (user who generated the report)
+#     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
+
+
+#     class Meta:
+#         verbose_name = "End of Term Report "
+#         verbose_name_plural = "End of Term Reports"
+
+
+#     def save(self, *args, **kwargs):
+#         scores = Score.objects.filter(student=self.student, term=self.term)
+
+#         # Calculate GPA using the external calculate_gpa function
+#         gpa = calculate_gpa(scores)
+
+#         self.student_gpa = gpa
+
+#         # Link the scores to the report
+#         self.student_scores.set(scores)
+
+#         # Save the report
+#         super().save(*args, **kwargs)
+
+#     def __str__(self):
+#         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
+
+
+
+# class AcademicReport(models.Model):
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
+#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
+
+#     # Many to Many relation to the Score model to represent the student's individual scores
+#     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
+#     student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
+#     # ForeignKey to the User model (user who generated the report)
+#     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
+
+#     class Meta:
+#         verbose_name = "End of Term Report"
+#         verbose_name_plural = "End of Term Reports"
+
+#     def save(self, *args, **kwargs):
+#         # Fetch scores before saving the report
+#         scores = Score.objects.filter(student=self.student, term=self.term)
+
+#         # Calculate GPA using the external calculate_gpa function
+#         gpa = calculate_gpa(scores)
+
+#         self.student_gpa = gpa
+
+#         # Save the report first to generate an ID
+#         super().save(*args, **kwargs)
+
+#         # Link the scores to the report after it has an ID
+#         self.student_scores.set(scores)
+
+#         # Save again after setting the many-to-many relationship
+#         super().save(*args, **kwargs)
+
+#     def __str__(self):
+#         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
+
+
 class AcademicReport(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
@@ -439,29 +432,33 @@ class AcademicReport(models.Model):
     # ForeignKey to the User model (user who generated the report)
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
 
-
     class Meta:
-        verbose_name = "End of Term Report "
+        verbose_name = "End of Term Report"
         verbose_name_plural = "End of Term Reports"
 
-
     def save(self, *args, **kwargs):
-        scores = Score.objects.filter(student=self.student, term=self.term)
+        # Check if this report already exists for the given student and term
+        existing_report = AcademicReport.objects.filter(student=self.student, term=self.term).first()
 
-        # Calculate GPA using the external calculate_gpa function
-        gpa = calculate_gpa(scores)
+        if existing_report:
+            # If the report exists, just update the fields and save it
+            self.pk = existing_report.pk  # Set the primary key to the existing report's pk
+            self.student_gpa = existing_report.student_gpa  # If needed, update the GPA
+        else:
+            # If the report doesn't exist, proceed with creating a new one
+            scores = Score.objects.filter(student=self.student, term=self.term)
 
-        self.student_gpa = gpa
+            # Calculate GPA using the external calculate_gpa function
+            gpa = calculate_gpa(scores)
+            self.student_gpa = gpa
 
-        # Link the scores to the report
-        self.student_scores.set(scores)
-
-        # Save the report
+        # Now save the report (either update or create)
         super().save(*args, **kwargs)
+
+        # Set the ManyToManyField after saving the object to ensure the ID is set
+        scores = Score.objects.filter(student=self.student, term=self.term)
+        self.student_scores.set(scores)
 
     def __str__(self):
         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
-
-
-
 

@@ -1,0 +1,170 @@
+[
+{
+  "model": "reports.term",
+  "pk": 1,
+  "fields": {
+    "term_name": "Term 1",
+    "class_year": 1
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 2,
+  "fields": {
+    "term_name": "Term 2",
+    "class_year": 1
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 3,
+  "fields": {
+    "term_name": "Term 3",
+    "class_year": 1
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 4,
+  "fields": {
+    "term_name": "Term 1",
+    "class_year": 2
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 5,
+  "fields": {
+    "term_name": "Term 2",
+    "class_year": 2
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 6,
+  "fields": {
+    "term_name": "Term 3",
+    "class_year": 2
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 7,
+  "fields": {
+    "term_name": "Term 1",
+    "class_year": 3
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 8,
+  "fields": {
+    "term_name": "Term 2",
+    "class_year": 3
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 9,
+  "fields": {
+    "term_name": "Term 3",
+    "class_year": 3
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 10,
+  "fields": {
+    "term_name": "Term 1",
+    "class_year": 4
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 11,
+  "fields": {
+    "term_name": "Term 2",
+    "class_year": 4
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 12,
+  "fields": {
+    "term_name": "Term 3",
+    "class_year": 4
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 13,
+  "fields": {
+    "term_name": "Term 1",
+    "class_year": 5
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 14,
+  "fields": {
+    "term_name": "Term 2",
+    "class_year": 5
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 15,
+  "fields": {
+    "term_name": "Term 3",
+    "class_year": 5
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 16,
+  "fields": {
+    "term_name": "Term 1",
+    "class_year": 6
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 17,
+  "fields": {
+    "term_name": "Term 2",
+    "class_year": 6
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 18,
+  "fields": {
+    "term_name": "Term 3",
+    "class_year": 6
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 19,
+  "fields": {
+    "term_name": "Term 1",
+    "class_year": 7
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 20,
+  "fields": {
+    "term_name": "Term 2",
+    "class_year": 7
+  }
+},
+{
+  "model": "reports.term",
+  "pk": 21,
+  "fields": {
+    "term_name": "Term 3",
+    "class_year": 7
+  }
+}
+]

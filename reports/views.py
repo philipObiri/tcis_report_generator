@@ -1068,6 +1068,69 @@ def delete_score(request, score_id):
 
 
 # Fetch that generates reports
+# @login_required(login_url='login')
+# def generate_report(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         student_name = data.get('student_name')
+#         class_year = data.get('class_year')
+#         term_name = data.get('term')
+
+#         try:
+#             # Fetch the student, class_year, and term objects
+#             student = Student.objects.get(fullname=student_name)
+#             class_year_obj = ClassYear.objects.get(name=class_year)
+#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
+
+#             # Fetch all scores for the student in the selected term (regardless of the user who created them)
+#             scores = Score.objects.filter(student=student, term=term)
+
+#             if not scores.exists():
+#                 return JsonResponse({
+#                     'success': False,
+#                     'error': f'No scores found for {student_name} in {term_name}.'
+#                 })
+
+#             # Create or update the AcademicReport instance for this student and term
+#             academic_report, created = AcademicReport.objects.get_or_create(
+#                 student=student,
+#                 term=term
+#             )
+
+#             # If it's a new report, assign the scores to the report and calculate GPA
+#             if created:
+#                 academic_report.student_scores.set(scores)  # Assign the scores to the report
+
+#             # Save the academic report which will trigger GPA calculation
+#             academic_report.save()  # The GPA will be automatically calculated by the model's save method
+
+#             # Render the HTML for the report using the 'generated_report.html' template
+#             report_html = render_to_string('generated_report.html', {
+#                 'student_name': student_name,
+#                 'class_year': class_year,
+#                 'term_name': term_name,
+#                 'gpa': academic_report.student_gpa,
+#                 'report_data': scores,  # Pass the scores directly
+#             })
+
+#             # Return the HTML content in the JSON response
+#             return JsonResponse({
+#                 'success': True,
+#                 'report_html': report_html  # Pass the generated HTML content
+#             })
+
+#         except Student.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Student not found.'})
+#         except Term.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Term not found.'})
+#         except ClassYear.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+
 @login_required(login_url='login')
 def generate_report(request):
     if request.method == 'POST':
@@ -1076,16 +1139,22 @@ def generate_report(request):
         class_year = data.get('class_year')
         term_name = data.get('term')
 
+        print(f"Request received: student_name={student_name}, class_year={class_year}, term_name={term_name}")
+
         try:
             # Fetch the student, class_year, and term objects
             student = Student.objects.get(fullname=student_name)
             class_year_obj = ClassYear.objects.get(name=class_year)
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            # Fetch all scores for the student in the selected term (regardless of the user who created them)
+            print(f"Fetched: student={student.fullname}, class_year={class_year_obj.name}, term={term.term_name}")
+
+            # Fetch all scores for the student in the selected term
             scores = Score.objects.filter(student=student, term=term)
+            print(f"Fetched scores: {len(scores)} scores found for student {student_name} in term {term_name}")
 
             if not scores.exists():
+                print(f"No scores found for {student_name} in term {term_name}")
                 return JsonResponse({
                     'success': False,
                     'error': f'No scores found for {student_name} in {term_name}.'
@@ -1097,12 +1166,13 @@ def generate_report(request):
                 term=term
             )
 
-            # If it's a new report, assign the scores to the report and calculate GPA
             if created:
+                print(f"New AcademicReport created for {student_name} - {term_name}")
                 academic_report.student_scores.set(scores)  # Assign the scores to the report
 
             # Save the academic report which will trigger GPA calculation
             academic_report.save()  # The GPA will be automatically calculated by the model's save method
+            print(f"Academic report saved with ID: {academic_report.id} and GPA: {academic_report.student_gpa}")
 
             # Render the HTML for the report using the 'generated_report.html' template
             report_html = render_to_string('generated_report.html', {
@@ -1113,6 +1183,8 @@ def generate_report(request):
                 'report_data': scores,  # Pass the scores directly
             })
 
+            print(f"Report HTML generated successfully.")
+
             # Return the HTML content in the JSON response
             return JsonResponse({
                 'success': True,
@@ -1120,13 +1192,18 @@ def generate_report(request):
             })
 
         except Student.DoesNotExist:
+            print(f"Error: Student {student_name} not found.")
             return JsonResponse({'success': False, 'error': 'Student not found.'})
         except Term.DoesNotExist:
+            print(f"Error: Term {term_name} not found.")
             return JsonResponse({'success': False, 'error': 'Term not found.'})
         except ClassYear.DoesNotExist:
+            print(f"Error: Class Year {class_year} not found.")
             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
         except Exception as e:
+            print(f"Unexpected error: {e}")
             return JsonResponse({'success': False, 'error': str(e)})
+
 
 
 

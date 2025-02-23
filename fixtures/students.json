@@ -1,0 +1,3228 @@
+[
+{
+  "model": "reports.student",
+  "pk": 1,
+  "fields": {
+    "fullname": "Catherine Anita Williams",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 2,
+  "fields": {
+    "fullname": "Emmanuel Amponsah-Ababio",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 3,
+  "fields": {
+    "fullname": "Emmanuel Malike Bimpeh",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 4,
+  "fields": {
+    "fullname": "Foster Sarpong",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 5,
+  "fields": {
+    "fullname": "Henry Sarpong",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 6,
+  "fields": {
+    "fullname": "Iain Lamptey",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 8,
+  "fields": {
+    "fullname": "Nhyira Hayford",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 9,
+  "fields": {
+    "fullname": "Nana Kofi Twum Adjei Ampofo",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 10,
+  "fields": {
+    "fullname": "Prince Enaifoghe",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 12,
+  "fields": {
+    "fullname": "Bessie E. Ali",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 13,
+  "fields": {
+    "fullname": "Blessing Enaifoghe",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 14,
+  "fields": {
+    "fullname": "Dell Nyarko Yeboah",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 15,
+  "fields": {
+    "fullname": "Ebube Counselor Ihejirika",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 17,
+  "fields": {
+    "fullname": "Elinam Kpesese",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 18,
+  "fields": {
+    "fullname": "Gerald Badu",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 19,
+  "fields": {
+    "fullname": "Heulwynne Nkebsia",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 20,
+  "fields": {
+    "fullname": "Judith Dede Narteh",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 21,
+  "fields": {
+    "fullname": "Lillian Margaret Williams",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 22,
+  "fields": {
+    "fullname": "Michelle Mensah-Onumah",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 23,
+  "fields": {
+    "fullname": "Renny N.Y.A. Sarpong",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 24,
+  "fields": {
+    "fullname": "Trinity Cox",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 26,
+  "fields": {
+    "fullname": "Yvana Korkomaz",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 27,
+  "fields": {
+    "fullname": "Adiel N.S. Nti",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 28,
+  "fields": {
+    "fullname": "Aseye Atimpo",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 29,
+  "fields": {
+    "fullname": "Basilisa N.E. Afang",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 30,
+  "fields": {
+    "fullname": "Coco M.E. Solem",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 31,
+  "fields": {
+    "fullname": "Christodia D.O Tetteh",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 32,
+  "fields": {
+    "fullname": "Enoyam J.B. Kpesese",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 33,
+  "fields": {
+    "fullname": "Joel Amuah",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 35,
+  "fields": {
+    "fullname": "Joel S.K. Geraldo",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 36,
+  "fields": {
+    "fullname": "Jorge M.O.E. Afang",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 37,
+  "fields": {
+    "fullname": "Micheal Elorm Sessou",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 38,
+  "fields": {
+    "fullname": "Nana Boatemaa Danquah - Boateng",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 39,
+  "fields": {
+    "fullname": "Adjoa Mawena Addison",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 40,
+  "fields": {
+    "fullname": "Amy-Ann Elesi",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 41,
+  "fields": {
+    "fullname": "Blessing Egboro",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 42,
+  "fields": {
+    "fullname": "Daryl Fifi Pentsil",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 43,
+  "fields": {
+    "fullname": "Denzel Armah",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 44,
+  "fields": {
+    "fullname": "Excel Ezekiel",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 46,
+  "fields": {
+    "fullname": "Eugenia Lartey",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 47,
+  "fields": {
+    "fullname": "Jason Adzakloe",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 48,
+  "fields": {
+    "fullname": "Jennifer Amuah",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 49,
+  "fields": {
+    "fullname": "Jonathan Odonkor",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 50,
+  "fields": {
+    "fullname": "Kaelem Kojo Kuhne",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 51,
+  "fields": {
+    "fullname": "Kimberlyn Kromah",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 52,
+  "fields": {
+    "fullname": "King David Youngman",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 53,
+  "fields": {
+    "fullname": "Kirk Tamakloe",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 54,
+  "fields": {
+    "fullname": "Klenam Asante",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 55,
+  "fields": {
+    "fullname": "Lois Opoku-Tontoh",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 56,
+  "fields": {
+    "fullname": "Maame Ama Dansowaa Osae",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 57,
+  "fields": {
+    "fullname": "Maame Yaa Kissiwah Osae",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 58,
+  "fields": {
+    "fullname": "Mariam Udoh",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 59,
+  "fields": {
+    "fullname": "Martina M.U.S. Tohon",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 60,
+  "fields": {
+    "fullname": "Melchizedek K.D Williams",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 61,
+  "fields": {
+    "fullname": "Michael Nana Yaw Oppong",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 62,
+  "fields": {
+    "fullname": "Michelle N.M. Quaye",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 63,
+  "fields": {
+    "fullname": "Phil Potakey",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 64,
+  "fields": {
+    "fullname": "Richmond Frank",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 65,
+  "fields": {
+    "fullname": "Ruweidatu Abdul Mu-Akhir",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 66,
+  "fields": {
+    "fullname": "Shalom Amegashie",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 67,
+  "fields": {
+    "fullname": "Sebastian Williams",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 68,
+  "fields": {
+    "fullname": "Tamar Williams",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 69,
+  "fields": {
+    "fullname": "Trokon Moses Banks",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 70,
+  "fields": {
+    "fullname": "Valerie Claret Ato-Sam",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 72,
+  "fields": {
+    "fullname": "Zoe Sefakor Borlu",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 73,
+  "fields": {
+    "fullname": "Keziah Kissiwaa Adumadzie",
+    "class_year": 4,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 74,
+  "fields": {
+    "fullname": "Akua Asare Bediako",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 75,
+  "fields": {
+    "fullname": "Alvin Tamakloe",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 76,
+  "fields": {
+    "fullname": "Alvine Hammond",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 77,
+  "fields": {
+    "fullname": "Anna Adjabeng",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 78,
+  "fields": {
+    "fullname": "Bryan Adzakloe",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 79,
+  "fields": {
+    "fullname": "Bryanna Adjei-Sowatey",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 80,
+  "fields": {
+    "fullname": "Charlene Osei",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 81,
+  "fields": {
+    "fullname": "David Amable",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 82,
+  "fields": {
+    "fullname": "Einstein Harrison",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 84,
+  "fields": {
+    "fullname": "Emmanuel Mefful",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 85,
+  "fields": {
+    "fullname": "Emmanuela Osei",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 86,
+  "fields": {
+    "fullname": "Ewuraba Wilson",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      12,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 87,
+  "fields": {
+    "fullname": "Franklin Okoronkwo",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 88,
+  "fields": {
+    "fullname": "Gabriel Eshun",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 89,
+  "fields": {
+    "fullname": "Gerald Amankwah",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 90,
+  "fields": {
+    "fullname": "Gerard Ames",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 91,
+  "fields": {
+    "fullname": "Jeanine Maame Dufie Aminiamah",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 92,
+  "fields": {
+    "fullname": "Korpo Candi Acqoi",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 93,
+  "fields": {
+    "fullname": "Maame Afua Nti",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      20,
+      21,
+      22
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 94,
+  "fields": {
+    "fullname": "Marion Banks",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 95,
+  "fields": {
+    "fullname": "Nali Haba Zulaiha",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 96,
+  "fields": {
+    "fullname": "Nana Afua Owusu Ansah",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 97,
+  "fields": {
+    "fullname": "Nana Yaw Boateng",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 98,
+  "fields": {
+    "fullname": "Natasha Mensah-Onumah",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 99,
+  "fields": {
+    "fullname": "Odartey France",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 100,
+  "fields": {
+    "fullname": "Papa Afriyie B. Akyeampong",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 101,
+  "fields": {
+    "fullname": "Petra-Josie Kuwornu",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 102,
+  "fields": {
+    "fullname": "Praise Odionyenfe",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 103,
+  "fields": {
+    "fullname": "Ranur Seyram Alves",
+    "class_year": 5,
+    "subjects": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 105,
+  "fields": {
+    "fullname": "Adom Hayford",
+    "class_year": 6,
+    "subjects": [
+      6,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 106,
+  "fields": {
+    "fullname": "Aseda Arhin",
+    "class_year": 6,
+    "subjects": [
+      9,
+      17,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 107,
+  "fields": {
+    "fullname": "Benniton Barton Odro",
+    "class_year": 6,
+    "subjects": [
+      6,
+      10,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 108,
+  "fields": {
+    "fullname": "Bryan N. Ledi",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 109,
+  "fields": {
+    "fullname": "Charles Fordjour Agyemang",
+    "class_year": 6,
+    "subjects": [
+      9,
+      16,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 110,
+  "fields": {
+    "fullname": "Curtis Jack Stone",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 111,
+  "fields": {
+    "fullname": "Dannii McCaesar",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      8,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 112,
+  "fields": {
+    "fullname": "James Duncan Nii Ashitey Trebi",
+    "class_year": 6,
+    "subjects": [
+      16,
+      17,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 113,
+  "fields": {
+    "fullname": "Jodie Obuba Andah",
+    "class_year": 6,
+    "subjects": [
+      2,
+      9,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 114,
+  "fields": {
+    "fullname": "Kaitlyn Akonnor",
+    "class_year": 6,
+    "subjects": [
+      14,
+      16,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 115,
+  "fields": {
+    "fullname": "Keziah Fordjour Agyemang",
+    "class_year": 6,
+    "subjects": [
+      9,
+      11,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 116,
+  "fields": {
+    "fullname": "Malva Kissi",
+    "class_year": 6,
+    "subjects": [
+      16,
+      17,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 117,
+  "fields": {
+    "fullname": "Manuella Naa Ayeley Aryee",
+    "class_year": 6,
+    "subjects": [
+      14,
+      18,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 118,
+  "fields": {
+    "fullname": "Nhyira Arhin",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      18,
+      20,
+      21
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 119,
+  "fields": {
+    "fullname": "Olivia Titi-Ofei",
+    "class_year": 6,
+    "subjects": [
+      9,
+      11,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 120,
+  "fields": {
+    "fullname": "Orison Afflu",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 121,
+  "fields": {
+    "fullname": "Owuraku Ampim-Darko",
+    "class_year": 6,
+    "subjects": [
+      6,
+      7,
+      20,
+      21,
+      22
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 122,
+  "fields": {
+    "fullname": "Prominence Odionyenfe",
+    "class_year": 6,
+    "subjects": [
+      7,
+      8,
+      20,
+      21,
+      22
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 123,
+  "fields": {
+    "fullname": "Stephanie Okoronkwo",
+    "class_year": 6,
+    "subjects": [
+      11,
+      17,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 124,
+  "fields": {
+    "fullname": "Casie Harding",
+    "class_year": 7,
+    "subjects": [
+      9,
+      12,
+      16
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 126,
+  "fields": {
+    "fullname": "Deon Titi-Ofei",
+    "class_year": 7,
+    "subjects": [
+      12,
+      16,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 127,
+  "fields": {
+    "fullname": "Crista Korkor Essien",
+    "class_year": 7,
+    "subjects": [
+      6,
+      7,
+      20,
+      21,
+      22
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 128,
+  "fields": {
+    "fullname": "Divine Ezekiel",
+    "class_year": 7,
+    "subjects": [
+      7,
+      8,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 129,
+  "fields": {
+    "fullname": "Hope Angelica Gyan",
+    "class_year": 7,
+    "subjects": [
+      17,
+      18,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 130,
+  "fields": {
+    "fullname": "Kyra N.A.O. Larbi",
+    "class_year": 7,
+    "subjects": [
+      7,
+      8,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 131,
+  "fields": {
+    "fullname": "Lena Hammond",
+    "class_year": 7,
+    "subjects": [
+      6,
+      7,
+      8
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 132,
+  "fields": {
+    "fullname": "Lois Adapoe",
+    "class_year": 7,
+    "subjects": [
+      11,
+      12,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 135,
+  "fields": {
+    "fullname": "Nyelle Grace Amegee",
+    "class_year": 7,
+    "subjects": [
+      9,
+      17,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 136,
+  "fields": {
+    "fullname": "Samuel Kankam",
+    "class_year": 7,
+    "subjects": [
+      6,
+      7,
+      8
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 137,
+  "fields": {
+    "fullname": "Shanti Thanki",
+    "class_year": 7,
+    "subjects": [
+      7,
+      8,
+      20,
+      21,
+      22
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 138,
+  "fields": {
+    "fullname": "Nana Adwoa Oheema Adjei",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 139,
+  "fields": {
+    "fullname": "Nana Kwame Adjei",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 140,
+  "fields": {
+    "fullname": "Ama Akowuah",
+    "class_year": 7,
+    "subjects": [
+      7,
+      8,
+      20,
+      21,
+      22
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 141,
+  "fields": {
+    "fullname": "Adwoa Akowuah",
+    "class_year": 5,
+    "subjects": [
+      2,
+      4,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 142,
+  "fields": {
+    "fullname": "Paul Austin Agbeko",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      6,
+      7,
+      8,
+      13,
+      14
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 143,
+  "fields": {
+    "fullname": "Nana Nhyira Ato-Forson",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      6,
+      7,
+      8,
+      9,
+      13,
+      14,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 144,
+  "fields": {
+    "fullname": "Miriam Mamle Esi Mimi Teye",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      5,
+      13,
+      17,
+      18
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 145,
+  "fields": {
+    "fullname": "Michael Louis Guirrieri",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      6,
+      7,
+      8,
+      12,
+      13,
+      14
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 147,
+  "fields": {
+    "fullname": "Kyndra Akyaa Darko",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      5,
+      12,
+      13,
+      14,
+      17,
+      18
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 148,
+  "fields": {
+    "fullname": "Jermain Gyamfi A. Kyeremah",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      6,
+      7,
+      8,
+      13,
+      14,
+      19
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 149,
+  "fields": {
+    "fullname": "Andres Abedu-Kennedy",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      5,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 150,
+  "fields": {
+    "fullname": "Richard Egboro",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      5,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 151,
+  "fields": {
+    "fullname": "Elinam Dzeble",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      5,
+      9,
+      10,
+      11,
+      12,
+      13,
+      15,
+      16
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 152,
+  "fields": {
+    "fullname": "Efua Akowuah",
+    "class_year": 3,
+    "subjects": [
+      1,
+      2,
+      3,
+      5,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 153,
+  "fields": {
+    "fullname": "Pearl-Petra Alisa Asem",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      5,
+      9,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 154,
+  "fields": {
+    "fullname": "Carlisa Edumadzie",
+    "class_year": 2,
+    "subjects": [
+      1,
+      2,
+      3,
+      5,
+      9,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 155,
+  "fields": {
+    "fullname": "Jornada Lamptey",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      5,
+      9,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 156,
+  "fields": {
+    "fullname": "Jemayne Nene Akrofi Fayorsey",
+    "class_year": 1,
+    "subjects": [
+      1,
+      2,
+      3,
+      5,
+      9,
+      13,
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 157,
+  "fields": {
+    "fullname": "Britney Baisiwa Buxton",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      5,
+      9,
+      12,
+      13,
+      14,
+      17
+    ]
+  }
+},
+{
+  "model": "reports.student",
+  "pk": 158,
+  "fields": {
+    "fullname": "Lady Mellisa Agyemang",
+    "class_year": 4,
+    "subjects": [
+      2,
+      4,
+      5,
+      12,
+      13,
+      14,
+      17,
+      18
+    ]
+  }
+}
+]

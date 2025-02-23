@@ -1,0 +1,324 @@
+[
+{
+  "model": "reports.subject",
+  "pk": 1,
+  "fields": {
+    "name": "Christian Doctrine",
+    "class_year": [
+      1,
+      2,
+      3,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 2,
+  "fields": {
+    "name": "English Language",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 3,
+  "fields": {
+    "name": "Mathematics",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 4,
+  "fields": {
+    "name": "Extended Mathematics",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 5,
+  "fields": {
+    "name": "Coordinated Science",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 6,
+  "fields": {
+    "name": "Physics",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 7,
+  "fields": {
+    "name": "Chemistry",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 8,
+  "fields": {
+    "name": "Biology",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 9,
+  "fields": {
+    "name": "English Literature",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 10,
+  "fields": {
+    "name": "Accounting",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 11,
+  "fields": {
+    "name": "Business",
+    "class_year": [
+      1,
+      2,
+      3
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 12,
+  "fields": {
+    "name": "Economics",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 13,
+  "fields": {
+    "name": "I.C.T",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 14,
+  "fields": {
+    "name": "French",
+    "class_year": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 15,
+  "fields": {
+    "name": "Arts & Design",
+    "class_year": [
+      1,
+      2,
+      3,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 16,
+  "fields": {
+    "name": "Business Studies",
+    "class_year": [
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 17,
+  "fields": {
+    "name": "Sociology",
+    "class_year": [
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 18,
+  "fields": {
+    "name": "Geography",
+    "class_year": [
+      4,
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 19,
+  "fields": {
+    "name": "Add Math",
+    "class_year": [
+      4,
+      5
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 20,
+  "fields": {
+    "name": "Math (Statistics)",
+    "class_year": [
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 21,
+  "fields": {
+    "name": "Math (Pure Math)",
+    "class_year": [
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 22,
+  "fields": {
+    "name": "Math (Mechanics)",
+    "class_year": [
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reports.subject",
+  "pk": 23,
+  "fields": {
+    "name": "I.T",
+    "class_year": [
+      6,
+      7
+    ]
+  }
+}
+]

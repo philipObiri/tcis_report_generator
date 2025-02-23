@@ -22,6 +22,10 @@ urlpatterns = [
 
     path('reports/generate_report/', views.generate_report, name='generate_report'),
 
+    path('reports/generate_midterm_report/', views.generate_midterm_report, name="generate_midterm_report"),
+
+    path('reports/generate_progressive_one_report/', views.generate_progressive_one_report, name="generate_progressive_one_report"),
+
     # Endpoint to get classes based on the selected level
     path('get-classes-by-level/<int:level_id>/', views.get_classes_by_level, name='get_classes_by_level'),
 
@@ -40,4 +44,15 @@ urlpatterns = [
     path('logout/', views.custom_logout, name='logout'),
 
     path('reports/get_report_details/<int:student_id>/<int:term_id>/', views.view_academic_report, name='view_academic_report'),
+
+    path('reports/get_midterm_report_details/<int:student_id>/<int:term_id>/', views.view_midterm_report, name='view_midterm_report'),
+
+
+    path('reports/get_progessive_one_report_details/<int:student_id>/<int:term_id>/', views.view_progressive_test_score_one_report, name='view_progressive_one_report'),
+
+
+    path('reports/get_progessive_two_report_details/<int:student_id>/<int:term_id>/', views.view_progressive_test_score_two_report, name='view_progressive_two_report'),
+
+
+    path('reports/get_progessive_three_report_details/<int:student_id>/<int:term_id>/', views.view_progressive_test_score_three_report, name='view_progressive_three_report'),
 ]

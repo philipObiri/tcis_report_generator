@@ -11,68 +11,193 @@
 
 {% block main_content %}
   <div class="container layout-fluid">
-    <section class="class_info">
-      <form id="second-progressive-test-form" method="POST" action="{% url 'progressive_score_two' %}" class="bg-white p-4">
-        {% csrf_token %}
-        <input type="hidden" name="level" id="hidden-level" />
-        <input type="hidden" name="class_year" id="hidden-class-year" />
-        <input type="hidden" name="term" id="hidden-term" />
-        <input type="hidden" name="subject" id="hidden-subject" />
+    <div class="row">
+      <section class="class_info col-sm-12 col-lg-6 col-xl-6 col-md-6 bg-white">
+        <form id="second-progressive-test-form" method="POST" action="{% url 'progressive_score_two' %}" class="bg-white p-4">
+          {% csrf_token %}
+          <input type="hidden" name="level" id="hidden-level" />
+          <input type="hidden" name="class_year" id="hidden-class-year" />
+          <input type="hidden" name="term" id="hidden-term" />
+          <input type="hidden" name="subject" id="hidden-subject" />
 
-        <section>
-          <h3 class="mb-3">Class Information</h3>
-          <div class="form-group">
-            <label for="level-select">Level</label>
-            <select id="level-select" class="form-control">
-              <option value="">Select Level</option>
+          <section>
+            <h3 class="mb-3">Class Information</h3>
+            <div class="form-group">
+              <label for="level-select">Level</label>
+              <select id="level-select" class="form-control">
+                <option value="">Select Level</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="class-year-select">Class Year</label>
+              <select id="class-year-select" class="form-control" disabled>
+                <option value="">Select Class Year</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="term-select">Term</label>
+              <select id="term-select" class="form-control" disabled>
+                <option value="">Select Term</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="subject-select">Subject</label>
+              <select id="subject-select" class="form-control" disabled>
+                <option value="">Select Subject</option>
+              </select>
+            </div>
+
+            <!-- Student Scores Section -->
+            <div class="p-4 d-none table-responsive" id="student-scores-section">
+              <h3 class="card-title mb-3" id="student-scores-title">Student Scores</h3>
+              <table id="students-table" class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th title="Caculate the score out of 100%">Progressive Test 2 Score</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="student-rows"></tbody>
+              </table>
+              <button type="submit" id="save-scores-btn" class="btn btn-primary my-2">Record Scores</button>
+            </div>
+          </section>
+        </form>
+
+        <div class="row d-flex" style="justify-content:center; align-items: center;">
+          <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#p2MidTermcoresModal">View Saved Scores</button>
+          <a href="{% url 'select_progressive_option' %}" class="d-block btn btn-outline-secondary">Change Progressive Option</a>
+        </div>
+      </section>
+
+      <section class="report_section col-sm-12 col-lg-6 col-xl-6 col-md-6 bg-white p-4">
+        <div class="report-details">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+          <h5 class="card-title mb-3">Temple Christian International School - Academic Report</h5>
+          <div>
+            <p>
+              <strong>Name:</strong> <span id="student-name"></span>
+            </p>
+            <p>
+              <strong>Class/Year:</strong> <span id="class-year"></span>
+            </p>
+            <p>
+              <strong>Term:</strong> <span id="term"></span>
+            </p>
+          </div>
+          <table class="table mb-2" id="report-table">
+            <thead>
+              <tr>
+                <th scope="col">Subject</th>
+                <th scope="col">Score</th>
+                <th scope="col">Grade</th>
+              </tr>
+            </thead>
+            <tbody id="report-scores"></tbody>
+          </table>
+          <p>
+            <strong>GPA:</strong> <span id="gpa"></span>
+          </p>
+        </div>
+        <hr />
+        <div class="gpa-table">
+          <p>
+            <strong>GPA Table</strong>
+          </p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Grade</th>
+                <th scope="col">Percentage Range</th>
+                <th scope="col">Grade Point Range</th>
+                <th scope="col">Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A*</td>
+                <td>95% - 100%</td>
+                <td>4.00</td>
+                <td>Distinction</td>
+              </tr>
+              <tr>
+                <td>A</td>
+                <td>80% - 94%</td>
+                <td>3.67</td>
+                <td>Excellent</td>
+              </tr>
+              <tr>
+                <td>B+</td>
+                <td>75% - 79%</td>
+                <td>3.33</td>
+                <td>Very Good</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td>70% - 74%</td>
+                <td>3.00</td>
+                <td>Good</td>
+              </tr>
+              <tr>
+                <td>C+</td>
+                <td>65% - 69%</td>
+                <td>2.67</td>
+                <td>Average</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td>60% - 64%</td>
+                <td>2.33</td>
+                <td>Pass</td>
+              </tr>
+              <tr>
+                <td>D</td>
+                <td>50% - 59%</td>
+                <td>2.00</td>
+                <td>Credit</td>
+              </tr>
+              <tr>
+                <td>E</td>
+                <td>45% - 49%</td>
+                <td>1.67</td>
+                <td>Failed</td>
+              </tr>
+              <tr>
+                <td>F</td>
+                <td>35% - 44%</td>
+                <td>1.00</td>
+                <td>Failed</td>
+              </tr>
+              <tr>
+                <td>Ungraded</td>
+                <td>0% - 34%</td>
+                <td>0.00</td>
+                <td>Ungraded</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Dropdown & Generate Report Button -->
+          <div class="mt-3">
+            <label for="term-dropdown">Select Term:</label>
+            <select class="form-select d-inline-block w-auto" id="term-dropdown">
+              <option value="Term 1">Term 1</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3</option>
             </select>
-          </div>
+            {% if request.user.is_superuser %}
+              <button class="btn btn-primary" id="generate-report-btn">Generate Report</button>
+            {% else %}
 
-          <div class="form-group">
-            <label for="class-year-select">Class Year</label>
-            <select id="class-year-select" class="form-control" disabled>
-              <option value="">Select Class Year</option>
-            </select>
+            {% endif %}
           </div>
-
-          <div class="form-group">
-            <label for="term-select">Term</label>
-            <select id="term-select" class="form-control" disabled>
-              <option value="">Select Term</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="subject-select">Subject</label>
-            <select id="subject-select" class="form-control" disabled>
-              <option value="">Select Subject</option>
-            </select>
-          </div>
-
-          <!-- Student Scores Section -->
-          <div class="p-4 d-none table-responsive" id="student-scores-section">
-            <h3 class="card-title mb-3" id="student-scores-title">Student Scores</h3>
-            <table id="students-table" class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th title="Caculate the score out of 100%">Progressive Test 2 Score</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="student-rows"></tbody>
-            </table>
-            <button type="submit" id="save-scores-btn" class="btn btn-primary my-2">Record Scores</button>
-          </div>
-        </section>
-      </form>
-
-      <div class="d-flex" style="justify-content:center; align-items: center;">
-        {% comment %} <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button> {% endcomment %}
-        <a href="{% url 'process_scores' %}" class="my-4 btn btn-outline-primary">Go to Dashboard</a>
-        <a href="{% url 'select_progressive_option' %}" class="d-block btn btn-outline-secondary mx-2">Change Progressive Option</a>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   </div>
 
   <!-- Logout Button -->
@@ -118,11 +243,11 @@
   </div>
 
   <!-- View Saved Scores Modal -->
-  <div class="modal fade" id="scoresModal" tabindex="-1" aria-labelledby="scoresModalLabel" aria-hidden="true">
+  <div class="modal fade" id="p2MidTermcoresModal" tabindex="-1" aria-labelledby="p2MidTermcoresModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="scoresModalLabel">Saved Scores</h5>
+          <h5 class="modal-title" id="p2MidTermcoresModalLabel">Saved Scores</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -135,18 +260,27 @@
               </tr>
             </thead>
             <tbody>
-              {% for score in scores %}
-                <tr>
-                  <td>{{ score.student.fullname }}</td>
-                  <td>{{ score.term.term_name }}</td>
-                  <td>
-                    <a class="btn btn-info btn-sm" href="#" data-student-id="{{ score.student.id }}" data-term-id="{{ score.term.id }}">View</a>
-                    <button class="btn btn-danger btn-sm delete-score-btn" data-score-id="{{ score.id }}">Delete</button>
-                  </td>
-                </tr>
+              {% for student in students %}
+                {% for score in student.scores.all %}
+                  <tr>
+                    {% if forloop.first %}
+                      <!-- Student Name only once, rowspan for each student's scores -->
+                      <td rowspan="{{ student.scores.all|length }}">{{ student.fullname }}</td>
+                      <!-- Show the term name only for the first score -->
+                      <td>{{ score.term.term_name }}</td>
+                      <!-- Show View and Delete buttons only once for the first score -->
+                      <td>
+                        <a class="btn btn-info btn-sm" href="#" data-student-id="{{ score.student.id }}" data-term-id="{{ score.term.id }}">View</a>
+                        <button class="btn btn-danger btn-sm delete-score-btn" data-score-id="{{ score.id }}">Delete</button>
+                      </td>
+                    {% else %}
+
+                    {% endif %}
+                  </tr>
+                {% endfor %}
               {% empty %}
                 <tr>
-                  <td colspan="3" class="text-center">No scores available.</td>
+                  <td colspan="3">No students available.</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -161,6 +295,7 @@
 
   <!-- Scripts -->
   <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'js/progressive-test-two-report.js' %}"></script>
   <script>
     $(document).ready(function () {
       // Fetch Levels
@@ -315,6 +450,63 @@
       $('#second-progressive-test-form').submit(function (e) {
         // Form will now be submitted as usual. No AJAX handling is required here.
       })
+
+
+            // Event listener for when the "View" button is clicked
+            $('#p2MidTermcoresModal').on('click', '.btn-info', function (event) {
+              event.preventDefault() // Prevent the default link behavior
+          
+              // Get the student ID and term ID from the data attributes
+              var studentId = $(this).data('student-id')
+              var termId = $(this).data('term-id')
+          
+              // Check if studentId and termId are defined
+              if (studentId && termId) {
+                // Perform the AJAX request to fetch the report details
+                $.ajax({
+                  url: `/reports/get_progessive_two_report_details/${studentId}/${termId}/`, // Dynamic path with student_id and term_id
+                  method: 'GET',
+                  success: function (response) {
+                    if (response) {
+                      // Only populate the report section
+                      $('#student-scores-section').addClass('d-none') // Ensure the student scores section remains hidden
+          
+                      // Set the report details in the report section
+                      $('#student-name').text(response.student_name)
+                      $('#class-year').text(response.class_year)
+                      $('#term').text(response.term)
+          
+                      // Clear previous scores and append new ones
+                      $('#report-scores').empty()
+                      response.scores.forEach(function (score) {
+                        var scoreRow = `
+                                    <tr>
+                                      <td>${score.subject}</td>
+                                      <td>${score.progressive_test_two_score}</td>
+                                      <td>${score.grade}</td>
+                                      <td>${score.gpa}</td>
+                                    </tr>
+                                  `
+                        $('#report-scores').append(scoreRow)
+                      })
+          
+                      // Set the GPA
+                      $('#gpa').text(response.total_gpa)
+          
+                      // Optionally, hide the modal
+                      $('#p2MidTermcoresModal').modal('hide')
+                    } else {
+                      alert('Report not found')
+                    }
+                  },
+                  error: function () {
+                    alert('Error fetching report details')
+                  }
+                })
+              } else {
+                console.error('Student ID or Term ID is missing.')
+              }
+            })
     })
   </script>
 {% endblock %}

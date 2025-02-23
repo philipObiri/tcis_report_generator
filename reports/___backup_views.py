@@ -1,76 +1,263 @@
-class Score(models.Model):
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scores')
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='scores')
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='scores')
 
-    # New fields for individual scores
-    class_work_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    progressive_test_1_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    progressive_test_2_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    progressive_test_3_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    midterm_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
 
-    # Exam score (main exam at the end of the term)
-    exam_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+class MidtermReport(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='midterm_reports')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='midterm_reports')
 
-    continuous_assessment = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    total_score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    grade = models.CharField(max_length=3, blank=True)
+    # Midterm GPA (calculated directly from the midterm_score field)
+    midterm_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Linking related scores to the report (many-to-many relationship with Score)
+    student_scores = models.ManyToManyField(Score, related_name='midterm_reports')
+
+    # User who generated the report
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_midterm_reports')
+
+    def calculate_gpa(self, scores):
+        grade_points = []
+        for score in scores:
+            try:
+                # Get the total score from the Score object (percentage out of 100)
+                total_score = Decimal(score.midterm_score)
+
+                # Calculate GPA based on proportional scale (0 - 100 scale)
+                gpa = (total_score / Decimal(100)) * Decimal(4.0)
+                
+                # Add the GPA for this score to the list
+                grade_points.append(gpa)
+            except Exception as e:
+                print(f"Error calculating GPA for score {score}: {e}")
+                continue
+
+        # Return the list of GPA points for valid scores
+        return grade_points
 
     def save(self, *args, **kwargs):
-        # Ensure that exam_score is never None, default to 0.0 if missing
-        if self.exam_score is None:
-            self.exam_score = Decimal('0.0')
+        # Get the scores for the student in the current term
+        scores = Score.objects.filter(student=self.student, term=self.term)
 
-        # Convert exam_score to Decimal in case it's a float or non-decimal value
-        exam_score = Decimal(self.exam_score)
+        # Calculate the total score and GPA
+        total_scores = [score.midterm_score for score in scores]
+        total_score_sum = sum(total_scores)
+        average_score = total_score_sum / len(total_scores) if total_scores else 0
+        gpa_points = self.calculate_gpa(scores)
 
-        # Calculate the sum of all the component scores
-        total_continuous_assessment_score = (
-            self.class_work_score +  # percentage score (out of 100%)
-            self.progressive_test_1_score +  # percentage score (out of 100%)
-            self.progressive_test_2_score +  # percentage score (out of 100%)
-            self.progressive_test_3_score +  # percentage score (out of 100%)
-            self.midterm_score  # percentage score (out of 100%)
-        )
+        self.midterm_gpa = gpa_points
 
-        # Normalize continuous_assessment to a 100% scale (total is out of 500, so divide by 500 and multiply by 100)
-        self.continuous_assessment = (total_continuous_assessment_score / Decimal('500')) * Decimal('100')
+        # Link the scores to the report
+        self.student_scores.set(scores)  # Many-to-many relationship with Score
 
-        # Calculate Total Score: 30% of Continuous Assessment + 70% of Exam Score
-        self.total_score = (self.continuous_assessment * Decimal('0.30')) + (exam_score * Decimal('0.70'))
-
-        # Ensure the total_score is a valid percentage value between 0 and 100
-        self.total_score = min(max(self.total_score, Decimal('0.0')), Decimal('100.0'))
-
-        # Assign grade based on the total_score with the new grading scale using range checks
-        if self.total_score >= Decimal('95') and self.total_score <= Decimal('100'):
-            self.grade = 'A*'  # GPA: 4.00
-        elif self.total_score >= Decimal('80') and self.total_score < Decimal('95'):
-            self.grade = 'A'   # GPA: 3.67
-        elif self.total_score >= Decimal('75') and self.total_score < Decimal('80'):
-            self.grade = 'B+'  # GPA: 3.33
-        elif self.total_score >= Decimal('70') and self.total_score < Decimal('75'):
-            self.grade = 'B'   # GPA: 3.00
-        elif self.total_score >= Decimal('65') and self.total_score < Decimal('70'):
-            self.grade = 'C+'  # GPA: 2.67
-        elif self.total_score >= Decimal('60') and self.total_score < Decimal('65'):
-            self.grade = 'C'   # GPA: 2.33
-        elif self.total_score >= Decimal('50') and self.total_score < Decimal('60'):
-            self.grade = 'D'   # GPA: 2.00
-        elif self.total_score >= Decimal('45') and self.total_score < Decimal('50'):
-            self.grade = 'E'   # GPA: 1.67
-        elif self.total_score >= Decimal('35') and self.total_score < Decimal('45'):
-            self.grade = 'F'   # GPA: 1.00
-        else:
-            self.grade = 'Ungraded'  # GPA: 0.00
-
-        # Call the superclass save method to store the object in the database
+        # Save the report
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.student.fullname} - {self.subject.name} - {self.total_score}"
+        return f"Midterm Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.midterm_gpa}"
+
+
+class ProgressiveTestOneReport(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='progressive_test1_reports')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='progressive_test1_reports')
+
+    # Progressive Test 1 GPA (calculated directly from the progressive_test_1_score field)
+    progressive_test1_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
+    # Linking related scores to the report (many-to-many relationship with Score)
+    student_scores = models.ManyToManyField(Score, related_name='progressive_test1_reports')
+
+    # User who generated the report
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test1_reports')
+
+    def calculate_gpa(self, scores):
+        grade_points = []
+        for score in scores:
+            try:
+                # Get the total score from the Score object (percentage out of 100)
+                total_score = Decimal(score.progressive_test_1_score)
+
+                # Calculate GPA based on proportional scale (0 - 100 scale)
+                gpa = (total_score / Decimal(100)) * Decimal(4.0)
+                
+                # Add the GPA for this score to the list
+                grade_points.append(gpa)
+            except Exception as e:
+                print(f"Error calculating GPA for score {score}: {e}")
+                continue
+
+        # Return the list of GPA points for valid scores
+        return grade_points
+
+    def save(self, *args, **kwargs):
+        # Get the scores for the student in the current term
+        scores = Score.objects.filter(student=self.student, term=self.term)
+
+        # Calculate the total score and GPA
+        total_scores = [score.progressive_test_1_score for score in scores]
+        total_score_sum = sum(total_scores)
+        average_score = total_score_sum / len(total_scores) if total_scores else 0
+        gpa_points = self.calculate_gpa(scores)
+
+        self.progressive_test1_gpa = gpa_points
+
+        # Link the scores to the report
+        self.student_scores.set(scores)  # Many-to-many relationship with Score
+
+        # Save the report
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Progressive Test 1 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test1_gpa}"
+
+
+
+class ProgressiveTestTwoReport(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='progressive_test2_reports')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='progressive_test2_reports')
+
+    # Progressive Test 2 GPA (calculated directly from the progressive_test_2_score field)
+    progressive_test2_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
+    # Linking related scores to the report (many-to-many relationship with Score)
+    student_scores = models.ManyToManyField(Score, related_name='progressive_test2_reports')
+
+    # User who generated the report
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test2_reports')
+
+    def calculate_gpa(self, scores):
+        grade_points = []
+        for score in scores:
+            try:
+                # Get the total score from the Score object (percentage out of 100)
+                total_score = Decimal(score.progressive_test_2_score)
+
+                # Calculate GPA based on proportional scale (0 - 100 scale)
+                gpa = (total_score / Decimal(100)) * Decimal(4.0)
+                
+                # Add the GPA for this score to the list
+                grade_points.append(gpa)
+            except Exception as e:
+                print(f"Error calculating GPA for score {score}: {e}")
+                continue
+
+        # Return the list of GPA points for valid scores
+        return grade_points
+
+    def save(self, *args, **kwargs):
+        # Get the scores for the student in the current term
+        scores = Score.objects.filter(student=self.student, term=self.term)
+
+        # Calculate the total score and GPA
+        total_scores = [score.progressive_test_2_score for score in scores]
+        total_score_sum = sum(total_scores)
+        average_score = total_score_sum / len(total_scores) if total_scores else 0
+        gpa_points = self.calculate_gpa(scores)
+
+        self.progressive_test2_gpa = gpa_points
+
+        # Link the scores to the report
+        self.student_scores.set(scores)  # Many-to-many relationship with Score
+
+        # Save the report
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Progressive Test 2 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test2_gpa}"
+
+
+
+class ProgressiveTestThreeReport(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='progressive_test3_reports')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='progressive_test3_reports')
+
+    # Progressive Test 3 GPA (calculated directly from the progressive_test_3_score field)
+    progressive_test3_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
+    # Linking related scores to the report (many-to-many relationship with Score)
+    student_scores = models.ManyToManyField(Score, related_name='progressive_test3_reports')
+
+    # User who generated the report
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test3_reports')
+
+    def calculate_gpa(self, scores):
+        grade_points = []
+        for score in scores:
+            try:
+                # Get the total score from the Score object (percentage out of 100)
+                total_score = Decimal(score.progressive_test_3_score)
+
+                # Calculate GPA based on proportional scale (0 - 100 scale)
+                gpa = (total_score / Decimal(100)) * Decimal(4.0)
+                
+                # Add the GPA for this score to the list
+                grade_points.append(gpa)
+            except Exception as e:
+                print(f"Error calculating GPA for score {score}: {e}")
+                continue
+
+        # Return the list of GPA points for valid scores
+        return grade_points
+
+    def save(self, *args, **kwargs):
+        # Get the scores for the student in the current term
+        scores = Score.objects.filter(student=self.student, term=self.term)
+
+        # Calculate the total score and GPA
+        total_scores = [score.progressive_test_3_score for score in scores]
+        total_score_sum = sum(total_scores)
+        average_score = total_score_sum / len(total_scores) if total_scores else 0
+        gpa_points = self.calculate_gpa(scores)
+
+        # Set the GPA Points based on Progressive Test 3 Scores :
+        self.progressive_test3_gpa = gpa_points
+
+        # Link the scores to the report
+        self.student_scores.set(scores)  # Many-to-many relationship with Score
+
+        # Save the report
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Progressive Test 3 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test3_gpa}"
+
+
+
+class AcademicReport(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
+    
+    # Many to Many relation to the Score model to represent the student's individual scores
+    student_scores = models.ManyToManyField(Score, related_name='academic_reports')
+    student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    
+    # ForeignKey to the User model (user who generated the report)
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
+
+    def save(self, *args, **kwargs):
+        scores = Score.objects.filter(student=self.student, term=self.term)
+        grade_points = self.calculate_gpa(scores)
+        
+        if grade_points:
+            self.student_gpa = sum(grade_points) / len(grade_points)
+        
+        super().save(*args, **kwargs)
+
+    def calculate_gpa(self, scores):
+        grade_points = []
+        for score in scores:
+            try:
+                # Get the total score from the Score object (percentage out of 100)
+                total_score = Decimal(score.total_score)
+
+                # Calculate GPA based on proportional scale (0 - 100 scale)
+                gpa = (total_score / Decimal(100)) * Decimal(4.0)
+                
+                # Add the GPA for this score to the list
+                grade_points.append(gpa)
+            except Exception as e:
+                print(f"Error calculating GPA for score {score}: {e}")
+                continue
+
+        # Return the list of GPA points for valid scores
+        return grade_points
+
+    def __str__(self):
+        return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"

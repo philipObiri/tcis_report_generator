@@ -11,7 +11,7 @@
     <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
     <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
-    <title>End of Term Report - {{ student_name }}</title>
+    <title>Progressive Test Two Report - {{ student_name }}</title>
 
     <style>
       /* Import the font */
@@ -151,34 +151,31 @@
     </div>
 
     <div class="container mt-5">
-      <h4>End Of Term Report for {{ student_name }}</h4>
+      <h4>Progressive Test Two Report for {{ student_name }}</h4>
       <p>
         <strong>Class/Year:</strong> {{ class_year }}
       </p>
       <p>
         <strong>Term:</strong> {{ term_name }}
       </p>
-  
 
       <!-- Table to display subjects and scores -->
       <table>
         <thead>
           <tr>
             <th>Subject</th>
-            <th>Continous Assessment (30%)</th>
-            <th>Exam (70%)</th>
-            <th>Total</th>
+            <th>Score</th>
             <th>Grade</th>
+            <th>GPA</th>
           </tr>
         </thead>
         <tbody>
           {% for item in report_data %}
             <tr>
-              <td>{{ item.subject.name }}</td>
-              <td>{{ item.continuous_assessment }}</td>
-              <td>{{ item.exam_score }}</td>
-              <td class="total-cell">{{ item.total_score }}</td>
-              <td>{{ item.grade }}</td>
+              <td>{{ item.subject }}</td>
+              <td>{{ item.progressive_test_2_score }}</td>
+              <td>{{ item.grade}}</td>
+              <td>{{ item.gpa}}</td>
             </tr>
           {% empty %}
             <tr>
@@ -190,7 +187,7 @@
 
       <!-- Display GPA -->
       <p class="gpa_grade">
-        <strong>GPA:</strong> {{ gpa|floatformat:2 }}
+        <strong>GPA:</strong> {{ gpa }}
       </p>
 
       <div class="gpa-table">
@@ -268,7 +265,7 @@
               <td>Ungraded</td>
             </tr>
           </tbody>
-        </table>       
+        </table>
       </div>
 
       <!-- Print Button -->

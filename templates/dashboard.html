@@ -67,7 +67,7 @@
           </section>
         </form>
         <div class="row d-flex" style="justify-content:center; align-items: center;">
-          <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal">View Saved Scores</button>
+          <button class="btn btn-outline-primary m-3 d-block" data-bs-toggle="modal" data-bs-target="#scoresModal" id="view-end-of-term-scores-btn">View Saved Scores</button>
           <a href="{% url 'select_option' %}" class="d-block btn btn-outline-secondary">Change Entry Option</a>
         </div>
       </section>
@@ -247,11 +247,11 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="scoresModalLabel">Saved Scores</h5>
+          <h5 class="modal-title" id="scoresModalLabel">Saved End of Term Scores</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <table class="table" id="scoresModalTable">
+          <table class="table">
             <thead>
               <tr>
                 <th>Student Name</th>
@@ -259,30 +259,11 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {% for student in students %}
-                {% for score in student.scores.all %}
-                  <tr>
-                    {% if forloop.first %}
-                      <!-- Student Name only once, rowspan for each student's scores -->
-                      <td rowspan="{{ student.scores.all|length }}">{{ student.fullname }}</td>
-                      <!-- Show the term name only for the first score -->
-                      <td>{{ score.term.term_name }}</td>
-                      <!-- Show View and Delete buttons only once for the first score -->
-                      <td>
-                        <a class="btn btn-info btn-sm" href="#" data-student-id="{{ score.student.id }}" data-term-id="{{ score.term.id }}">View</a>
-                        <button class="btn btn-danger btn-sm delete-score-btn" data-score-id="{{ score.id }}">Delete</button>
-                      </td>
-                    {% else %}
-
-                    {% endif %}
-                  </tr>
-                {% endfor %}
-              {% empty %}
-                <tr>
-                  <td colspan="3">No students available.</td>
-                </tr>
-              {% endfor %}
+            <tbody id="student-score-rows">
+              <!-- Dynamically populated rows will appear here -->
+              <tr>
+                <td colspan="3">No students available.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -296,4 +277,63 @@
 {% block extra_js %}
   <script src="{% static 'js/app.js' %}"></script>
   <script src="{% static 'js/report.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      // Event listener for the "View Scores" button
+      $('#view-end-of-term-scores-btn').on('click', function () {
+        var term = $('#term-select').val()
+        // Check if term is selected
+        if (term) {
+          // Fetch scores for the selected term using AJAX
+          $.ajax({
+            url: '/dashboard/entries/view_end_of_term_scores/' + term + '/', // URL to fetch scores based on term_id
+            type: 'GET',
+            success: function (response) {
+              // Clear existing rows in the modal
+              $('#student-score-rows').empty()
+    
+              // Check if students data is available
+              if (response.students.length > 0) {
+                // Display term name in the table header
+                $('#term-header').text('Scores for ' + response.term)
+    
+                // Loop through the students data and populate the modal table
+                response.students.forEach(function (student) {
+                  var row = ''
+    
+                  // Display student name and term
+                  row += '<tr>'
+                  row += '<td>' + student.student_name + '</td>'
+                  row += '<td>' + response.term + '</td>' // Add the term name to the "Term" column
+                  row += '<td>'
+    
+                  // Set correct student ID and term ID for the "View" button
+                  row += '<a class="btn btn-info btn-sm" href="#" data-student-id="' + student.student_id + '" data-term-id="' + response.term_id + '">View</a>'
+    
+                  // Set correct score ID for deletion
+                  // row += '<button class="btn btn-danger btn-sm delete-score-btn" data-score-id="' + student.score_id + '">Delete</button>';
+                  row += '</td>'
+                  row += '</tr>'
+    
+                  // Append the row for the student
+                  $('#student-score-rows').append(row)
+                })
+    
+                // Show the modal
+                $('#scoresModal').modal('show')
+              } else {
+                // If no students are found, show a message in the modal
+                $('#student-score-rows').append('<tr><td colspan="3">No students found for the selected term.</td></tr>')
+              }
+            },
+            error: function (xhr, status, error) {
+              alert('Error fetching data: ' + error)
+            }
+          })
+        } else {
+          alert('Please select a term.')
+        }
+      })
+    })
+  </script>
 {% endblock %}

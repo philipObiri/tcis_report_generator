@@ -7,42 +7,19 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.contrib import messages
 from .models import (
     Level, ClassYear, 
-    Term, Subject, Student, 
+    Term, Subject, Student, TeacherProfile,
     Score, AcademicReport,MidtermReport,
     ProgressiveTestOneReport,ProgressiveTestTwoReport,
     ProgressiveTestThreeReport
 )
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
-from .models import Score
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-import json
-from .models import Student, Term, Score, AcademicReport
 from django.shortcuts import render
-from django.http import JsonResponse
-from .models import AcademicReport, Term, Student, Score
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from .models import Student, Term, Score, AcademicReport
-import json
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from django.http import JsonResponse
 from django.template.loader import render_to_string
-from .models import AcademicReport, Student, Term, ClassYear, Score
-import json
 from decimal import Decimal 
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt  
 from reports.utils import calculate_gpa
 
 
@@ -567,7 +544,7 @@ def view_academic_report(request, student_id, term_id):
 def view_midterm_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
-        scores = Score.objects.filter(student=student, term=term_id)
+        scores = Score.objects.filter(student=student, term=term_id).distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -985,14 +962,24 @@ def get_terms_by_class_year(request, class_year_id):
 def get_subjects_by_class_year(request, class_year_id):
     try:
         class_year = ClassYear.objects.get(id=class_year_id)
-        subjects = Subject.objects.filter(class_year=class_year)
+
+        # Get the TeacherProfile for the logged-in user
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+
+        # Filter subjects by both class year and teacher's subjects
+        subjects = Subject.objects.filter(class_year=class_year, id__in=teacher_profile.subjects.values_list('id', flat=True))
         
         # Serialize the subjects into a list of dictionaries
         subjects_data = [{'id': subject.id, 'name': subject.name} for subject in subjects]
 
         return JsonResponse({'subjects': subjects_data})
+    
     except ClassYear.DoesNotExist:
         return JsonResponse({'error': 'Class Year not found'}, status=404)
+    except TeacherProfile.DoesNotExist:
+        return JsonResponse({'error': 'Teacher Profile not found'}, status=404)
+
+
 
 
 # # Fetch students based on selected filters
@@ -1068,68 +1055,6 @@ def delete_score(request, score_id):
 
 
 # Fetch that generates reports
-# @login_required(login_url='login')
-# def generate_report(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         student_name = data.get('student_name')
-#         class_year = data.get('class_year')
-#         term_name = data.get('term')
-
-#         try:
-#             # Fetch the student, class_year, and term objects
-#             student = Student.objects.get(fullname=student_name)
-#             class_year_obj = ClassYear.objects.get(name=class_year)
-#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
-
-#             # Fetch all scores for the student in the selected term (regardless of the user who created them)
-#             scores = Score.objects.filter(student=student, term=term)
-
-#             if not scores.exists():
-#                 return JsonResponse({
-#                     'success': False,
-#                     'error': f'No scores found for {student_name} in {term_name}.'
-#                 })
-
-#             # Create or update the AcademicReport instance for this student and term
-#             academic_report, created = AcademicReport.objects.get_or_create(
-#                 student=student,
-#                 term=term
-#             )
-
-#             # If it's a new report, assign the scores to the report and calculate GPA
-#             if created:
-#                 academic_report.student_scores.set(scores)  # Assign the scores to the report
-
-#             # Save the academic report which will trigger GPA calculation
-#             academic_report.save()  # The GPA will be automatically calculated by the model's save method
-
-#             # Render the HTML for the report using the 'generated_report.html' template
-#             report_html = render_to_string('generated_report.html', {
-#                 'student_name': student_name,
-#                 'class_year': class_year,
-#                 'term_name': term_name,
-#                 'gpa': academic_report.student_gpa,
-#                 'report_data': scores,  # Pass the scores directly
-#             })
-
-#             # Return the HTML content in the JSON response
-#             return JsonResponse({
-#                 'success': True,
-#                 'report_html': report_html  # Pass the generated HTML content
-#             })
-
-#         except Student.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Student not found.'})
-#         except Term.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Term not found.'})
-#         except ClassYear.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
-
-
-
 
 @login_required(login_url='login')
 def generate_report(request):
@@ -1150,7 +1075,7 @@ def generate_report(request):
             print(f"Fetched: student={student.fullname}, class_year={class_year_obj.name}, term={term.term_name}")
 
             # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term)
+            scores = Score.objects.filter(student=student, term=term).distinct('subject')
             print(f"Fetched scores: {len(scores)} scores found for student {student_name} in term {term_name}")
 
             if not scores.exists():
@@ -1223,7 +1148,7 @@ def generate_midterm_report(request):
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
             # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term)
+            scores = Score.objects.filter(student=student, term=term).distinct('subject')
 
             # Function to calculate grade based on midterm_score
             def get_grade_from_midterm_score(score):
@@ -1363,7 +1288,7 @@ def generate_progressive_one_report(request):
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
             # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term)
+            scores = Score.objects.filter(student=student, term=term).distinct('subject')
 
             # Function to calculate grade based on progressive_test_1_score
             def get_grade_from_progressive_test_1_score(score):
@@ -1504,7 +1429,7 @@ def generate_progressive_two_report(request):
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
             # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term)
+            scores = Score.objects.filter(student=student, term=term).distinct('subject')
 
             # Function to calculate grade based on progressive_test_2_score
             def get_grade_from_progressive_test_2_score(score):
@@ -1646,7 +1571,7 @@ def generate_progressive_three_report(request):
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
             # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term)
+            scores = Score.objects.filter(student=student, term=term).distinct('subject')
 
             # Function to calculate grade based on progressive_test_3_score
             def get_grade_from_progressive_test_3_score(score):
@@ -1768,3 +1693,602 @@ def generate_progressive_three_report(request):
             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+
+#=============== Logic for viewing the saved scores ===============
+# Viewing Saved End of Term  Scores by Term:
+@login_required(login_url='login')
+def view_end_of_term_scores(request, term_id=None):
+    # Ensure that term_id is provided
+    if not term_id:
+        return JsonResponse({'error': 'Term is required'}, status=400)
+
+    try:
+        # Fetch the term object
+        term = Term.objects.get(id=term_id)
+
+        # Fetch all scores for the selected term and the students that belong to it
+        scores = Score.objects.filter(term=term)
+
+        # Prepare a dictionary of student scores by subject
+        students_data = {}
+
+        # Function to calculate grade from total score
+        def get_grade_from_total_score(total_score):
+            if total_score >= 95 and total_score <= 100:
+                return 'A*'
+            elif total_score >= 80 and total_score < 95:
+                return 'A'
+            elif total_score >= 75 and total_score < 80:
+                return 'B+'
+            elif total_score >= 70 and total_score < 75:
+                return 'B'
+            elif total_score >= 65 and total_score < 70:
+                return 'C+'
+            elif total_score >= 60 and total_score < 65:
+                return 'C'
+            elif total_score >= 50 and total_score < 60:
+                return 'D'
+            elif total_score >= 45 and total_score < 50:
+                return 'E'
+            elif total_score >= 35 and total_score < 45:
+                return 'F'
+            else:
+                return 'Ungraded'
+
+        # Function to calculate GPA from total score
+        def get_gpa_from_total_score(total_score):
+            if total_score >= 95 and total_score <= 100:
+                return 4.00
+            elif total_score >= 80 and total_score < 95:
+                return 3.67
+            elif total_score >= 75 and total_score < 80:
+                return 3.33
+            elif total_score >= 70 and total_score < 75:
+                return 3.00
+            elif total_score >= 65 and total_score < 70:
+                return 2.67
+            elif total_score >= 60 and total_score < 65:
+                return 2.33
+            elif total_score >= 50 and total_score < 60:
+                return 2.00
+            elif total_score >= 45 and total_score < 50:
+                return 1.67
+            elif total_score >= 35 and total_score < 45:
+                return 1.00
+            else:
+                return 0.00
+
+        # Loop over the scores to populate students_data
+        for score in scores:
+            student_id = score.student.id
+
+            if student_id not in students_data:
+                students_data[student_id] = {
+                    'student_name': score.student.fullname,
+                    'student_id': score.student.id,
+                    'class_year': score.student.class_year.name,  # Assuming class_year is a related field
+                    'scores': [],
+                    'total_score': 0,
+                    'final_gpa': 0,
+                }
+
+            # Calculate the total score for the student based on individual components
+            continuous_assessment = (
+                score.class_work_score +
+                score.progressive_test_1_score +
+                score.progressive_test_2_score +
+                score.progressive_test_3_score +
+                score.midterm_score
+            )
+
+            # Normalize continuous assessment to a 100% scale (total is out of 500, so divide by 500 and multiply by 100)
+            normalized_continuous_assessment = (continuous_assessment / Decimal('500')) * Decimal('100')
+
+            # Total score is based on 30% continuous assessment and 70% exam score
+            total_score = (normalized_continuous_assessment * Decimal('0.30')) + (score.exam_score * Decimal('0.70'))
+
+            # Assign grade based on the total_score with the new grading scale
+            grade = get_grade_from_total_score(total_score)
+            score_gpa = get_gpa_from_total_score(total_score)
+
+            # Add the score details for each student and subject
+            students_data[student_id]['scores'].append({
+                'subject_name': score.subject.name,
+                'total_score': total_score,
+                'grade': grade,
+                'score_gpa': score_gpa,
+                'score_id': score.id
+            })
+
+            # Accumulate the total score and GPA for the student
+            students_data[student_id]['total_score'] += total_score
+            students_data[student_id]['final_gpa'] += score_gpa
+
+        # After populating data, calculate final grade and final GPA
+        for student_id, data in students_data.items():
+            total_score = data['total_score']
+            data['final_grade'] = get_grade_from_total_score(total_score)
+            data['final_gpa'] = data['final_gpa']  # Final GPA is accumulated GPA across all subjects
+
+        # Include term in the JSON response
+        students_list = list(students_data.values())
+
+        return JsonResponse({
+            'students': students_list,
+            'term': term.term_name,
+            "term_id": term.id,
+        })
+
+    except Term.DoesNotExist:
+        return JsonResponse({'error': 'Invalid term provided'}, status=404)
+
+
+
+
+
+# Viewing Saved Midterm Scores by Term:
+@login_required(login_url='login')
+def view_midterm_scores(request, term_id=None):
+    # Ensure that term_id is provided
+    if not term_id:
+        return JsonResponse({'error': 'Term is required'}, status=400)
+
+    try:
+        # Fetch the term object
+        term = Term.objects.get(id=term_id)
+
+        # Fetch all scores for the selected term and the students that belong to it
+        scores = Score.objects.filter(term=term).distinct('subject')
+
+        # Prepare a dictionary of student scores by subject
+        students_data = {}
+
+        # Function to calculate grade from total midterm score
+        def get_grade_from_total_score(total_score):
+            if total_score >= 95 and total_score <= 100:
+                return 'A*'
+            elif total_score >= 80 and total_score < 95:
+                return 'A'
+            elif total_score >= 75 and total_score < 80:
+                return 'B+'
+            elif total_score >= 70 and total_score < 75:
+                return 'B'
+            elif total_score >= 65 and total_score < 70:
+                return 'C+'
+            elif total_score >= 60 and total_score < 65:
+                return 'C'
+            elif total_score >= 50 and total_score < 60:
+                return 'D'
+            elif total_score >= 45 and total_score < 50:
+                return 'E'
+            elif total_score >= 35 and total_score < 45:
+                return 'F'
+            else:
+                return 'Ungraded'
+
+        # Function to calculate GPA from total midterm score
+        def get_gpa_from_total_score(total_score):
+            if total_score >= 95 and total_score <= 100:
+                return 4.00
+            elif total_score >= 80 and total_score < 95:
+                return 3.67
+            elif total_score >= 75 and total_score < 80:
+                return 3.33
+            elif total_score >= 70 and total_score < 75:
+                return 3.00
+            elif total_score >= 65 and total_score < 70:
+                return 2.67
+            elif total_score >= 60 and total_score < 65:
+                return 2.33
+            elif total_score >= 50 and total_score < 60:
+                return 2.00
+            elif total_score >= 45 and total_score < 50:
+                return 1.67
+            elif total_score >= 35 and total_score < 45:
+                return 1.00
+            else:
+                return 0.00
+
+        # Loop over the scores to populate students_data
+        for score in scores:
+            student_id = score.student.id
+            subject_name = score.subject.name
+
+            if student_id not in students_data:
+                students_data[student_id] = {
+                    'student_name': score.student.fullname,
+                    'student_id': score.student.id,
+                    'class_year': score.student.class_year.name,  # Assuming class_year is a related field
+                    'scores': [],
+                    'total_score': 0,
+                    'final_gpa': 0,
+                }
+
+            # Add the score details for each student and subject
+            score_gpa = get_gpa_from_total_score(score.midterm_score)
+            grade = get_grade_from_total_score(score.midterm_score)
+
+            students_data[student_id]['scores'].append({
+                'subject_name': subject_name,
+                'midterm_score': score.midterm_score,
+                'score_gpa': score_gpa,
+                'grade': grade,
+                'score_id': score.id
+            })
+
+            # Accumulate the total score and GPA for the student
+            students_data[student_id]['total_score'] += score.midterm_score
+            students_data[student_id]['final_gpa'] += score_gpa
+
+        # After populating data, calculate final grade and final GPA
+        for student_id, data in students_data.items():
+            total_score = data['total_score']
+            total_score_percentage = total_score  # We can directly use total_score here
+
+            data['final_gpa'] = data['final_gpa']  # Final GPA is accumulated GPA across all subjects
+
+        # Include term in the JSON response
+        students_list = list(students_data.values())
+
+        return JsonResponse({
+            'students': students_list,
+            'term': term.term_name,
+            "term_id":term.id,
+        })
+
+    except Term.DoesNotExist:
+        return JsonResponse({'error': 'Invalid term provided'}, status=404)
+
+
+
+
+# Viewing Saved Progressive Test One Scores by Term:
+@login_required(login_url='login')
+def view_progressive_one_test_scores(request, term_id=None):
+    # Ensure that term_id is provided
+    if not term_id:
+        return JsonResponse({'error': 'Term is required'}, status=400)
+    try:
+        # Fetch the term object
+        term = Term.objects.get(id=term_id)
+
+        # Fetch all scores for the selected term and the students that belong to it
+        scores = Score.objects.filter(term=term)
+
+        # Prepare a dictionary to store the student data
+        students_data = {}
+
+        # Function to calculate grade from progressive_test_1_score
+        def get_grade_from_progressive_score(score):
+            if score >= 95 and score <= 100:
+                return 'A*'
+            elif score >= 80 and score < 95:
+                return 'A'
+            elif score >= 75 and score < 80:
+                return 'B+'
+            elif score >= 70 and score < 75:
+                return 'B'
+            elif score >= 65 and score < 70:
+                return 'C+'
+            elif score >= 60 and score < 65:
+                return 'C'
+            elif score >= 50 and score < 60:
+                return 'D'
+            elif score >= 45 and score < 50:
+                return 'E'
+            elif score >= 35 and score < 45:
+                return 'F'
+            else:
+                return 'Ungraded'
+
+        # Function to calculate GPA from progressive_test_1_score
+        def get_gpa_from_progressive_score(score):
+            if score >= 95 and score <= 100:
+                return 4.00
+            elif score >= 80 and score < 95:
+                return 3.67
+            elif score >= 75 and score < 80:
+                return 3.33
+            elif score >= 70 and score < 75:
+                return 3.00
+            elif score >= 65 and score < 70:
+                return 2.67
+            elif score >= 60 and score < 65:
+                return 2.33
+            elif score >= 50 and score < 60:
+                return 2.00
+            elif score >= 45 and score < 50:
+                return 1.67
+            elif score >= 35 and score < 45:
+                return 1.00
+            else:
+                return 0.00
+
+        # Loop over the scores to populate students_data
+        for score in scores:
+            student_id = score.student.id
+
+            if student_id not in students_data:
+                students_data[student_id] = {
+                    'student_name': score.student.fullname,
+                    'student_id': score.student.id,
+                    'class_year': score.student.class_year.name,  # Assuming class_year is a related field
+                    'scores': [],
+                    'total_score': 0,
+                    'final_gpa': 0,
+                }
+
+            # Only consider the progressive_test_1_score
+            progressive_test_1_score = score.progressive_test_1_score
+
+            # Assign grade and GPA based on progressive_test_1_score
+            grade = get_grade_from_progressive_score(progressive_test_1_score)
+            score_gpa = get_gpa_from_progressive_score(progressive_test_1_score)
+
+            # Add the score details for each student and subject
+            students_data[student_id]['scores'].append({
+                'subject_name': score.subject.name,
+                'progressive_test_1_score': progressive_test_1_score,
+                'grade': grade,
+                'score_gpa': score_gpa,
+                'score_id': score.id
+            })
+
+            # Accumulate the total score and GPA for the student
+            students_data[student_id]['total_score'] += progressive_test_1_score
+            students_data[student_id]['final_gpa'] += score_gpa
+
+        # After populating data, calculate final grade and final GPA
+        for student_id, data in students_data.items():
+            total_score = data['total_score']
+            data['final_grade'] = get_grade_from_progressive_score(total_score)
+            data['final_gpa'] = data['final_gpa']  # Final GPA is accumulated GPA across all subjects
+
+        # Include term in the JSON response
+        students_list = list(students_data.values())
+
+        return JsonResponse({
+            'students': students_list,
+            'term': term.term_name,
+            "term_id": term.id,
+        })
+
+    except Term.DoesNotExist:
+        return JsonResponse({'error': 'Invalid term provided'}, status=404)
+
+
+
+# Viewing Saved Progressive Test Two Scores by Term:
+@login_required(login_url='login')
+def view_progressive_two_test_scores(request, term_id=None):
+    # Ensure that term_id is provided
+    if not term_id:
+        return JsonResponse({'error': 'Term is required'}, status=400)
+
+    try:
+        # Fetch the term object
+        term = Term.objects.get(id=term_id)
+
+        # Fetch all scores for the selected term and the students that belong to it
+        scores = Score.objects.filter(term=term)
+
+        # Prepare a dictionary to store the student data
+        students_data = {}
+
+        # Function to calculate grade from progressive_test_2_score
+        def get_grade_from_progressive_score(score):
+            if score >= 95 and score <= 100:
+                return 'A*'
+            elif score >= 80 and score < 95:
+                return 'A'
+            elif score >= 75 and score < 80:
+                return 'B+'
+            elif score >= 70 and score < 75:
+                return 'B'
+            elif score >= 65 and score < 70:
+                return 'C+'
+            elif score >= 60 and score < 65:
+                return 'C'
+            elif score >= 50 and score < 60:
+                return 'D'
+            elif score >= 45 and score < 50:
+                return 'E'
+            elif score >= 35 and score < 45:
+                return 'F'
+            else:
+                return 'Ungraded'
+
+        # Function to calculate GPA from progressive_test_2_score
+        def get_gpa_from_progressive_score(score):
+            if score >= 95 and score <= 100:
+                return 4.00
+            elif score >= 80 and score < 95:
+                return 3.67
+            elif score >= 75 and score < 80:
+                return 3.33
+            elif score >= 70 and score < 75:
+                return 3.00
+            elif score >= 65 and score < 70:
+                return 2.67
+            elif score >= 60 and score < 65:
+                return 2.33
+            elif score >= 50 and score < 60:
+                return 2.00
+            elif score >= 45 and score < 50:
+                return 1.67
+            elif score >= 35 and score < 45:
+                return 1.00
+            else:
+                return 0.00
+
+        # Loop over the scores to populate students_data
+        for score in scores:
+            student_id = score.student.id
+
+            if student_id not in students_data:
+                students_data[student_id] = {
+                    'student_name': score.student.fullname,
+                    'student_id': score.student.id,
+                    'class_year': score.student.class_year.name,  # Assuming class_year is a related field
+                    'scores': [],
+                    'total_score': 0,
+                    'final_gpa': 0,
+                }
+
+            # Only consider the progressive_test_2_score
+            progressive_test_2_score = score.progressive_test_2_score
+
+            # Assign grade and GPA based on progressive_test_2_score
+            grade = get_grade_from_progressive_score(progressive_test_2_score)
+            score_gpa = get_gpa_from_progressive_score(progressive_test_2_score)
+
+            # Add the score details for each student and subject
+            students_data[student_id]['scores'].append({
+                'subject_name': score.subject.name,
+                'progressive_test_2_score': progressive_test_2_score,
+                'grade': grade,
+                'score_gpa': score_gpa,
+                'score_id': score.id
+            })
+
+            # Accumulate the total score and GPA for the student
+            students_data[student_id]['total_score'] += progressive_test_2_score
+            students_data[student_id]['final_gpa'] += score_gpa
+
+        # After populating data, calculate final grade and final GPA
+        for student_id, data in students_data.items():
+            total_score = data['total_score']
+            data['final_grade'] = get_grade_from_progressive_score(total_score)
+            data['final_gpa'] = data['final_gpa']  # Final GPA is accumulated GPA across all subjects
+
+        # Include term in the JSON response
+        students_list = list(students_data.values())
+
+        return JsonResponse({
+            'students': students_list,
+            'term': term.term_name,
+            "term_id": term.id,
+        })
+
+    except Term.DoesNotExist:
+        return JsonResponse({'error': 'Invalid term provided'}, status=404)
+
+
+
+# Viewing Saved Progressive Test Three Scores by Term:
+@login_required(login_url='login')
+def view_progressive_three_test_scores(request, term_id=None):
+    # Ensure that term_id is provided
+    if not term_id:
+        return JsonResponse({'error': 'Term is required'}, status=400)
+
+    try:
+        # Fetch the term object
+        term = Term.objects.get(id=term_id)
+
+        # Fetch all scores for the selected term and the students that belong to it
+        scores = Score.objects.filter(term=term)
+
+        # Prepare a dictionary to store the student data
+        students_data = {}
+
+        # Function to calculate grade from progressive_test_3_score
+        def get_grade_from_progressive_score(score):
+            if score >= 95 and score <= 100:
+                return 'A*'
+            elif score >= 80 and score < 95:
+                return 'A'
+            elif score >= 75 and score < 80:
+                return 'B+'
+            elif score >= 70 and score < 75:
+                return 'B'
+            elif score >= 65 and score < 70:
+                return 'C+'
+            elif score >= 60 and score < 65:
+                return 'C'
+            elif score >= 50 and score < 60:
+                return 'D'
+            elif score >= 45 and score < 50:
+                return 'E'
+            elif score >= 35 and score < 45:
+                return 'F'
+            else:
+                return 'Ungraded'
+
+        # Function to calculate GPA from progressive_test_3_score
+        def get_gpa_from_progressive_score(score):
+            if score >= 95 and score <= 100:
+                return 4.00
+            elif score >= 80 and score < 95:
+                return 3.67
+            elif score >= 75 and score < 80:
+                return 3.33
+            elif score >= 70 and score < 75:
+                return 3.00
+            elif score >= 65 and score < 70:
+                return 2.67
+            elif score >= 60 and score < 65:
+                return 2.33
+            elif score >= 50 and score < 60:
+                return 2.00
+            elif score >= 45 and score < 50:
+                return 1.67
+            elif score >= 35 and score < 45:
+                return 1.00
+            else:
+                return 0.00
+
+        # Loop over the scores to populate students_data
+        for score in scores:
+            student_id = score.student.id
+
+            if student_id not in students_data:
+                students_data[student_id] = {
+                    'student_name': score.student.fullname,
+                    'student_id': score.student.id,
+                    'class_year': score.student.class_year.name,  # Assuming class_year is a related field
+                    'scores': [],
+                    'total_score': 0,
+                    'final_gpa': 0,
+                }
+
+            # Only consider the progressive_test_3_score
+            progressive_test_3_score = score.progressive_test_3_score
+
+            # Assign grade and GPA based on progressive_test_3_score
+            grade = get_grade_from_progressive_score(progressive_test_3_score)
+            score_gpa = get_gpa_from_progressive_score(progressive_test_3_score)
+
+            # Add the score details for each student and subject
+            students_data[student_id]['scores'].append({
+                'subject_name': score.subject.name,
+                'progressive_test_3_score': progressive_test_3_score,
+                'grade': grade,
+                'score_gpa': score_gpa,
+                'score_id': score.id
+            })
+
+            # Accumulate the total score and GPA for the student
+            students_data[student_id]['total_score'] += progressive_test_3_score
+            students_data[student_id]['final_gpa'] += score_gpa
+
+        # After populating data, calculate final grade and final GPA
+        for student_id, data in students_data.items():
+            total_score = data['total_score']
+            data['final_grade'] = get_grade_from_progressive_score(total_score)
+            data['final_gpa'] = data['final_gpa']  # Final GPA is accumulated GPA across all subjects
+
+        # Include term in the JSON response
+        students_list = list(students_data.values())
+
+        return JsonResponse({
+            'students': students_list,
+            'term': term.term_name,
+            "term_id": term.id,
+        })
+
+    except Term.DoesNotExist:
+        return JsonResponse({'error': 'Invalid term provided'}, status=404)

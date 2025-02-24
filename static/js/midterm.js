@@ -220,6 +220,124 @@ $(document).ready(function () {
     })
 
 
+
+
+
+    // Event listener for when the "View" button is clicked
+    $('#midtermScoresModal').on('click', '.btn-info', function (event) {
+        event.preventDefault(); // Prevent the default link behavior
+
+        // Get the student ID and term ID from the data attributes
+        var studentId = $(this).data('student-id');
+        var termId = $(this).data('term-id');
+
+        // Check if studentId and termId are defined
+        if (studentId && termId) {
+            // Perform the AJAX request to fetch the report details
+            $.ajax({
+                url: `/reports/get_midterm_report_details/${studentId}/${termId}/`, // Dynamic path with student_id and term_id
+                method: 'GET',
+                success: function (response) {
+                    if (response) {
+                        // Only populate the report section
+                        $('#student-scores-section').addClass('d-none'); // Ensure the student scores section remains hidden
+
+                        // Set the report details in the report section
+                        $('#student-name').text(response.student_name);
+                        $('#class-year').text(response.class_year);
+                        $('#term').text(response.term);
+
+                        // Clear previous scores and append new ones
+                        $('#report-scores').empty();
+                        response.scores.forEach(function (score) {
+                            var scoreRow = `
+                <tr>
+                  <td>${score.subject}</td>
+                  <td>${score.midterm_score}</td>
+                  <td>${score.grade}</td>
+                  <td>${score.gpa}</td>
+                </tr>
+              `;
+                            $('#report-scores').append(scoreRow);
+                        });
+
+                        // Set the GPA
+                        $('#gpa').text(response.total_gpa);
+
+                        // Optionally, hide the modal
+                        $('#midtermScoresModal').modal('hide');
+                    } else {
+                        alert('Report not found');
+                    }
+                },
+                error: function () {
+                    alert('Error fetching report details');
+                }
+            });
+        } else {
+            console.error('Student ID or Term ID is missing.');
+        }
+    });
+
+
+
+
+    // Handle Delete button click
+    // $('#scoresModal').on('click', '.delete-score-btn', function () {
+    //     var scoreId = $(this).data('score-id'); // Get the score ID from the button's data attribute
+    //     Swal.fire({
+    //         title: 'Are you sure?',
+    //         text: 'This will permanently delete this score.',
+    //         icon: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonText: 'Yes, delete it!',
+    //         cancelButtonText: 'No, cancel'
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             // Perform the AJAX request to delete the score
+    //             $.ajax({
+    //                 url: `/reports/scores/delete-score/${scoreId}/`, // Correct endpoint URL
+    //                 method: 'DELETE',
+    //                 headers: { 'X-CSRFToken': getCSRFToken() }, // Pass CSRF token
+    //                 success: function (response) {
+    //                     if (response.status === 'success') {
+    //                         Swal.fire({
+    //                             title: 'Deleted!',
+    //                             text: 'The score has been successfully deleted.',
+    //                             icon: 'success',
+    //                             confirmButtonText: 'OK'
+    //                         });
+
+    //                         // Remove the corresponding row from the UI
+    //                         $('button.delete-score-btn')
+    //                             .filter(function () {
+    //                                 return $(this).data('score-id') === scoreId;
+    //                             })
+    //                             .closest('tr')
+    //                             .remove();
+    //                     } else {
+    //                         Swal.fire({
+    //                             title: 'Error!',
+    //                             text: response.message,
+    //                             icon: 'error',
+    //                             confirmButtonText: 'OK'
+    //                         });
+    //                     }
+    //                 },
+    //                 error: function () {
+    //                     Swal.fire({
+    //                         title: 'Error!',
+    //                         text: 'An unexpected error occurred.',
+    //                         icon: 'error',
+    //                         confirmButtonText: 'OK'
+    //                     });
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
+
+
     // Reset form fields after successful form submission
     function resetFormFields() {
         $('#hidden-level').val('')

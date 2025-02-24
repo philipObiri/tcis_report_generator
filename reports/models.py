@@ -55,7 +55,6 @@ class Subject(models.Model):
         return self.name
 
 
-
 class Student(models.Model):
     fullname = models.CharField(max_length=255)
     class_year = models.ForeignKey(ClassYear, on_delete=models.CASCADE, related_name='students')
@@ -149,11 +148,12 @@ class Score(models.Model):
 
         # Call the superclass save method to store the object in the database
         super().save(*args, **kwargs)
+    
+    # class Meta:
+    #     unique_together = ('student', 'term', 'subject')
 
     def __str__(self):
         return f"{self.student.fullname} - {self.subject.name} - {self.total_score}"
-
-
 
 
 class MidtermReport(models.Model):
@@ -202,7 +202,6 @@ class MidtermReport(models.Model):
         return f"Midterm Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.midterm_gpa}"
 
 
-
 class ProgressiveTestOneReport(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='progressive_test1_reports')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='progressive_test1_reports')
@@ -248,8 +247,6 @@ class ProgressiveTestOneReport(models.Model):
 
     def __str__(self):
         return f"Progressive Test 1 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test1_gpa}"
-
-
 
 
 class ProgressiveTestTwoReport(models.Model):
@@ -347,80 +344,6 @@ class ProgressiveTestThreeReport(models.Model):
 
 
 
-
-# class AcademicReport(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
-#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
-
-#     # Many to Many relation to the Score model to represent the student's individual scores
-#     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
-#     student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
-#     # ForeignKey to the User model (user who generated the report)
-#     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
-
-
-#     class Meta:
-#         verbose_name = "End of Term Report "
-#         verbose_name_plural = "End of Term Reports"
-
-
-#     def save(self, *args, **kwargs):
-#         scores = Score.objects.filter(student=self.student, term=self.term)
-
-#         # Calculate GPA using the external calculate_gpa function
-#         gpa = calculate_gpa(scores)
-
-#         self.student_gpa = gpa
-
-#         # Link the scores to the report
-#         self.student_scores.set(scores)
-
-#         # Save the report
-#         super().save(*args, **kwargs)
-
-#     def __str__(self):
-#         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
-
-
-
-# class AcademicReport(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
-#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
-
-#     # Many to Many relation to the Score model to represent the student's individual scores
-#     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
-#     student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
-#     # ForeignKey to the User model (user who generated the report)
-#     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
-
-#     class Meta:
-#         verbose_name = "End of Term Report"
-#         verbose_name_plural = "End of Term Reports"
-
-#     def save(self, *args, **kwargs):
-#         # Fetch scores before saving the report
-#         scores = Score.objects.filter(student=self.student, term=self.term)
-
-#         # Calculate GPA using the external calculate_gpa function
-#         gpa = calculate_gpa(scores)
-
-#         self.student_gpa = gpa
-
-#         # Save the report first to generate an ID
-#         super().save(*args, **kwargs)
-
-#         # Link the scores to the report after it has an ID
-#         self.student_scores.set(scores)
-
-#         # Save again after setting the many-to-many relationship
-#         super().save(*args, **kwargs)
-
-#     def __str__(self):
-#         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
-
-
 class AcademicReport(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
@@ -461,4 +384,16 @@ class AcademicReport(models.Model):
 
     def __str__(self):
         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
+
+
+
+class TeacherProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  
+    subjects = models.ManyToManyField(Subject, related_name='teachers')
+    class Meta:
+        verbose_name="Teacher Profile"
+        verbose_name_plural = "Teacher Profiles"
+    
+    def __str__(self):
+        return f"Teacher Profile: {self.user.username}"
 

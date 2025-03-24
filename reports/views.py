@@ -12,7 +12,8 @@ from .models import (
     Term, Subject, Student, TeacherProfile,
     Score, AcademicReport,MidtermReport,
     ProgressiveTestOneReport,ProgressiveTestTwoReport,
-    ProgressiveTestThreeReport
+    ProgressiveTestThreeReport,
+    MockReport,
 )
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -142,7 +143,9 @@ def class_scores(request):
     if term_id and subject_id:
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
+        scores = Score.objects.filter(term=term, subject=subject, 
+        created_by=request.user
+        )
 
     return render(request, 'class_scores.html', {
         'students': students,
@@ -191,7 +194,9 @@ def progressive_test_scores_one(request):
                 )
 
                 # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject, created_by=request.user)
+                score_instance = Score.objects.get(student=student, term=term, subject=subject,
+                created_by=request.user
+                )
                 score_instance.save()
 
         messages.success(request, 'Progressive test data saved successfully.')
@@ -204,7 +209,9 @@ def progressive_test_scores_one(request):
     if term_id and subject_id:
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
+        scores = Score.objects.filter(term=term, subject=subject,
+        created_by=request.user
+        )
 
     context = {
         'students': Student.objects.all(),
@@ -224,7 +231,6 @@ def progressive_test_scores_two(request):
     scores = []
     term = None
     subject = None
-
     if request.method == 'POST':
         level_id = request.POST.get('level')
         class_year_id = request.POST.get('class_year')
@@ -257,7 +263,9 @@ def progressive_test_scores_two(request):
                 )
 
                 # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject, created_by=request.user)
+                score_instance = Score.objects.get(student=student, term=term, subject=subject,
+                created_by=request.user
+                )
                 score_instance.save()
 
         messages.success(request, 'Progressive Test 2 data saved successfully.')
@@ -270,7 +278,9 @@ def progressive_test_scores_two(request):
     if term_id and subject_id:
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
+        scores = Score.objects.filter(term=term, subject=subject, 
+        created_by=request.user
+        )
 
     context = {
         'students': students,
@@ -322,7 +332,9 @@ def progressive_test_scores_three(request):
                 )
 
                 # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject, created_by=request.user)
+                score_instance = Score.objects.get(student=student, term=term, subject=subject, 
+                created_by=request.user
+                )
                 score_instance.save()
 
         messages.success(request, 'Progressive Test 3 data saved successfully.')
@@ -335,7 +347,9 @@ def progressive_test_scores_three(request):
     if term_id and subject_id:
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
+        scores = Score.objects.filter(term=term, subject=subject,
+        created_by=request.user
+        )
 
     context = {
         'students': students,
@@ -417,7 +431,9 @@ def midterm_scores(request):
     if term_id and subject_id:
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject, created_by=request.user)
+        scores = Score.objects.filter(term=term, subject=subject,
+        created_by=request.user
+        )
 
     context = {
         'students': students,
@@ -425,6 +441,92 @@ def midterm_scores(request):
     }
 
     return render(request, 'midterm.html', context)
+
+
+
+#========== Process Mock Scores ====================
+@login_required(login_url='login')
+def mock_scores(request):
+    students = []
+    scores = []
+    term = None
+    subject = None
+
+    students = Student.objects.all()
+
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Retrieve POST parameters for filters
+        level_id = request.POST.get('level')
+        class_year_id = request.POST.get('class_year')
+        term_id = request.POST.get('term')
+        subject_id = request.POST.get('subject')
+
+        level = Level.objects.get(id=level_id) if level_id else None
+        class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
+        term = Term.objects.get(id=term_id) if term_id else None
+        subject = Subject.objects.get(id=subject_id) if subject_id else None
+
+        if class_year:
+            students = Student.objects.filter(class_year=class_year)
+
+        for student in students:
+            existing_score = Score.objects.filter(
+                student=student,
+                term=term,
+                subject=subject,
+                created_by=request.user
+            ).first()
+
+            mock_score = 0
+
+            if existing_score:
+                mock_score = existing_score.mock_score
+
+            posted_mock_score = request.POST.get(f'mock_score_{student.id}')
+            if posted_mock_score:
+                try:
+                    mock_score = Decimal(posted_mock_score)
+
+                    # Update or create the score instance and save
+                    score_instance, created = Score.objects.update_or_create(
+                        student=student,
+                        term=term,
+                        subject=subject,
+                        created_by=request.user,
+                        defaults={'mock_score': mock_score}
+                    )
+
+                    # No need to call score_instance.save() as update_or_create will trigger the save.
+
+                except ValueError:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Invalid mock score value for {student.fullname}.'
+                    })
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Mock Scores saved successfully!'
+        })
+
+    term_id = request.GET.get('term')
+    subject_id = request.GET.get('subject')
+
+    if term_id and subject_id:
+        term = Term.objects.get(id=term_id)
+        subject = Subject.objects.get(id=subject_id)
+        scores = Score.objects.filter(
+            term=term, 
+            subject=subject, 
+            created_by=request.user
+            )
+
+    context = {
+        'students': students,
+        'scores': scores,
+    }
+
+    return render(request, 'mock_scores.html', context)
 
 
 
@@ -438,6 +540,7 @@ def process_scores_view(request):
     # Fetch all students and their scores (including continuous_assessment) for the logged-in user
     students = Student.objects.all()  # Adjust as per your filter
     scores = Score.objects.filter(created_by=request.user)  # Fetch scores entered by the logged-in user
+    # scores = Score.objects.all()
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         level_id = request.POST.get('level')
@@ -500,6 +603,7 @@ def process_scores_view(request):
 
 # Functional Logic to fetch all end of term scores :
 @login_required(login_url='login')
+@login_required(login_url='login')
 def view_academic_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -541,6 +645,7 @@ def view_academic_report(request, student_id, term_id):
 
 
 # Functional Logic to fetch all midterm test scores :
+@login_required(login_url='login')
 def view_midterm_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -631,6 +736,103 @@ def view_midterm_report(request, student_id, term_id):
         return JsonResponse({'error': 'Student not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+
+# Functional Logic to fetch all mock test scores :
+@login_required(login_url='login')
+def view_mock_report(request, student_id, term_id):
+    try:
+        student = Student.objects.get(id=student_id)
+        scores = Score.objects.filter(student=student, term=term_id).distinct('subject')
+        term = get_object_or_404(Term, id=term_id)
+        
+        # Ensure that class_year is serialized to a string or relevant field
+        class_year = student.class_year.name if hasattr(student.class_year, 'name') else str(student.class_year)
+
+        # Function to calculate grade based on progressive_test_1_score
+        def get_grade_from_mock_score(score):
+            if score >= 95 and score <= 100:
+                return 'A*'  # Grade for 95% - 100%
+            elif score >= 80 and score < 95:
+                return 'A'  # Grade for 80% - 94%
+            elif score >= 75 and score < 80:
+                return 'B+'  # Grade for 75% - 79%
+            elif score >= 70 and score < 75:
+                return 'B'  # Grade for 70% - 74%
+            elif score >= 65 and score < 70:
+                return 'C+'  # Grade for 65% - 69%
+            elif score >= 60 and score < 65:
+                return 'C'  # Grade for 60% - 64%
+            elif score >= 50 and score < 60:
+                return 'D'  # Grade for 50% - 59%
+            elif score >= 45 and score < 50:
+                return 'E'  # Grade for 45% - 49%
+            elif score >= 35 and score < 45:
+                return 'F'  # Grade for 35% - 44%
+            else:
+                return 'Ungraded'  # Grade for 0% - 34%
+
+        # Function to calculate GPA based on a score
+        def get_gpa_from_mock_score(score):
+            if score >= 95 and score <= 100:
+                return 4.00
+            elif score >= 80 and score < 95:
+                return 3.67
+            elif score >= 75 and score < 80:
+                return 3.33
+            elif score >= 70 and score < 75:
+                return 3.00
+            elif score >= 65 and score < 70:
+                return 2.67
+            elif score >= 60 and score < 65:
+                return 2.33
+            elif score >= 50 and score < 60:
+                return 2.00
+            elif score >= 45 and score < 50:
+                return 1.67
+            elif score >= 35 and score < 45:
+                return 1.00
+            else:
+                return 0.00
+
+        # Calculate total score percentage as float to avoid decimal.Decimal issues
+        if scores.exists():
+            total_score = sum([score.mock_score for score in scores])
+            total_score_percentage = float(total_score) / (len(scores) * 100) * 100  # Cast to float
+        else:
+            total_score_percentage = 0.0  # If no scores exist, default to 0%
+
+        # Calculate GPA based on total score percentage
+        total_gpa = get_gpa_from_mock_score(total_score_percentage)
+
+        # Prepare data to be returned in the JSON response
+        mock_report = {
+            'student_name': student.fullname,
+            'class_year': class_year,  # Ensure it's a serializable value (e.g., string)
+            'term': term.term_name,
+            'total_score_percentage': total_score_percentage,
+            'total_gpa': total_gpa,  # Add the total GPA
+            'scores': [
+                {
+                    'subject': score.subject.name,
+                    'mock_score': score.mock_score,
+                    'grade': get_grade_from_mock_score(score.mock_score),  # Grade based on progressive test score
+                    'gpa': get_gpa_from_mock_score(score.mock_score)  # GPA based on individual score
+                }
+                for score in scores
+            ]
+        }
+
+        # Return a JsonResponse with the midterm report data
+        return JsonResponse(mock_report)
+
+    except Student.DoesNotExist:
+        return JsonResponse({'error': 'Student not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 
 
 # # Functional Logic to fetch all progressive test one scores :
@@ -921,6 +1123,7 @@ def view_progressive_test_score_three_report(request, student_id, term_id):
 
 
 # Functional Logic to dunamically fetch the various levels :
+@login_required(login_url='login')
 def get_levels(request):
     levels = Level.objects.all()
 
@@ -931,6 +1134,7 @@ def get_levels(request):
 
 
 # Fetch classes based on selected level
+@login_required(login_url='login')
 def get_classes_by_level(request, level_id):
     try:
         level = Level.objects.get(id=level_id)
@@ -945,6 +1149,7 @@ def get_classes_by_level(request, level_id):
 
 
 # Fetch terms based on selected class year
+@login_required(login_url='login')
 def get_terms_by_class_year(request, class_year_id):
     try:
         class_year = ClassYear.objects.get(id=class_year_id)
@@ -959,6 +1164,7 @@ def get_terms_by_class_year(request, class_year_id):
 
 
 # Fetch subjects based on selected class year
+@login_required(login_url='login')
 def get_subjects_by_class_year(request, class_year_id):
     try:
         class_year = ClassYear.objects.get(id=class_year_id)
@@ -982,7 +1188,8 @@ def get_subjects_by_class_year(request, class_year_id):
 
 
 
-# # Fetch students based on selected filters
+## Fetch students based on selected filters
+@login_required(login_url='login')
 def get_students_by_filters(request, level_id, class_year_id, term_id, subject_id):
     try:
         # Get the selected objects based on the filters
@@ -1019,6 +1226,7 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
                     'progressive_test_2_score': str(score.progressive_test_2_score),
                     'progressive_test_3_score': str(score.progressive_test_3_score),
                     'midterm_score': str(score.midterm_score),
+                    'mock_score': str(score.mock_score),
                     'exam_score': str(score.exam_score),
                     'continuous_assessment': str(score.continuous_assessment),
                     'total_score': str(score.total_score),
@@ -1054,9 +1262,8 @@ def delete_score(request, score_id):
     return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
 
 
-# Fetch that generates reports
-
-# @login_required(login_url='login')
+# View that generates reports
+@login_required(login_url='login')
 def generate_report(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -1133,144 +1340,6 @@ def generate_report(request):
 
 
 # This logic allows me to generate midterm reports dynamically
-# @login_required(login_url='login')
-# def generate_midterm_report(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         student_name = data.get('student_name')
-#         class_year = data.get('class_year')
-#         term_name = data.get('term')
-
-#         try:
-#             # Fetch the student, class_year, and term objects
-#             student = Student.objects.get(fullname=student_name)
-#             class_year_obj = ClassYear.objects.get(name=class_year)
-#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
-
-#             # Fetch all scores for the student in the selected term
-#             scores = Score.objects.filter(student=student, term=term).distinct('subject')
-
-#             # Function to calculate grade based on midterm_score
-#             def get_grade_from_midterm_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 'A*'
-#                 elif score >= 80 and score < 95:
-#                     return 'A'
-#                 elif score >= 75 and score < 80:
-#                     return 'B+'
-#                 elif score >= 70 and score < 75:
-#                     return 'B'
-#                 elif score >= 65 and score < 70:
-#                     return 'C+'
-#                 elif score >= 60 and score < 65:
-#                     return 'C'
-#                 elif score >= 50 and score < 60:
-#                     return 'D'
-#                 elif score >= 45 and score < 50:
-#                     return 'E'
-#                 elif score >= 35 and score < 45:
-#                     return 'F'
-#                 else:
-#                     return 'Ungraded'
-
-#             # Function to calculate GPA based on midterm_score
-#             def get_gpa_from_midterm_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 4.00
-#                 elif score >= 80 and score < 95:
-#                     return 3.67
-#                 elif score >= 75 and score < 80:
-#                     return 3.33
-#                 elif score >= 70 and score < 75:
-#                     return 3.00
-#                 elif score >= 65 and score < 70:
-#                     return 2.67
-#                 elif score >= 60 and score < 65:
-#                     return 2.33
-#                 elif score >= 50 and score < 60:
-#                     return 2.00
-#                 elif score >= 45 and score < 50:
-#                     return 1.67
-#                 elif score >= 35 and score < 45:
-#                     return 1.00
-#                 else:
-#                     return 0.00
-
-#             # Calculate total score percentage and GPA
-#             if scores.exists():
-#                 total_score = sum([score.midterm_score for score in scores])
-#                 total_score_percentage = (total_score / (len(scores) * 100)) * 100
-#             else:
-#                 total_score_percentage = 0  # If no scores exist, default to 0%
-
-#             # Calculate GPA based on total score percentage
-#             total_gpa = get_gpa_from_midterm_score(total_score_percentage)
-
-#             # Create or update the MidtermReport instance for this student and term
-#             midterm_report, created = MidtermReport.objects.get_or_create(
-#                 student=student,
-#                 term=term
-#             )
-
-#             # If it's a new report, set the fields and save
-#             if created:
-#                 # Set the necessary fields for the new report
-#                 midterm_report.student = student
-#                 midterm_report.term = term
-#                 midterm_report.midterm_gpa = float(total_gpa)
-#                 midterm_report.generated_by = request.user  # Automatically set generated_by to the current user
-
-#                 # Save the report first to generate an ID
-#                 midterm_report.save()
-
-#                 # Set the scores to the MidtermReport (many-to-many relationship)
-#                 midterm_report.student_scores.set(scores)  # Set the full Score instances to the report
-
-#                 # Save again after assigning the many-to-many relationship
-#                 midterm_report.save()
-
-#             # Prepare data to be returned in the JSON response
-#             midterm_report_data = {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
-#                 'term': term.term_name,
-#                 'total_score_percentage': total_score_percentage,
-#                 'total_gpa': total_gpa,  # Add the total GPA
-#                 'scores': [
-#                     {
-#                         'subject': score.subject.name,
-#                         'midterm_score': score.midterm_score,
-#                         'grade': get_grade_from_midterm_score(score.midterm_score),
-#                         'gpa': get_gpa_from_midterm_score(score.midterm_score)
-#                     }
-#                     for score in scores
-#                 ]
-#             }
-
-#             # Render the HTML for the report using the 'generated_report.html' template
-#             report_html = render_to_string('generated_midterm_report.html', {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,
-#                 'term_name': term.term_name,
-#                 'gpa': total_gpa,
-#                 'report_data': midterm_report_data['scores'],  # Pass the scores directly
-#             })
-
-#             # Return a JsonResponse with the generated report data
-#             return JsonResponse({
-#                 'success': True,
-#                 'report_html': report_html  # Pass the generated HTML content
-#             })
-
-#         except Student.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Student not found.'})
-#         except Term.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Term not found.'})
-#         except ClassYear.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
-
 @login_required(login_url='login')
 def generate_midterm_report(request):
     if request.method == 'POST':
@@ -1413,145 +1482,154 @@ def generate_midterm_report(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
 
+
+# This logic allows me to generate midterm reports dynamically
+@login_required(login_url='login')
+def generate_mock_report(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        student_name = data.get('student_name')
+        class_year = data.get('class_year')
+        term_name = data.get('term')
+
+        try:
+            # Fetch the student, class_year, and term objects
+            student = Student.objects.get(fullname=student_name)
+            class_year_obj = ClassYear.objects.get(name=class_year)
+            term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
+
+            # Fetch all scores for the student in the selected term
+            scores = Score.objects.filter(student=student, term=term).distinct('subject')
+
+            # Function to calculate grade based on midterm_score
+            def get_grade_from_mock_score(score):
+                if score >= 95 and score <= 100:
+                    return 'A*'
+                elif score >= 80 and score < 95:
+                    return 'A'
+                elif score >= 75 and score < 80:
+                    return 'B+'
+                elif score >= 70 and score < 75:
+                    return 'B'
+                elif score >= 65 and score < 70:
+                    return 'C+'
+                elif score >= 60 and score < 65:
+                    return 'C'
+                elif score >= 50 and score < 60:
+                    return 'D'
+                elif score >= 45 and score < 50:
+                    return 'E'
+                elif score >= 35 and score < 45:
+                    return 'F'
+                else:
+                    return 'Ungraded'
+
+            # Function to calculate GPA based on midterm_score
+            def get_gpa_from_mock_score(score):
+                if score >= 95 and score <= 100:
+                    return 4.00
+                elif score >= 80 and score < 95:
+                    return 3.67
+                elif score >= 75 and score < 80:
+                    return 3.33
+                elif score >= 70 and score < 75:
+                    return 3.00
+                elif score >= 65 and score < 70:
+                    return 2.67
+                elif score >= 60 and score < 65:
+                    return 2.33
+                elif score >= 50 and score < 60:
+                    return 2.00
+                elif score >= 45 and score < 50:
+                    return 1.67
+                elif score >= 35 and score < 45:
+                    return 1.00
+                else:
+                    return 0.00
+
+            # Calculate the total GPA based on all subjects' GPA
+            total_gpa = 0
+            subject_count = 0
+            for score in scores:
+                subject_gpa = get_gpa_from_mock_score(score.mock_score)
+                total_gpa += subject_gpa
+                subject_count += 1
+
+            # If there are any subjects, calculate the average GPA
+            if subject_count > 0:
+                average_gpa = total_gpa / subject_count
+            else:
+                average_gpa = 0  # Default to 0 GPA if no subjects exist
+
+            # Create or update the MockReport instance for this student and term
+            mock_report, created = MockReport.objects.get_or_create(
+                student=student,
+                term=term
+            )
+
+            # If it's a new report, set the fields and save
+            if created:
+                # Set the necessary fields for the new report
+                mock_report.student = student
+                mock_report.term = term
+                mock_report.mock_gpa = float(average_gpa)
+                mock_report.generated_by = request.user  # Automatically set generated_by to the current user
+
+                # Save the report first to generate an ID
+                mock_report.save()
+
+                # Set the scores to the MidtermReport (many-to-many relationship)
+                mock_report.student_scores.set(scores)  # Set the full Score instances to the report
+
+                # Save again after assigning the many-to-many relationship
+                mock_report.save()
+
+            # Prepare data to be returned in the JSON response
+            mock_report_data = {
+                'student_name': student.fullname,
+                'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
+                'term': term.term_name,
+                'average_gpa': average_gpa,  # Add the average GPA
+                'scores': [
+                    {
+                        'subject': score.subject.name,
+                        'mock_score': score.mock_score,
+                        'grade': get_grade_from_mock_score(score.mock_score),
+                        'gpa': get_gpa_from_mock_score(score.mock_score)
+                    }
+                    for score in scores
+                ]
+            }
+
+            # Render the HTML for the report using the 'generated_mock_report.html' template
+            report_html = render_to_string('generated_mock_report.html', {
+                'student_name': student.fullname,
+                'class_year': class_year_obj.name,
+                'term_name': term.term_name,
+                'gpa': average_gpa,
+                'report_data': mock_report_data['scores'],  # Pass the scores directly
+            })
+
+            # Return a JsonResponse with the generated report data
+            return JsonResponse({
+                'success': True,
+                'report_html': report_html  # Pass the generated HTML content
+            })
+
+        except Student.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Student not found.'})
+        except Term.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Term not found.'})
+        except ClassYear.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Class Year not found.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+
+
 # This logic allows me to generate progressive tests one reports dynamically
-# @login_required(login_url='login')
-# def generate_progressive_one_report(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         student_name = data.get('student_name')
-#         class_year = data.get('class_year')
-#         term_name = data.get('term')
-
-#         try:
-#             # Fetch the student, class_year, and term objects
-#             student = Student.objects.get(fullname=student_name)
-#             class_year_obj = ClassYear.objects.get(name=class_year)
-#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
-
-#             # Fetch all scores for the student in the selected term
-#             scores = Score.objects.filter(student=student, term=term).distinct('subject')
-
-#             # Function to calculate grade based on progressive_test_1_score
-#             def get_grade_from_progressive_test_1_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 'A*'
-#                 elif score >= 80 and score < 95:
-#                     return 'A'
-#                 elif score >= 75 and score < 80:
-#                     return 'B+'
-#                 elif score >= 70 and score < 75:
-#                     return 'B'
-#                 elif score >= 65 and score < 70:
-#                     return 'C+'
-#                 elif score >= 60 and score < 65:
-#                     return 'C'
-#                 elif score >= 50 and score < 60:
-#                     return 'D'
-#                 elif score >= 45 and score < 50:
-#                     return 'E'
-#                 elif score >= 35 and score < 45:
-#                     return 'F'
-#                 else:
-#                     return 'Ungraded'
-
-#             # Function to calculate GPA based on progressive_test_1_score
-#             def get_gpa_from_progressive_test_1_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 4.00
-#                 elif score >= 80 and score < 95:
-#                     return 3.67
-#                 elif score >= 75 and score < 80:
-#                     return 3.33
-#                 elif score >= 70 and score < 75:
-#                     return 3.00
-#                 elif score >= 65 and score < 70:
-#                     return 2.67
-#                 elif score >= 60 and score < 65:
-#                     return 2.33
-#                 elif score >= 50 and score < 60:
-#                     return 2.00
-#                 elif score >= 45 and score < 50:
-#                     return 1.67
-#                 elif score >= 35 and score < 45:
-#                     return 1.00
-#                 else:
-#                     return 0.00
-
-#             # Calculate total score percentage and GPA
-#             if scores.exists():
-#                 total_score = sum([score.progressive_test_1_score for score in scores if score.progressive_test_1_score is not None])
-#                 total_score_percentage = (total_score / (len(scores) * 100)) * 100 if len(scores) > 0 else 0
-#             else:
-#                 total_score_percentage = 0  # If no scores exist, default to 0%
-
-#             # Calculate GPA based on total score percentage
-#             total_gpa = get_gpa_from_progressive_test_1_score(total_score_percentage)
-
-#             # Create or update the ProgressiveReport instance for this student and term
-#             progressive_report, created = ProgressiveTestOneReport.objects.get_or_create(
-#                 student=student,
-#                 term=term
-#             )
-
-#             # If it's a new report, set the fields and save
-#             if created:
-#                 # Set the necessary fields for the new report
-#                 progressive_report.student = student
-#                 progressive_report.term = term
-#                 progressive_report.progressive_test_1_gpa = float(total_gpa)
-#                 progressive_report.generated_by = request.user  # Automatically set generated_by to the current user
-
-#                 # Save the report first to generate an ID
-#                 progressive_report.save()
-
-#                 # Set the scores to the ProgressiveReport (many-to-many relationship)
-#                 progressive_report.student_scores.set(scores)  # Set the full Score instances to the report
-
-#                 # Save again after assigning the many-to-many relationship
-#                 progressive_report.save()
-
-#             # Prepare data to be returned in the JSON response
-#             progressive_report_data = {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
-#                 'term': term.term_name,
-#                 'total_score_percentage': total_score_percentage,
-#                 'total_gpa': total_gpa,  # Add the total GPA
-#                 'scores': [
-#                     {
-#                         'subject': score.subject.name,
-#                         'progressive_test_1_score': score.progressive_test_1_score,
-#                         'grade': get_grade_from_progressive_test_1_score(score.progressive_test_1_score),
-#                         'gpa': get_gpa_from_progressive_test_1_score(score.progressive_test_1_score)
-#                     }
-#                     for score in scores
-#                 ]
-#             }
-
-#             # Render the HTML for the report using the 'generated_progressive_report.html' template
-#             report_html = render_to_string('generated_progressive_test_one_report.html', {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,
-#                 'term_name': term.term_name,
-#                 'gpa': total_gpa,
-#                 'report_data': progressive_report_data['scores'],  # Pass the scores directly
-#             })
-
-#             # Return a JsonResponse with the generated report data
-#             return JsonResponse({
-#                 'success': True,
-#                 'report_html': report_html  # Pass the generated HTML content
-#             })
-
-#         except Student.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Student not found.'})
-#         except Term.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Term not found.'})
-#         except ClassYear.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
-
 @login_required(login_url='login')
 def generate_progressive_one_report(request):
     if request.method == 'POST':
@@ -1693,143 +1771,6 @@ def generate_progressive_one_report(request):
 
 
 
-# @login_required(login_url='login')
-# def generate_progressive_two_report(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         student_name = data.get('student_name')
-#         class_year = data.get('class_year')
-#         term_name = data.get('term')
-
-#         try:
-#             # Fetch the student, class_year, and term objects
-#             student = Student.objects.get(fullname=student_name)
-#             class_year_obj = ClassYear.objects.get(name=class_year)
-#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
-
-#             # Fetch all scores for the student in the selected term
-#             scores = Score.objects.filter(student=student, term=term).distinct('subject')
-
-#             # Function to calculate grade based on progressive_test_2_score
-#             def get_grade_from_progressive_test_2_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 'A*'
-#                 elif score >= 80 and score < 95:
-#                     return 'A'
-#                 elif score >= 75 and score < 80:
-#                     return 'B+'
-#                 elif score >= 70 and score < 75:
-#                     return 'B'
-#                 elif score >= 65 and score < 70:
-#                     return 'C+'
-#                 elif score >= 60 and score < 65:
-#                     return 'C'
-#                 elif score >= 50 and score < 60:
-#                     return 'D'
-#                 elif score >= 45 and score < 50:
-#                     return 'E'
-#                 elif score >= 35 and score < 45:
-#                     return 'F'
-#                 else:
-#                     return 'Ungraded'
-
-#             # Function to calculate GPA based on progressive_test_2_score
-#             def get_gpa_from_progressive_test_2_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 4.00
-#                 elif score >= 80 and score < 95:
-#                     return 3.67
-#                 elif score >= 75 and score < 80:
-#                     return 3.33
-#                 elif score >= 70 and score < 75:
-#                     return 3.00
-#                 elif score >= 65 and score < 70:
-#                     return 2.67
-#                 elif score >= 60 and score < 65:
-#                     return 2.33
-#                 elif score >= 50 and score < 60:
-#                     return 2.00
-#                 elif score >= 45 and score < 50:
-#                     return 1.67
-#                 elif score >= 35 and score < 45:
-#                     return 1.00
-#                 else:
-#                     return 0.00
-
-#             # Calculate total score percentage and GPA
-#             if scores.exists():
-#                 total_score = sum([score.progressive_test_2_score for score in scores if score.progressive_test_2_score is not None])
-#                 total_score_percentage = (total_score / (len(scores) * 100)) * 100 if len(scores) > 0 else 0
-#             else:
-#                 total_score_percentage = 0  # If no scores exist, default to 0%
-
-#             # Calculate GPA based on total score percentage
-#             total_gpa = get_gpa_from_progressive_test_2_score(total_score_percentage)
-
-#             # Create or update the ProgressiveReport instance for this student and term
-#             progressive_report, created = ProgressiveTestTwoReport.objects.get_or_create(
-#                 student=student,
-#                 term=term
-#             )
-
-#             # If it's a new report, set the fields and save
-#             if created:
-#                 # Set the necessary fields for the new report
-#                 progressive_report.student = student
-#                 progressive_report.term = term
-#                 progressive_report.progressive_test2_gpa = float(total_gpa)
-#                 progressive_report.generated_by = request.user  # Automatically set generated_by to the current user
-
-#                 # Save the report first to generate an ID
-#                 progressive_report.save()
-
-#                 # Set the scores to the ProgressiveReport (many-to-many relationship)
-#                 progressive_report.student_scores.set(scores)  # Set the full Score instances to the report
-
-#                 # Save again after assigning the many-to-many relationship
-#                 progressive_report.save()
-
-#             # Prepare data to be returned in the JSON response
-#             progressive_report_data = {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
-#                 'term': term.term_name,
-#                 'total_score_percentage': total_score_percentage,
-#                 'total_gpa': total_gpa,  # Add the total GPA
-#                 'scores': [
-#                     {
-#                         'subject': score.subject.name,
-#                         'progressive_test_2_score': score.progressive_test_2_score,
-#                         'grade': get_grade_from_progressive_test_2_score(score.progressive_test_2_score),
-#                         'gpa': get_gpa_from_progressive_test_2_score(score.progressive_test_2_score)
-#                     }
-#                     for score in scores
-#                 ]
-#             }
-
-#             # Render the HTML for the report using the 'generated_progressive_test_two_report.html' template
-#             report_html = render_to_string('generated_progressive_test_two_report.html', {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,
-#                 'term_name': term.term_name,
-#                 'gpa': total_gpa,
-#                 'report_data': progressive_report_data['scores'],  # Pass the scores directly
-#             })
-
-#             # Return a JsonResponse with the generated report data
-#             return JsonResponse({
-#                 'success': True,
-#                 'report_html': report_html  # Pass the generated HTML content
-#             })
-
-#         except Student.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Student not found.'})
-#         except Term.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Term not found.'})
-#         except ClassYear.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
 
 
 @login_required(login_url='login')
@@ -1974,144 +1915,6 @@ def generate_progressive_two_report(request):
 
 
 
-
-# @login_required(login_url='login')
-# def generate_progressive_three_report(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         student_name = data.get('student_name')
-#         class_year = data.get('class_year')
-#         term_name = data.get('term')
-
-#         try:
-#             # Fetch the student, class_year, and term objects
-#             student = Student.objects.get(fullname=student_name)
-#             class_year_obj = ClassYear.objects.get(name=class_year)
-#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
-
-#             # Fetch all scores for the student in the selected term
-#             scores = Score.objects.filter(student=student, term=term).distinct('subject')
-
-#             # Function to calculate grade based on progressive_test_3_score
-#             def get_grade_from_progressive_test_3_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 'A*'
-#                 elif score >= 80 and score < 95:
-#                     return 'A'
-#                 elif score >= 75 and score < 80:
-#                     return 'B+'
-#                 elif score >= 70 and score < 75:
-#                     return 'B'
-#                 elif score >= 65 and score < 70:
-#                     return 'C+'
-#                 elif score >= 60 and score < 65:
-#                     return 'C'
-#                 elif score >= 50 and score < 60:
-#                     return 'D'
-#                 elif score >= 45 and score < 50:
-#                     return 'E'
-#                 elif score >= 35 and score < 45:
-#                     return 'F'
-#                 else:
-#                     return 'Ungraded'
-
-#             # Function to calculate GPA based on progressive_test_3_score
-#             def get_gpa_from_progressive_test_3_score(score):
-#                 if score >= 95 and score <= 100:
-#                     return 4.00
-#                 elif score >= 80 and score < 95:
-#                     return 3.67
-#                 elif score >= 75 and score < 80:
-#                     return 3.33
-#                 elif score >= 70 and score < 75:
-#                     return 3.00
-#                 elif score >= 65 and score < 70:
-#                     return 2.67
-#                 elif score >= 60 and score < 65:
-#                     return 2.33
-#                 elif score >= 50 and score < 60:
-#                     return 2.00
-#                 elif score >= 45 and score < 50:
-#                     return 1.67
-#                 elif score >= 35 and score < 45:
-#                     return 1.00
-#                 else:
-#                     return 0.00
-
-#             # Calculate total score percentage and GPA
-#             if scores.exists():
-#                 total_score = sum([score.progressive_test_3_score for score in scores if score.progressive_test_3_score is not None])
-#                 total_score_percentage = (total_score / (len(scores) * 100)) * 100 if len(scores) > 0 else 0
-#             else:
-#                 total_score_percentage = 0  # If no scores exist, default to 0%
-
-#             # Calculate GPA based on total score percentage
-#             total_gpa = get_gpa_from_progressive_test_3_score(total_score_percentage)
-
-#             # Create or update the ProgressiveReport instance for this student and term
-#             progressive_report, created = ProgressiveTestThreeReport.objects.get_or_create(
-#                 student=student,
-#                 term=term
-#             )
-
-#             # If it's a new report, set the fields and save
-#             if created:
-#                 # Set the necessary fields for the new report
-#                 progressive_report.student = student
-#                 progressive_report.term = term
-#                 progressive_report.progressive_test3_gpa = float(total_gpa)
-#                 progressive_report.generated_by = request.user  # Automatically set generated_by to the current user
-
-#                 # Save the report first to generate an ID
-#                 progressive_report.save()
-
-#                 # Set the scores to the ProgressiveReport (many-to-many relationship)
-#                 progressive_report.student_scores.set(scores)  # Set the full Score instances to the report
-
-#                 # Save again after assigning the many-to-many relationship
-#                 progressive_report.save()
-
-#             # Prepare data to be returned in the JSON response
-#             progressive_report_data = {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
-#                 'term': term.term_name,
-#                 'total_score_percentage': total_score_percentage,
-#                 'total_gpa': total_gpa,  # Add the total GPA
-#                 'scores': [
-#                     {
-#                         'subject': score.subject.name,
-#                         'progressive_test_3_score': score.progressive_test_3_score,
-#                         'grade': get_grade_from_progressive_test_3_score(score.progressive_test_3_score),
-#                         'gpa': get_gpa_from_progressive_test_3_score(score.progressive_test_3_score)
-#                     }
-#                     for score in scores
-#                 ]
-#             }
-
-#             # Render the HTML for the report using the 'generated_progressive_test_three_report.html' template
-#             report_html = render_to_string('generated_progressive_test_three_report.html', {
-#                 'student_name': student.fullname,
-#                 'class_year': class_year_obj.name,
-#                 'term_name': term.term_name,
-#                 'gpa': total_gpa,
-#                 'report_data': progressive_report_data['scores'],  # Pass the scores directly
-#             })
-
-#             # Return a JsonResponse with the generated report data
-#             return JsonResponse({
-#                 'success': True,
-#                 'report_html': report_html  # Pass the generated HTML content
-#             })
-
-#         except Student.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Student not found.'})
-#         except Term.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Term not found.'})
-#         except ClassYear.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
 
 
 @login_required(login_url='login')
@@ -2399,7 +2202,7 @@ def view_midterm_scores(request, term_id=None):
         term = Term.objects.get(id=term_id)
 
         # Fetch all scores for the selected term and the students that belong to it
-        scores = Score.objects.filter(term=term).distinct('subject')
+        scores = Score.objects.filter(term=term)
 
         # Prepare a dictionary of student scores by subject
         students_data = {}
@@ -2499,6 +2302,123 @@ def view_midterm_scores(request, term_id=None):
 
     except Term.DoesNotExist:
         return JsonResponse({'error': 'Invalid term provided'}, status=404)
+
+
+
+
+
+# Viewing Saved Mock Scores by Term:
+@login_required(login_url='login')
+def view_mock_scores(request, term_id=None):
+    # Ensure that term_id is provided
+    if not term_id:
+        return JsonResponse({'error': 'Term is required'}, status=400)
+    try:
+        # Fetch the term object
+        term = Term.objects.get(id=term_id)
+
+        # Fetch all scores for the selected term and the students that belong to it
+        scores = Score.objects.filter(term=term)
+
+        # Prepare a dictionary of student scores by subject
+        students_data = {}
+
+        # Function to calculate grade from total midterm score
+        def get_grade_from_total_score(total_score):
+            if total_score >= 95 and total_score <= 100:
+                return 'A*'
+            elif total_score >= 80 and total_score < 95:
+                return 'A'
+            elif total_score >= 75 and total_score < 80:
+                return 'B+'
+            elif total_score >= 70 and total_score < 75:
+                return 'B'
+            elif total_score >= 65 and total_score < 70:
+                return 'C+'
+            elif total_score >= 60 and total_score < 65:
+                return 'C'
+            elif total_score >= 50 and total_score < 60:
+                return 'D'
+            elif total_score >= 45 and total_score < 50:
+                return 'E'
+            elif total_score >= 35 and total_score < 45:
+                return 'F'
+            else:
+                return 'Ungraded'
+
+        # Function to calculate GPA from total midterm score
+        def get_gpa_from_total_score(total_score):
+            if total_score >= 95 and total_score <= 100:
+                return 4.00
+            elif total_score >= 80 and total_score < 95:
+                return 3.67
+            elif total_score >= 75 and total_score < 80:
+                return 3.33
+            elif total_score >= 70 and total_score < 75:
+                return 3.00
+            elif total_score >= 65 and total_score < 70:
+                return 2.67
+            elif total_score >= 60 and total_score < 65:
+                return 2.33
+            elif total_score >= 50 and total_score < 60:
+                return 2.00
+            elif total_score >= 45 and total_score < 50:
+                return 1.67
+            elif total_score >= 35 and total_score < 45:
+                return 1.00
+            else:
+                return 0.00
+
+        # Loop over the scores to populate students_data
+        for score in scores:
+            student_id = score.student.id
+            subject_name = score.subject.name
+
+            if student_id not in students_data:
+                students_data[student_id] = {
+                    'student_name': score.student.fullname,
+                    'student_id': score.student.id,
+                    'class_year': score.student.class_year.name,  # Assuming class_year is a related field
+                    'scores': [],
+                    'total_score': 0,
+                    'final_gpa': 0,
+                }
+
+            # Add the score details for each student and subject
+            score_gpa = get_gpa_from_total_score(score.mock_score)
+            grade = get_grade_from_total_score(score.mock_score)
+
+            students_data[student_id]['scores'].append({
+                'subject_name': subject_name,
+                'mock_score': score.mock_score,
+                'score_gpa': score_gpa,
+                'grade': grade,
+                'score_id': score.id
+            })
+
+            # Accumulate the total score and GPA for the student
+            students_data[student_id]['total_score'] += score.midterm_score
+            students_data[student_id]['final_gpa'] += score_gpa
+
+        # After populating data, calculate final grade and final GPA
+        for student_id, data in students_data.items():
+            total_score = data['total_score']
+            total_score_percentage = total_score  # We can directly use total_score here
+
+            data['final_gpa'] = data['final_gpa']  # Final GPA is accumulated GPA across all subjects
+
+        # Include term in the JSON response
+        students_list = list(students_data.values())
+
+        return JsonResponse({
+            'students': students_list,
+            'term': term.term_name,
+            "term_id":term.id,
+        })
+
+    except Term.DoesNotExist:
+        return JsonResponse({'error': 'Invalid term provided'}, status=404)
+
 
 
 

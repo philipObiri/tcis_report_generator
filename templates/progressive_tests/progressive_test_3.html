@@ -77,7 +77,7 @@
       <section class="report_section col-sm-12 col-lg-6 col-xl-6 col-md-6 bg-white p-4">
         <div class="report-details">
           <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
-          <h5 class="card-title mb-3">Temple Christian International School - Academic Report</h5>
+          <h5 class="card-title mb-3">Temple Christian International School - Progressive Test Report</h5>
           <div>
             <p>
               <strong>Name:</strong> <span id="student-name"></span>
@@ -483,10 +483,9 @@
           alert('Please select a term.')
         }
       })
-
-
-       // Event listener for when the "View" button is clicked
-       $('#p3MidTermcoresModal').on('click', '.btn-info', function (event) {
+    
+      // Event listener for when the "View" button is clicked
+      $('#p3MidTermcoresModal').on('click', '.btn-info', function (event) {
         event.preventDefault() // Prevent the default link behavior
     
         // Get the student ID and term ID from the data attributes
@@ -513,13 +512,13 @@
                 $('#report-scores').empty()
                 response.scores.forEach(function (score) {
                   var scoreRow = `
-                                                <tr>
-                                                  <td>${score.subject}</td>
-                                                  <td>${score.progressive_test_three_score}</td>
-                                                  <td>${score.grade}</td>
-                                                  <td>${score.gpa}</td>
-                                                </tr>
-                                              `
+                                                        <tr>
+                                                          <td>${score.subject}</td>
+                                                          <td>${score.progressive_test_three_score}</td>
+                                                          <td>${score.grade}</td>
+                                                          <td>${score.gpa}</td>
+                                                        </tr>
+                                                      `
                   $('#report-scores').append(scoreRow)
                 })
     

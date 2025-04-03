@@ -78,6 +78,84 @@ class Student(models.Model):
             self.subjects.add(*self.class_year.subjects.all())
 
 
+# class Score(models.Model):
+#     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scores')
+#     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='scores')
+#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='scores')
+
+#     # New fields for individual scores
+#     class_work_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+#     progressive_test_1_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+#     progressive_test_2_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+#     progressive_test_3_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+#     midterm_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+#     mock_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+
+#     # Exam score (main exam at the end of the term)
+#     exam_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+
+#     continuous_assessment = models.DecimalField(max_digits=25, decimal_places=2, default=Decimal('0.0'))
+#     total_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
+#     grade = models.CharField(max_length=255, blank=True)  # Changed max_length to 100
+
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     def save(self, *args, **kwargs):
+#         # Ensure that exam_score is never None, default to 0.0 if missing
+#         if self.exam_score is None:
+#             self.exam_score = Decimal('0.0')
+
+#         # Convert exam_score to Decimal in case it's a float or non-decimal value
+#         exam_score = Decimal(self.exam_score)
+
+#         # Calculate the sum of all the component scores
+#         total_continuous_assessment_score = (
+#             self.class_work_score +  # percentage score (out of 100%)
+#             self.progressive_test_1_score +  # percentage score (out of 100%)
+#             self.progressive_test_2_score +  # percentage score (out of 100%)
+#             self.progressive_test_3_score +  # percentage score (out of 100%)
+#             self.midterm_score  # percentage score (out of 100%)
+#         )
+
+#         # Normalize continuous_assessment to a 100% scale (total is out of 500, so divide by 500 and multiply by 100)
+#         self.continuous_assessment = (total_continuous_assessment_score / Decimal('500')) * Decimal('100')
+
+#         # Calculate Total Score: 30% of Continuous Assessment + 70% of Exam Score
+#         self.total_score = (self.continuous_assessment * Decimal('0.30')) + (exam_score * Decimal('0.70'))
+
+#         # Assign grade based on the total_score with the new grading scale
+#         if self.total_score >= Decimal('95') and self.total_score <= Decimal('100'):
+#             self.grade = 'A*'  # GPA: 4.00
+#         elif self.total_score >= Decimal('80') and self.total_score <= Decimal('94'):
+#             self.grade = 'A'   # GPA: 3.67
+#         elif self.total_score >= Decimal('75') and self.total_score <= Decimal('79'):
+#             self.grade = 'B+'  # GPA: 3.33
+#         elif self.total_score >= Decimal('70') and self.total_score <= Decimal('74'):
+#             self.grade = 'B'   # GPA: 3.00
+#         elif self.total_score >= Decimal('65') and self.total_score <= Decimal('69'):
+#             self.grade = 'C+'  # GPA: 2.67
+#         elif self.total_score >= Decimal('60') and self.total_score <= Decimal('64'):
+#             self.grade = 'C'   # GPA: 2.33
+#         elif self.total_score >= Decimal('50') and self.total_score <= Decimal('59'):
+#             self.grade = 'D'   # GPA: 2.00
+#         elif self.total_score >= Decimal('45') and self.total_score <= Decimal('49'):
+#             self.grade = 'E'   # GPA: 1.67
+#         elif self.total_score >= Decimal('35') and self.total_score <= Decimal('44'):
+#             self.grade = 'F'   # GPA: 1.00
+#         else:
+#             self.grade = 'Ungraded'  # GPA: 0.00
+
+#         # Call the superclass save method to store the object in the database
+#         super().save(*args, **kwargs)
+    
+
+
+#     def __str__(self):
+#         return f"{self.student.fullname} - {self.subject.name} - {self.total_score}"
+
+
 class Score(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scores')
@@ -120,10 +198,13 @@ class Score(models.Model):
         )
 
         # Normalize continuous_assessment to a 100% scale (total is out of 500, so divide by 500 and multiply by 100)
-        self.continuous_assessment = (total_continuous_assessment_score / Decimal('500')) * Decimal('100')
+        normalized_continuous_assessment = (total_continuous_assessment_score / Decimal('500')) * Decimal('100')
+
+        # Calculate Continuous Assessment as 30% of normalized value
+        self.continuous_assessment = normalized_continuous_assessment * Decimal('0.30')
 
         # Calculate Total Score: 30% of Continuous Assessment + 70% of Exam Score
-        self.total_score = (self.continuous_assessment * Decimal('0.30')) + (exam_score * Decimal('0.70'))
+        self.total_score = (self.continuous_assessment + (exam_score * Decimal('0.70')))
 
         # Assign grade based on the total_score with the new grading scale
         if self.total_score >= Decimal('95') and self.total_score <= Decimal('100'):
@@ -149,8 +230,6 @@ class Score(models.Model):
 
         # Call the superclass save method to store the object in the database
         super().save(*args, **kwargs)
-    
-
 
     def __str__(self):
         return f"{self.student.fullname} - {self.subject.name} - {self.total_score}"

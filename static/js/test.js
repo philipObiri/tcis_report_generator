@@ -266,7 +266,7 @@ $(document).ready(function () {
                             var scoreRow = `
                 <tr>
                   <td>${score.subject}</td>
-                  <td>${score.ca}</td>
+                  <td>${(score.ca * 0.3).toFixed(2)}</td>
                   <td>${(score.exam * 0.7).toFixed(2)}</td>
                   <td>${score.total}</td>
                   <td>${score.grade}</td>

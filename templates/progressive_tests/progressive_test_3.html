@@ -181,7 +181,7 @@
             </tbody>
           </table>
 
-          <!-- Dropdown & Generate Report Button -->
+          {% comment %} <!-- Dropdown & Generate Report Button -->
           <div class="mt-3">
             <label for="term-dropdown">Select Term:</label>
             <select class="form-select d-inline-block w-auto" id="term-dropdown">
@@ -194,7 +194,7 @@
             {% else %}
 
             {% endif %}
-          </div>
+          </div> {% endcomment %}
         </div>
       </section>
     </div>
@@ -262,7 +262,7 @@
             <tbody id="student-score-rows">
               <!-- Dynamically populated rows will appear here -->
               <tr>
-                <td colspan="3">No students available.</td>
+                <td colspan="3">No scores available for the selected paramters.</td>
               </tr>
             </tbody>
           </table>
@@ -414,7 +414,7 @@
                 $('#student-scores-section').removeClass('d-none')
                 $('#student-scores-title').text('Third Student Progressive Test Scores for ' + data.subject_name) // Update the subject name dynamically
               } else {
-                $('#student-rows').html('<tr><td colspan="4">No students found for the selected filters.</td></tr>')
+                $('#student-rows').html('<tr><td colspan="4">No scores found for the selected filters.</td></tr>')
                 $('#student-scores-section').removeClass('d-none') // Show the section even if no students are found
               }
             }
@@ -431,11 +431,13 @@
       // Event listener for the "View Saved Scores" button
       $('#view-p3-scores-btn').on('click', function () {
         var term = $('#term-select').val()
+        var level=$('#level-select').val();
+        var classYear = $('#class-year-select').val();
         // Check if term is selected
         if (term) {
           // Fetch scores for the selected term using AJAX
           $.ajax({
-            url: '/dashboard/entries/view_progressive_three_test_scores/' + term + '/', // URL to fetch scores based on term_id
+            url: '/dashboard/entries/view_progressive_three_test_scores/'  + term + '/' + level + '/'+ classYear + '/', // URL to fetch scores based on term_id
             type: 'GET',
             success: function (response) {
               // Clear existing rows in the modal
@@ -472,7 +474,7 @@
                 $('#p3MidTermcoresModal').modal('show')
               } else {
                 // If no students are found, show a message in the modal
-                $('#student-score-rows').append('<tr><td colspan="3">No students found for the selected term.</td></tr>')
+                $('#student-score-rows').append('<tr><td colspan="3">No saved scores found for the selected filters.</td></tr>')
               }
             },
             error: function (xhr, status, error) {
@@ -480,7 +482,7 @@
             }
           })
         } else {
-          alert('Please select a term.')
+          alert('Please select a class year , level and term to view saved scores.')
         }
       })
     

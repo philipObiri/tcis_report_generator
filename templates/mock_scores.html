@@ -260,7 +260,7 @@
             <tbody id="student-score-rows">
               <!-- Dynamically populated rows will appear here -->
               <tr>
-                <td colspan="3">No students available.</td>
+                <td colspan="3">  No scores available for the selected parameters. </td>
               </tr>
             </tbody>
           </table>
@@ -280,12 +280,14 @@
     $(document).ready(function () {
       // Event listener for the "View Scores" button
       $('#view-mock-scores-btn').on('click', function () {
-        var term = $('#term-select').val()
+        var term = $('#term-select').val();
+        var level=$('#level-select').val();
+        var classYear = $('#class-year-select').val();
         // Check if term is selected
         if (term) {
           // Fetch scores for the selected term using AJAX
           $.ajax({
-            url: '/dashboard/entries/view_mock_scores/' + term + '/', // URL to fetch mock scores based on term_id
+            url: '/dashboard/entries/view_mock_scores/' term + '/'+ level + '/'+ classYear + '/', // URL to fetch mock scores based on term_id
             type: 'GET',
             success: function (response) {
               // Clear existing rows in the modal
@@ -322,7 +324,7 @@
                 $('#mockScoresModal').modal('show')
               } else {
                 // If no students are found, show a message in the modal
-                $('#student-score-rows').append('<tr><td colspan="3">No students found for the selected term.</td></tr>')
+                $('#student-score-rows').append('<tr><td colspan="3">No scores have been saved for the selected level, class year and term.</td></tr>')
               }
             },
             error: function (xhr, status, error) {
@@ -330,7 +332,7 @@
             }
           })
         } else {
-          alert('Please select a term.')
+          alert('Please select a level, class year and term to view saved scores.')
         }
       })
     })

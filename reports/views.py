@@ -603,7 +603,6 @@ def process_scores_view(request):
 
 # Functional Logic to fetch all end of term scores :
 @login_required(login_url='login')
-@login_required(login_url='login')
 def view_academic_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -2060,18 +2059,21 @@ def generate_progressive_three_report(request):
 
 #=============== Logic for viewing the saved scores ===============
 # Viewing Saved End of Term  Scores by Term:
+
 @login_required(login_url='login')
-def view_end_of_term_scores(request, term_id=None):
-    # Ensure that term_id is provided
-    if not term_id:
-        return JsonResponse({'error': 'Term is required'}, status=400)
+def view_end_of_term_scores(request, term_id=None, level_id=None, class_id=None):
+    # Ensure that term_id, level_id, and class_id are provided
+    if not term_id or not level_id or not class_id:
+        return JsonResponse({'error': 'Term, Level, and Class are required'}, status=400)
 
     try:
-        # Fetch the term object
+        # Fetch the term, level, and class year objects based on provided ids
         term = Term.objects.get(id=term_id)
+        level = Level.objects.get(id=level_id)
+        class_year = ClassYear.objects.get(id=class_id, level=level)  # Ensure ClassYear belongs to Level
 
-        # Fetch all scores for the selected term and the students that belong to it
-        scores = Score.objects.filter(term=term)
+        # Fetch all scores for the selected term, level, and class year
+        scores = Score.objects.filter(term=term, student__class_year=class_year)
 
         # Prepare a dictionary of student scores by subject
         students_data = {}
@@ -2181,10 +2183,16 @@ def view_end_of_term_scores(request, term_id=None):
             'students': students_list,
             'term': term.term_name,
             "term_id": term.id,
+            "level_id": level.id,
+            "class_year_id": class_year.id,
         })
 
     except Term.DoesNotExist:
         return JsonResponse({'error': 'Invalid term provided'}, status=404)
+    except Level.DoesNotExist:
+        return JsonResponse({'error': 'Invalid level provided'}, status=404)
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'error': 'Invalid class year provided'}, status=404)
 
 
 
@@ -2192,17 +2200,18 @@ def view_end_of_term_scores(request, term_id=None):
 
 # Viewing Saved Midterm Scores by Term:
 @login_required(login_url='login')
-def view_midterm_scores(request, term_id=None):
-    # Ensure that term_id is provided
-    if not term_id:
-        return JsonResponse({'error': 'Term is required'}, status=400)
-
+def view_midterm_scores(request, term_id=None, level_id=None, class_id=None):
+    # Ensure that term_id, level_id, and class_id are provided
+    if not term_id or not level_id or not class_id:
+        return JsonResponse({'error': 'Term, Level, and Class are required'}, status=400)
     try:
-        # Fetch the term object
+        # Fetch the term, level, and class year objects based on provided ids
         term = Term.objects.get(id=term_id)
+        level = Level.objects.get(id=level_id)
+        class_year = ClassYear.objects.get(id=class_id, level=level)  # Ensure ClassYear belongs to Level
 
-        # Fetch all scores for the selected term and the students that belong to it
-        scores = Score.objects.filter(term=term)
+        # Fetch all scores for the selected term, level, and class year
+        scores = Score.objects.filter(term=term, student__class_year=class_year)
 
         # Prepare a dictionary of student scores by subject
         students_data = {}
@@ -2297,33 +2306,41 @@ def view_midterm_scores(request, term_id=None):
         return JsonResponse({
             'students': students_list,
             'term': term.term_name,
-            "term_id":term.id,
+            "term_id": term.id,
+            "level_id": level.id,
+            "class_year_id": class_year.id,
         })
 
     except Term.DoesNotExist:
         return JsonResponse({'error': 'Invalid term provided'}, status=404)
-
+    except Level.DoesNotExist:
+        return JsonResponse({'error': 'Invalid level provided'}, status=404)
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'error': 'Invalid class year provided'}, status=404)
 
 
 
 
 # Viewing Saved Mock Scores by Term:
 @login_required(login_url='login')
-def view_mock_scores(request, term_id=None):
-    # Ensure that term_id is provided
-    if not term_id:
-        return JsonResponse({'error': 'Term is required'}, status=400)
-    try:
-        # Fetch the term object
-        term = Term.objects.get(id=term_id)
+def view_mock_scores(request, term_id=None, level_id=None, class_id=None):
+    # Ensure that term_id, level_id, and class_id are provided
+    if not term_id or not level_id or not class_id:
+        return JsonResponse({'error': 'Term, Level, and Class are required'}, status=400)
 
-        # Fetch all scores for the selected term and the students that belong to it
-        scores = Score.objects.filter(term=term)
+    try:
+        # Fetch the term, level, and class year objects based on provided ids
+        term = Term.objects.get(id=term_id)
+        level = Level.objects.get(id=level_id)
+        class_year = ClassYear.objects.get(id=class_id, level=level)  # Ensure ClassYear belongs to Level
+
+        # Fetch all scores for the selected term, level, and class year
+        scores = Score.objects.filter(term=term, student__class_year=class_year)
 
         # Prepare a dictionary of student scores by subject
         students_data = {}
 
-        # Function to calculate grade from total midterm score
+        # Function to calculate grade from total mock score
         def get_grade_from_total_score(total_score):
             if total_score >= 95 and total_score <= 100:
                 return 'A*'
@@ -2346,7 +2363,7 @@ def view_mock_scores(request, term_id=None):
             else:
                 return 'Ungraded'
 
-        # Function to calculate GPA from total midterm score
+        # Function to calculate GPA from total mock score
         def get_gpa_from_total_score(total_score):
             if total_score >= 95 and total_score <= 100:
                 return 4.00
@@ -2390,14 +2407,14 @@ def view_mock_scores(request, term_id=None):
 
             students_data[student_id]['scores'].append({
                 'subject_name': subject_name,
-                'mock_score': score.mock_score,
-                'score_gpa': score_gpa,
+                'mock_score': float(score.mock_score),
+                'score_gpa': float(score_gpa),
                 'grade': grade,
                 'score_id': score.id
             })
 
             # Accumulate the total score and GPA for the student
-            students_data[student_id]['total_score'] += score.midterm_score
+            students_data[student_id]['total_score'] += score.mock_score
             students_data[student_id]['final_gpa'] += score_gpa
 
         # After populating data, calculate final grade and final GPA
@@ -2413,28 +2430,36 @@ def view_mock_scores(request, term_id=None):
         return JsonResponse({
             'students': students_list,
             'term': term.term_name,
-            "term_id":term.id,
+            "term_id": term.id,
+            "level_id": level.id,
+            "class_year_id": class_year.id,
         })
 
     except Term.DoesNotExist:
         return JsonResponse({'error': 'Invalid term provided'}, status=404)
-
+    except Level.DoesNotExist:
+        return JsonResponse({'error': 'Invalid level provided'}, status=404)
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'error': 'Invalid class year provided'}, status=404)
 
 
 
 
 # Viewing Saved Progressive Test One Scores by Term:
 @login_required(login_url='login')
-def view_progressive_one_test_scores(request, term_id=None):
-    # Ensure that term_id is provided
-    if not term_id:
-        return JsonResponse({'error': 'Term is required'}, status=400)
-    try:
-        # Fetch the term object
-        term = Term.objects.get(id=term_id)
+def view_progressive_one_test_scores(request, term_id=None, level_id=None, class_id=None):
+    # Ensure that term_id, level_id, and class_id are provided
+    if not term_id or not level_id or not class_id:
+        return JsonResponse({'error': 'Term, Level, and Class are required'}, status=400)
 
-        # Fetch all scores for the selected term and the students that belong to it
-        scores = Score.objects.filter(term=term)
+    try:
+        # Fetch the term, level, and class year objects based on provided ids
+        term = Term.objects.get(id=term_id)
+        level = Level.objects.get(id=level_id)
+        class_year = ClassYear.objects.get(id=class_id, level=level)  # Ensure ClassYear belongs to Level
+
+        # Fetch all scores for the selected term, level, and class year
+        scores = Score.objects.filter(term=term, student__class_year=class_year)
 
         # Prepare a dictionary to store the student data
         students_data = {}
@@ -2509,7 +2534,7 @@ def view_progressive_one_test_scores(request, term_id=None):
             # Add the score details for each student and subject
             students_data[student_id]['scores'].append({
                 'subject_name': score.subject.name,
-                'progressive_test_1_score': progressive_test_1_score,
+                'progressive_test_1_score': float(progressive_test_1_score),
                 'grade': grade,
                 'score_gpa': score_gpa,
                 'score_id': score.id
@@ -2532,26 +2557,35 @@ def view_progressive_one_test_scores(request, term_id=None):
             'students': students_list,
             'term': term.term_name,
             "term_id": term.id,
+            "level_id": level.id,
+            "class_year_id": class_year.id,
         })
 
     except Term.DoesNotExist:
         return JsonResponse({'error': 'Invalid term provided'}, status=404)
+    except Level.DoesNotExist:
+        return JsonResponse({'error': 'Invalid level provided'}, status=404)
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'error': 'Invalid class year provided'}, status=404)
 
 
 
 # Viewing Saved Progressive Test Two Scores by Term:
+
 @login_required(login_url='login')
-def view_progressive_two_test_scores(request, term_id=None):
-    # Ensure that term_id is provided
-    if not term_id:
-        return JsonResponse({'error': 'Term is required'}, status=400)
+def view_progressive_two_test_scores(request, term_id=None, level_id=None, class_id=None):
+    # Ensure that term_id, level_id, and class_id are provided
+    if not term_id or not level_id or not class_id:
+        return JsonResponse({'error': 'Term, Level, and Class are required'}, status=400)
 
     try:
-        # Fetch the term object
+        # Fetch the term, level, and class year objects based on provided ids
         term = Term.objects.get(id=term_id)
+        level = Level.objects.get(id=level_id)
+        class_year = ClassYear.objects.get(id=class_id, level=level)  # Ensure ClassYear belongs to Level
 
-        # Fetch all scores for the selected term and the students that belong to it
-        scores = Score.objects.filter(term=term)
+        # Fetch all scores for the selected term, level, and class year
+        scores = Score.objects.filter(term=term, student__class_year=class_year)
 
         # Prepare a dictionary to store the student data
         students_data = {}
@@ -2626,7 +2660,7 @@ def view_progressive_two_test_scores(request, term_id=None):
             # Add the score details for each student and subject
             students_data[student_id]['scores'].append({
                 'subject_name': score.subject.name,
-                'progressive_test_2_score': progressive_test_2_score,
+                'progressive_test_2_score': float(progressive_test_2_score),
                 'grade': grade,
                 'score_gpa': score_gpa,
                 'score_id': score.id
@@ -2649,26 +2683,34 @@ def view_progressive_two_test_scores(request, term_id=None):
             'students': students_list,
             'term': term.term_name,
             "term_id": term.id,
+            "level_id": level.id,
+            "class_year_id": class_year.id,
         })
 
     except Term.DoesNotExist:
         return JsonResponse({'error': 'Invalid term provided'}, status=404)
-
+    except Level.DoesNotExist:
+        return JsonResponse({'error': 'Invalid level provided'}, status=404)
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'error': 'Invalid class year provided'}, status=404)
 
 
 # Viewing Saved Progressive Test Three Scores by Term:
+
 @login_required(login_url='login')
-def view_progressive_three_test_scores(request, term_id=None):
-    # Ensure that term_id is provided
-    if not term_id:
-        return JsonResponse({'error': 'Term is required'}, status=400)
+def view_progressive_three_test_scores(request, term_id=None, level_id=None, class_id=None):
+    # Ensure that term_id, level_id, and class_id are provided
+    if not term_id or not level_id or not class_id:
+        return JsonResponse({'error': 'Term, Level, and Class are required'}, status=400)
 
     try:
-        # Fetch the term object
+        # Fetch the term, level, and class year objects based on provided ids
         term = Term.objects.get(id=term_id)
+        level = Level.objects.get(id=level_id)
+        class_year = ClassYear.objects.get(id=class_id, level=level)  # Ensure ClassYear belongs to Level
 
-        # Fetch all scores for the selected term and the students that belong to it
-        scores = Score.objects.filter(term=term)
+        # Fetch all scores for the selected term, level, and class year
+        scores = Score.objects.filter(term=term, student__class_year=class_year)
 
         # Prepare a dictionary to store the student data
         students_data = {}
@@ -2743,7 +2785,7 @@ def view_progressive_three_test_scores(request, term_id=None):
             # Add the score details for each student and subject
             students_data[student_id]['scores'].append({
                 'subject_name': score.subject.name,
-                'progressive_test_3_score': progressive_test_3_score,
+                'progressive_test_3_score': float(progressive_test_3_score),
                 'grade': grade,
                 'score_gpa': score_gpa,
                 'score_id': score.id
@@ -2766,7 +2808,13 @@ def view_progressive_three_test_scores(request, term_id=None):
             'students': students_list,
             'term': term.term_name,
             "term_id": term.id,
+            "level_id": level.id,
+            "class_year_id": class_year.id,
         })
 
     except Term.DoesNotExist:
         return JsonResponse({'error': 'Invalid term provided'}, status=404)
+    except Level.DoesNotExist:
+        return JsonResponse({'error': 'Invalid level provided'}, status=404)
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'error': 'Invalid class year provided'}, status=404)

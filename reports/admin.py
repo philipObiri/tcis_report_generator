@@ -76,7 +76,7 @@ class ScoreAdmin(admin.ModelAdmin):
     list_display = ('student', 'subject', 'term', 'class_work_score', 'progressive_test_1_score', 'progressive_test_2_score', 'progressive_test_3_score', 'midterm_score','mock_score', 'exam_score', 'continuous_assessment', 'total_score', 'grade')
     search_fields = ('student__fullname', 'subject__name', 'term__term_name')
     list_filter = ('term', 'subject', 'created_by')
-    readonly_fields = ('continuous_assessment', 'total_score', 'grade')  # Make these fields readonly as they are auto-calculated
+    # readonly_fields = ('continuous_assessment', 'total_score', 'grade')  # Make these fields readonly as they are auto-calculated
 
 
 

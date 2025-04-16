@@ -59,26 +59,7 @@ class Command(BaseCommand):
                 continue
 
             # Assign grade based on rounded score
-            if 95 <= rounded_score <= 100:
-                score.grade = 'A*'
-            elif 80 <= rounded_score <= 94:
-                score.grade = 'A'
-            elif 75 <= rounded_score <= 79:
-                score.grade = 'B+'
-            elif 70 <= rounded_score <= 74:
-                score.grade = 'B'
-            elif 65 <= rounded_score <= 69:
-                score.grade = 'C+'
-            elif 60 <= rounded_score <= 64:
-                score.grade = 'C'
-            elif 50 <= rounded_score <= 59:
-                score.grade = 'D'
-            elif 45 <= rounded_score <= 49:
-                score.grade = 'E'
-            elif 35 <= rounded_score <= 44:
-                score.grade = 'F'
-            else:
-                score.grade = 'Ungraded'  # Use 'U' for Ungraded
+            score.grade = self.assign_grade(rounded_score)
 
             score.save(update_fields=['grade'])
 
@@ -89,3 +70,25 @@ class Command(BaseCommand):
             )
 
         self.stdout.write(self.style.SUCCESS("🎓 All scores graded successfully, and duplicates removed."))
+
+    def assign_grade(self, score: Decimal) -> str:
+        if 95 <= score <= 100:
+            return 'A*'
+        elif 80 <= score <= 94:
+            return 'A'
+        elif 75 <= score <= 79:
+            return 'B+'
+        elif 70 <= score <= 74:
+            return 'B'
+        elif 65 <= score <= 69:
+            return 'C+'
+        elif 60 <= score <= 64:
+            return 'C'
+        elif 50 <= score <= 59:
+            return 'D'
+        elif 45 <= score <= 49:
+            return 'E'
+        elif 35 <= score <= 44:
+            return 'F'
+        else:
+            return 'Ungraded'

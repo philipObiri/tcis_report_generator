@@ -1,51 +1,7 @@
-# from django.core.management.base import BaseCommand
-# from reports.models import Score
-# from django.db.models import Max
-
-
-# class Command(BaseCommand):
-#     help = 'Recalculate and update scores (including grades) for all Score instances in the database, and remove duplicates'
-
-#     def handle(self, *args, **kwargs):
-#         # Fetch all Score instances
-#         scores = Score.objects.all()
-
-#         # Loop through each score instance to process duplicates
-#         for score in scores:
-#             self.stdout.write(f'Processing {score.student.fullname} - {score.subject.name} - Term {score.term.term_name}')
-
-#             # Find other scores for the same student, subject, and term (excluding current)
-#             duplicates = Score.objects.filter(
-#                 student=score.student,
-#                 subject=score.subject,
-#                 term=score.term
-#             ).exclude(id=score.id)
-
-#             # Delete duplicate scores
-#             if duplicates.exists():
-#                 self.stdout.write(f'Deleting {duplicates.count()} duplicate(s) for {score.student.fullname} - {score.subject.name}')
-#                 duplicates.delete()
-
-#             # Recalculate score and grade by saving again
-#             score.save()  # This will auto-trigger grade & total_score calculation from model's save()
-
-#             # Optional log to confirm new grade
-#             self.stdout.write(
-#                 self.style.SUCCESS(
-#                     f'Recalculated: {score.student.fullname} - {score.subject.name} => Total: {score.total_score}, Grade: {score.grade}'
-#                 )
-#             )
-
-#         self.stdout.write(self.style.SUCCESS('All scores recalculated, grades updated, and duplicates removed successfully!'))
-
-
-
-
-
 from django.core.management.base import BaseCommand
 from reports.models import Score
 from django.db.models import Count
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 
 
 class Command(BaseCommand):
@@ -73,43 +29,63 @@ class Command(BaseCommand):
                 )
                 to_delete.delete()
 
-        # Step 2: Assign grades based on existing total_score
+        # Step 2: Assign grades based on total_score
         scores = Score.objects.all()
 
         for score in scores:
             original_grade = score.grade
 
-            # Round total score to nearest whole number for grading
-            rounded_score = score.total_score.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+            if score.total_score is None:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"⚠️ Skipping score with missing total_score for {score.student.fullname} - {score.subject.name}"
+                    )
+                )
+                continue
+
+            try:
+                # Convert total_score to Decimal explicitly
+                total_score_decimal = Decimal(str(score.total_score))
+                # Round to nearest whole number using ROUND_HALF_UP
+                rounded_score = total_score_decimal.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                # Clamp between 0 and 100
+                rounded_score = max(Decimal(0), min(Decimal(100), rounded_score))
+            except (InvalidOperation, TypeError, ValueError) as e:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"❌ Invalid total_score '{score.total_score}' for {score.student.fullname} - {score.subject.name}: {e}"
+                    )
+                )
+                continue
 
             # Assign grade based on rounded score
-            if rounded_score >= 95:
+            if 95 <= rounded_score <= 100:
                 score.grade = 'A*'
-            elif rounded_score >= 80:
+            elif 80 <= rounded_score <= 94:
                 score.grade = 'A'
-            elif rounded_score >= 75:
+            elif 75 <= rounded_score <= 79:
                 score.grade = 'B+'
-            elif rounded_score >= 70:
+            elif 70 <= rounded_score <= 74:
                 score.grade = 'B'
-            elif rounded_score >= 65:
+            elif 65 <= rounded_score <= 69:
                 score.grade = 'C+'
-            elif rounded_score >= 60:
+            elif 60 <= rounded_score <= 64:
                 score.grade = 'C'
-            elif rounded_score >= 50:
+            elif 50 <= rounded_score <= 59:
                 score.grade = 'D'
-            elif rounded_score >= 45:
+            elif 45 <= rounded_score <= 49:
                 score.grade = 'E'
-            elif rounded_score >= 35:
+            elif 35 <= rounded_score <= 44:
                 score.grade = 'F'
             else:
-                score.grade = 'Ungraded'
+                score.grade = 'Ungraded'  # Use 'U' for Ungraded
 
-            score.save(update_fields=['grade'])  # only update the grade field
+            score.save(update_fields=['grade'])
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Updated Grade: {score.student.fullname} - {score.subject.name} => Score: {rounded_score}, Grade: {score.grade} (was: {original_grade})"
+                    f"✅ {score.student.fullname} - {score.subject.name} => Score: {rounded_score}, Grade: {score.grade} (was: {original_grade})"
                 )
             )
 
-        self.stdout.write(self.style.SUCCESS("✅ Grades updated based on total_score, and duplicates removed."))
+        self.stdout.write(self.style.SUCCESS("🎓 All scores graded successfully, and duplicates removed."))

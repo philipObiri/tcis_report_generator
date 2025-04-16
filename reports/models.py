@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User  
-from decimal import Decimal
+from decimal import Decimal,ROUND_HALF_UP
 from reports.utils import calculate_gpa
 
 class Level(models.Model):
@@ -102,6 +102,51 @@ class Score(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # def save(self, *args, **kwargs):
+    #     # Calculate the sum of all the component scores
+    #     total_continuous_assessment_score = (
+    #         self.class_work_score +
+    #         self.progressive_test_1_score +
+    #         self.progressive_test_2_score +
+    #         self.progressive_test_3_score +
+    #         self.midterm_score
+    #     )
+
+    #     # Normalize continuous_assessment to a 100% scale (total is out of 500, so divide by 500 and multiply by 100)
+    #     normalized_continuous_assessment = (total_continuous_assessment_score / Decimal('500')) * Decimal('100')
+
+    #     # Calculate Continuous Assessment as 30% of normalized value
+    #     self.continuous_assessment = normalized_continuous_assessment * Decimal('0.30')
+
+    #     # Calculate Total Score: 30% of Continuous Assessment + 70% of Exam Score
+    #     self.total_score = (self.continuous_assessment + (self.exam_score * Decimal('0.70')))
+
+    #     # Assign grade based on the total_score with the new grading scale
+    #     if self.total_score >= Decimal('95') and self.total_score <= Decimal('100'):
+    #         self.grade = 'A*'  
+    #     elif self.total_score >= Decimal('80') and self.total_score <= Decimal('94'):
+    #         self.grade = 'A'   
+    #     elif self.total_score >= Decimal('75') and self.total_score <= Decimal('79'):
+    #         self.grade = 'B+' 
+    #     elif self.total_score >= Decimal('70') and self.total_score <= Decimal('74'):
+    #         self.grade = 'B'
+    #     elif self.total_score >= Decimal('65') and self.total_score <= Decimal('69'):
+    #         self.grade = 'C+' 
+    #     elif self.total_score >= Decimal('60') and self.total_score <= Decimal('64'):
+    #         self.grade = 'C' 
+    #     elif self.total_score >= Decimal('50') and self.total_score <= Decimal('59'):
+    #         self.grade = 'D' 
+    #     elif self.total_score >= Decimal('45') and self.total_score <= Decimal('49'):
+    #         self.grade = 'E'  
+    #     elif self.total_score >= Decimal('35') and self.total_score <= Decimal('44'):
+    #         self.grade = 'F' 
+    #     else:
+    #         self.grade = 'Ungraded' 
+
+    #     # Call the superclass save method to store the object in the database
+    #     super().save(*args, **kwargs)
+
+
     def save(self, *args, **kwargs):
         # Calculate the sum of all the component scores
         total_continuous_assessment_score = (
@@ -112,38 +157,40 @@ class Score(models.Model):
             self.midterm_score
         )
 
-        # Normalize continuous_assessment to a 100% scale (total is out of 500, so divide by 500 and multiply by 100)
+        # Normalize continuous_assessment to a 100% scale (total is out of 500)
         normalized_continuous_assessment = (total_continuous_assessment_score / Decimal('500')) * Decimal('100')
 
         # Calculate Continuous Assessment as 30% of normalized value
         self.continuous_assessment = normalized_continuous_assessment * Decimal('0.30')
 
-        # Calculate Total Score: 30% of Continuous Assessment + 70% of Exam Score
-        self.total_score = (self.continuous_assessment + (self.exam_score * Decimal('0.70')))
+        # Calculate Total Score: 30% of CA + 70% of exam
+        raw_total_score = self.continuous_assessment + (self.exam_score * Decimal('0.70'))
 
-        # Assign grade based on the total_score with the new grading scale
-        if self.total_score >= Decimal('95') and self.total_score <= Decimal('100'):
-            self.grade = 'A*'  
-        elif self.total_score >= Decimal('80') and self.total_score <= Decimal('94'):
-            self.grade = 'A'   
-        elif self.total_score >= Decimal('75') and self.total_score <= Decimal('79'):
-            self.grade = 'B+' 
-        elif self.total_score >= Decimal('70') and self.total_score <= Decimal('74'):
+        # Round total_score to the nearest whole number
+        self.total_score = raw_total_score.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+
+        # Assign grade based on rounded total_score
+        if Decimal('95') <= self.total_score <= Decimal('100'):
+            self.grade = 'A*'
+        elif Decimal('80') <= self.total_score <= Decimal('94'):
+            self.grade = 'A'
+        elif Decimal('75') <= self.total_score <= Decimal('79'):
+            self.grade = 'B+'
+        elif Decimal('70') <= self.total_score <= Decimal('74'):
             self.grade = 'B'
-        elif self.total_score >= Decimal('65') and self.total_score <= Decimal('69'):
-            self.grade = 'C+' 
-        elif self.total_score >= Decimal('60') and self.total_score <= Decimal('64'):
-            self.grade = 'C' 
-        elif self.total_score >= Decimal('50') and self.total_score <= Decimal('59'):
-            self.grade = 'D' 
-        elif self.total_score >= Decimal('45') and self.total_score <= Decimal('49'):
-            self.grade = 'E'  
-        elif self.total_score >= Decimal('35') and self.total_score <= Decimal('44'):
-            self.grade = 'F' 
+        elif Decimal('65') <= self.total_score <= Decimal('69'):
+            self.grade = 'C+'
+        elif Decimal('60') <= self.total_score <= Decimal('64'):
+            self.grade = 'C'
+        elif Decimal('50') <= self.total_score <= Decimal('59'):
+            self.grade = 'D'
+        elif Decimal('45') <= self.total_score <= Decimal('49'):
+            self.grade = 'E'
+        elif Decimal('35') <= self.total_score <= Decimal('44'):
+            self.grade = 'F'
         else:
-            self.grade = 'Ungraded' 
+            self.grade = 'Ungraded'
 
-        # Call the superclass save method to store the object in the database
         super().save(*args, **kwargs)
 
     def __str__(self):

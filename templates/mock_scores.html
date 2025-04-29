@@ -287,7 +287,7 @@
         if (term) {
           // Fetch scores for the selected term using AJAX
           $.ajax({
-            url: '/dashboard/entries/view_mock_scores/' term + '/'+ level + '/'+ classYear + '/', // URL to fetch mock scores based on term_id
+            url: '/dashboard/entries/view_mock_scores/' + term + '/'+ level + '/'+ classYear + '/', // URL to fetch mock scores based on term_id
             type: 'GET',
             success: function (response) {
               // Clear existing rows in the modal

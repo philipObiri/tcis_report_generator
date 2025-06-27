@@ -54,7 +54,6 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
-
 class Student(models.Model):
     fullname = models.CharField(max_length=255)
     class_year = models.ForeignKey(ClassYear, on_delete=models.CASCADE, related_name='students')
@@ -77,14 +76,13 @@ class Student(models.Model):
             self.subjects.clear()
             self.subjects.add(*self.class_year.subjects.all())
 
-
 class Score(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scores')
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='scores')
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='scores')
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='scores')
+    subject = models.ForeignKey('Subject', on_delete=models.CASCADE, related_name='scores')
+    term = models.ForeignKey('Term', on_delete=models.CASCADE, related_name='scores')
 
-    # New fields for individual scores
+    # Individual scores
     class_work_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
     progressive_test_1_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
     progressive_test_2_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
@@ -97,23 +95,22 @@ class Score(models.Model):
 
     continuous_assessment = models.DecimalField(max_digits=25, decimal_places=2, default=Decimal('0.0'))
     total_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
-    grade = models.CharField(max_length=255, blank=True)  # Changed max_length to 100
+    grade = models.CharField(max_length=255, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        # Calculate the sum of all the component scores
+        # Calculate the sum of all the component scores (now out of 400)
         total_continuous_assessment_score = (
             self.class_work_score +
             self.progressive_test_1_score +
             self.progressive_test_2_score +
-            self.progressive_test_3_score +
             self.midterm_score
         )
 
-        # Normalize continuous_assessment to a 100% scale (total is out of 500)
-        normalized_continuous_assessment = (total_continuous_assessment_score / Decimal('500')) * Decimal('100')
+        # Normalize continuous_assessment to a 100% scale (total is now out of 400)
+        normalized_continuous_assessment = (total_continuous_assessment_score / Decimal('400')) * Decimal('100')
 
         # Calculate Continuous Assessment as 30% of normalized value
         self.continuous_assessment = normalized_continuous_assessment * Decimal('0.30')
@@ -152,8 +149,6 @@ class Score(models.Model):
         return f"{self.student.fullname} - {self.subject.name} - {self.total_score}"
 
 
-
-
 class MidtermReport(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='midterm_reports')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='midterm_reports')
@@ -166,6 +161,9 @@ class MidtermReport(models.Model):
 
     # User who generated the report
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_midterm_reports')
+
+
+    comment = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Midterm Report"
@@ -200,7 +198,6 @@ class MidtermReport(models.Model):
         return f"Midterm Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.midterm_gpa}"
 
 
-
 class MockReport(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='mock_reports')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='mock_reports')
@@ -213,6 +210,10 @@ class MockReport(models.Model):
 
     # User who generated the report
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_mock_reports')
+
+
+    comment = models.TextField(blank=True, null=True)
+
 
     class Meta:
         verbose_name = "Mock Report"
@@ -252,6 +253,10 @@ class ProgressiveTestOneReport(models.Model):
 
     # User who generated the report
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test1_reports')
+
+
+    comment = models.TextField(blank=True, null=True)
+
 
     class Meta:
         verbose_name = "Progressive One Report "
@@ -300,6 +305,8 @@ class ProgressiveTestTwoReport(models.Model):
     # User who generated the report
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test2_reports')
     
+    comment = models.TextField(blank=True, null=True)
+
     class Meta:
         verbose_name = "Progressive Two Report"
         verbose_name_plural = "Progressive Two Reports"
@@ -334,54 +341,6 @@ class ProgressiveTestTwoReport(models.Model):
         return f"Progressive Test 2 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test2_gpa}"
 
 
-class ProgressiveTestThreeReport(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='progressive_test3_reports')
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='progressive_test3_reports')
-
-    # Progressive Test 3 GPA (calculated directly from the progressive_test_3_score field)
-    progressive_test3_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
-    # Linking related scores to the report (many-to-many relationship with Score)
-    student_scores = models.ManyToManyField(Score, related_name='progressive_test3_reports')
-
-    # User who generated the report
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_progressive_test3_reports')
-
-    class Meta:
-        verbose_name = "Progressive Three Report"
-        verbose_name_plural = "Progressive Three Reports"
-
-    def save(self, *args, **kwargs):
-        # Ensure the user who generated the report is set automatically
-        if not self.generated_by and 'user' in kwargs:
-            self.generated_by = kwargs.pop('user', None)
-
-        # Get the scores for the student in the current term
-        scores = Score.objects.filter(student=self.student, term=self.term)
-
-        # Fetch the progressive test score three for each score:
-        total_scores = [score.progressive_test_3_score for score in scores]
-
-        # Calculate GPA using the external calculate_gpa function (assuming you have a `calculate_gpa` function)
-        gpa = calculate_gpa(total_scores)
-
-        # Set the progressive_test3_gpa based on the calculated GPA
-        self.progressive_test3_gpa = gpa
-
-        # Save the report first to generate an ID (needed for Many-to-Many relationship)
-        super().save(*args, **kwargs)
-
-        # Now link the scores to the report (many-to-many relationship)
-        self.student_scores.set(scores)  # Many-to-many relationship with Scores: progressive test scores
-
-        # Save the many-to-many relationship. Django will handle this automatically when you call 'set()'.
-        # Just calling self.save() again will ensure everything is persisted.
-
-    def __str__(self):
-        return f"Progressive Test 3 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test3_gpa}"
-
-
-
 class AcademicReport(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
@@ -392,6 +351,8 @@ class AcademicReport(models.Model):
 
     # ForeignKey to the User model (user who generated the report)
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
+
+    comment = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = "End of Term Report"
@@ -424,7 +385,6 @@ class AcademicReport(models.Model):
         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
 
 
-
 class TeacherProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
     subjects = models.ManyToManyField(Subject, related_name='teachers')
@@ -436,3 +396,27 @@ class TeacherProfile(models.Model):
         return f"Teacher Profile: {self.user.username}"
 
 
+
+
+
+# class ReportComment(models.Model):
+#     REPORT_TYPE_CHOICES = [
+#         ('final', 'Final'),
+#         ('midterm', 'Midterm'),
+#         ('mock', 'Mock'),
+#         ('progressive1', 'Progressive Test 1'),
+#         ('progressive2', 'Progressive Test 2'),
+#     ]
+
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+#     term = models.ForeignKey(Term, on_delete=models.CASCADE)
+#     comment = models.TextField()
+#     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+#     report_type = models.CharField(max_length=20, choices=REPORT_TYPE_CHOICES)
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     class Meta:
+#         unique_together = ('student', 'term', 'report_type')
+
+#     def __str__(self):
+#         return f"{self.student.fullname} | {self.term.term_name} | {self.report_type}"

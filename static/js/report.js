@@ -1,89 +1,96 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const generateReportBtn = document.getElementById('generate-report-btn');
-
-    generateReportBtn.addEventListener('click', function (e) {
+$(document).ready(function () {
+    $('#generate-report-btn').on('click', function (e) {
         e.preventDefault();
 
-        // Grab the selected term and student details
-        const studentName = document.getElementById('student-name').innerText.trim();
-        const classYear = document.getElementById('class-year').innerText.trim();
-        const selectedTerm = document.getElementById('term-dropdown').value.trim();
+        const studentName = $('#student-name').text().trim();
+        const classYear = $('#class-year').text().trim();
+        const selectedTerm = $('#term-dropdown').val().trim();
 
-        // Validate if a student is selected
         if (!studentName) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Please select a student first from the saved scores list.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-            return;  // Stop further execution
+            Swal.fire('Error!', 'Please select a student first from the saved scores list.', 'error');
+            return;
         }
 
-        // Validate if a term is selected
         if (!selectedTerm) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Please select a term to generate the report.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-            return;  // Stop further execution
+            Swal.fire('Error!', 'Please select a term to generate the report.', 'error');
+            return;
         }
 
-        // Confirm before generating the report
+        // Step 1: Confirm generation
         Swal.fire({
             title: 'Generate Report?',
             text: `Do you want to generate a report for ${studentName} in ${selectedTerm}?`,
             icon: 'info',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Generate',
+            confirmButtonText: 'Yes, Continue',
             cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Prepare the data to send with the request
-                const reportData = {
-                    student_name: studentName,
-                    class_year: classYear,
-                    term: selectedTerm
-                };
-
-                // Make the AJAX request to generate the report
-                fetch('/reports/generate_report/', {
-                    method: 'POST',
+        }).then(function (confirmResult) {
+            if (confirmResult.isConfirmed) {
+                // Step 2: Fetch existing comment
+                $.ajax({
+                    url: '/dashboard/get_comment/',
+                    type: 'POST',
+                    contentType: 'application/json',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value, // CSRF token
+                        'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
                     },
-                    body: JSON.stringify(reportData),
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.report_html) {
-                            // Open the generated report in a new tab
-                            const reportWindow = window.open('', '_blank');
-                            reportWindow.document.write('<html><head><title>Academic Report</title></head><body>');
-                            reportWindow.document.write(data.report_html);  // Insert the HTML content here
-                            reportWindow.document.write('</body></html>');
-                        } else {
-                            // Handle error if report generation fails
-                            Swal.fire({
-                                title: 'Error!',
-                                text: data.error || 'An error occurred while generating the report.',
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+                    data: JSON.stringify({
+                        student_name: studentName,
+                        class_year: classYear,
+                        term: selectedTerm
+                    }),
+                    success: function (response) {
+                        const existingComment = response.comment || '';
+
+                        // Step 3: Ask for (or edit) comment
                         Swal.fire({
-                            title: 'Error!',
-                            text: 'An unexpected error occurred.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
+                            title: 'Enter Report Comment',
+                            input: 'textarea',
+                            inputLabel: 'Comment (optional)',
+                            inputValue: existingComment,
+                            inputPlaceholder: 'Enter comment for this academic report...',
+                            showCancelButton: true,
+                            confirmButtonText: 'Submit & Generate',
+                            cancelButtonText: 'Cancel'
+                        }).then(function (commentResult) {
+                            if (commentResult.isConfirmed) {
+                                const userComment = commentResult.value;
+
+                                // Step 4: Send data to generate report
+                                $.ajax({
+                                    url: '/reports/generate_report/',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    headers: {
+                                        'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+                                    },
+                                    data: JSON.stringify({
+                                        student_name: studentName,
+                                        class_year: classYear,
+                                        term: selectedTerm,
+                                        comment: userComment
+                                    }),
+                                    success: function (data) {
+                                        if (data.success && data.report_html) {
+                                            const newTab = window.open('', '_blank');
+                                            newTab.document.write('<html><head><title>Academic Report</title></head><body>');
+                                            newTab.document.write(data.report_html);
+                                            newTab.document.write('</body></html>');
+                                        } else {
+                                            Swal.fire('Error!', data.error || 'An error occurred while generating the report.', 'error');
+                                        }
+                                    },
+                                    error: function () {
+                                        Swal.fire('Error!', 'An unexpected error occurred during report generation.', 'error');
+                                    }
+                                });
+                            }
                         });
-                    });
+                    },
+                    error: function () {
+                        Swal.fire('Error!', 'Failed to fetch existing comment.', 'error');
+                    }
+                });
             }
         });
     });

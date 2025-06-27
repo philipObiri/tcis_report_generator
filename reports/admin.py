@@ -3,9 +3,10 @@ from django.utils.html import format_html
 from .models import (
     Level, ClassYear, 
     Term, Subject, Student,TeacherProfile,
-    Score, AcademicReport,MidtermReport, 
-    ProgressiveTestOneReport, ProgressiveTestTwoReport, 
-    ProgressiveTestThreeReport
+    Score, AcademicReport
+    # MidtermReport, 
+    # ProgressiveTestOneReport, ProgressiveTestTwoReport, 
+    # ProgressiveTestThreeReport
 )
 
 # Register the Level model
@@ -73,7 +74,9 @@ class TeacherProfileAdmin(admin.ModelAdmin):
 
 # Register the Score model
 class ScoreAdmin(admin.ModelAdmin):
-    list_display = ('student', 'subject', 'term', 'class_work_score', 'progressive_test_1_score', 'progressive_test_2_score', 'progressive_test_3_score', 'midterm_score','mock_score', 'exam_score', 'continuous_assessment', 'total_score', 'grade')
+    list_display = ('student', 'subject', 'term', 'class_work_score', 'progressive_test_1_score', 'progressive_test_2_score', 
+                
+                    'midterm_score','mock_score', 'exam_score', 'continuous_assessment', 'total_score', 'grade')
     search_fields = ('student__fullname', 'subject__name', 'term__term_name')
     list_filter = ('term', 'subject', 'created_by')
     # readonly_fields = ('continuous_assessment', 'total_score', 'grade')  # Make these fields readonly as they are auto-calculated

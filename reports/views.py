@@ -1,27 +1,22 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.forms import modelformset_factory
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import (
     Level, ClassYear, 
     Term, Subject, Student, TeacherProfile,
     Score, AcademicReport,MidtermReport,
     ProgressiveTestOneReport,ProgressiveTestTwoReport,
-    ProgressiveTestThreeReport,
     MockReport,
 )
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from decimal import Decimal 
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
-from django.core.exceptions import ValidationError
 from reports.utils import calculate_gpa
+from django.views.decorators.csrf import csrf_exempt
 
 
 #==================== Login View ====================
@@ -1262,6 +1257,102 @@ def delete_score(request, score_id):
 
 
 # View that generates reports
+# @login_required(login_url='login')
+# def generate_report(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         student_name = data.get('student_name')
+#         class_year = data.get('class_year')
+#         term_name = data.get('term')
+
+#         print(f"Request received: student_name={student_name}, class_year={class_year}, term_name={term_name}")
+
+#         try:
+#             # Fetch the student, class_year, and term objects
+#             student = Student.objects.get(fullname=student_name)
+#             class_year_obj = ClassYear.objects.get(name=class_year)
+#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
+
+#             print(f"Fetched: student={student.fullname}, class_year={class_year_obj.name}, term={term.term_name}")
+
+#             # Fetch all scores for the student in the selected term
+#             scores = Score.objects.filter(student=student, term=term).distinct('subject')
+#             print(f"Fetched scores: {len(scores)} scores found for student {student_name} in term {term_name}")
+
+#             if not scores.exists():
+#                 print(f"No scores found for {student_name} in term {term_name}")
+#                 return JsonResponse({
+#                     'success': False,
+#                     'error': f'No scores found for {student_name} in {term_name}.'
+#                 })
+
+#             # Create or update the AcademicReport instance for this student and term
+#             academic_report, created = AcademicReport.objects.get_or_create(
+#                 student=student,
+#                 term=term
+#             )
+
+#             if created:
+#                 print(f"New AcademicReport created for {student_name} - {term_name}")
+#                 academic_report.student_scores.set(scores)  # Assign the scores to the report
+
+#             # Save the academic report which will trigger GPA calculation
+#             academic_report.save()  # The GPA will be automatically calculated by the model's save method
+#             print(f"Academic report saved with ID: {academic_report.id} and GPA: {academic_report.student_gpa}")
+
+#             # Render the HTML for the report using the 'generated_report.html' template
+#             report_html = render_to_string('generated_report.html', {
+#                 'student_name': student_name,
+#                 'class_year': class_year,
+#                 'term_name': term_name,
+#                 'gpa': academic_report.student_gpa,
+#                 'report_data': scores,  # Pass the scores directly
+#             })
+
+#             print(f"Report HTML generated successfully.")
+
+#             # Return the HTML content in the JSON response
+#             return JsonResponse({
+#                 'success': True,
+#                 'report_html': report_html  # Pass the generated HTML content
+#             })
+
+#         except Student.DoesNotExist:
+#             print(f"Error: Student {student_name} not found.")
+#             return JsonResponse({'success': False, 'error': 'Student not found.'})
+#         except Term.DoesNotExist:
+#             print(f"Error: Term {term_name} not found.")
+#             return JsonResponse({'success': False, 'error': 'Term not found.'})
+#         except ClassYear.DoesNotExist:
+#             print(f"Error: Class Year {class_year} not found.")
+#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
+#         except Exception as e:
+#             print(f"Unexpected error: {e}")
+#             return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+@csrf_exempt
+# @login_required
+def get_comment(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        student_name = data.get('student_name')
+        class_year = data.get('class_year')
+        term_name = data.get('term')
+
+        try:
+            student = Student.objects.get(fullname=student_name)
+            class_year_obj = ClassYear.objects.get(name=class_year)
+            term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
+
+            report = AcademicReport.objects.filter(student=student, term=term).first()
+            return JsonResponse({'comment': report.comment if report else ''})
+        except Exception:
+            return JsonResponse({'comment': ''})
+
+
+
 @login_required(login_url='login')
 def generate_report(request):
     if request.method == 'POST':
@@ -1269,72 +1360,58 @@ def generate_report(request):
         student_name = data.get('student_name')
         class_year = data.get('class_year')
         term_name = data.get('term')
+        comment = data.get('comment', '').strip()
 
-        print(f"Request received: student_name={student_name}, class_year={class_year}, term_name={term_name}")
+        if not comment:
+            return JsonResponse({'success': False, 'error': 'A comment is required before generating the report.'})
 
         try:
-            # Fetch the student, class_year, and term objects
             student = Student.objects.get(fullname=student_name)
             class_year_obj = ClassYear.objects.get(name=class_year)
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            print(f"Fetched: student={student.fullname}, class_year={class_year_obj.name}, term={term.term_name}")
-
-            # Fetch all scores for the student in the selected term
             scores = Score.objects.filter(student=student, term=term).distinct('subject')
-            print(f"Fetched scores: {len(scores)} scores found for student {student_name} in term {term_name}")
 
             if not scores.exists():
-                print(f"No scores found for {student_name} in term {term_name}")
                 return JsonResponse({
                     'success': False,
                     'error': f'No scores found for {student_name} in {term_name}.'
                 })
 
-            # Create or update the AcademicReport instance for this student and term
             academic_report, created = AcademicReport.objects.get_or_create(
                 student=student,
                 term=term
             )
 
             if created:
-                print(f"New AcademicReport created for {student_name} - {term_name}")
-                academic_report.student_scores.set(scores)  # Assign the scores to the report
+                academic_report.student_scores.set(scores)
 
-            # Save the academic report which will trigger GPA calculation
-            academic_report.save()  # The GPA will be automatically calculated by the model's save method
-            print(f"Academic report saved with ID: {academic_report.id} and GPA: {academic_report.student_gpa}")
+            academic_report.comment = comment  
+            academic_report.generated_by = request.user
+            academic_report.save()
 
-            # Render the HTML for the report using the 'generated_report.html' template
             report_html = render_to_string('generated_report.html', {
                 'student_name': student_name,
                 'class_year': class_year,
                 'term_name': term_name,
                 'gpa': academic_report.student_gpa,
-                'report_data': scores,  # Pass the scores directly
+                'report_data': scores,
+                'comment_text': academic_report.comment  # Include comment
             })
 
-            print(f"Report HTML generated successfully.")
-
-            # Return the HTML content in the JSON response
             return JsonResponse({
                 'success': True,
-                'report_html': report_html  # Pass the generated HTML content
+                'report_html': report_html
             })
 
         except Student.DoesNotExist:
-            print(f"Error: Student {student_name} not found.")
             return JsonResponse({'success': False, 'error': 'Student not found.'})
         except Term.DoesNotExist:
-            print(f"Error: Term {term_name} not found.")
             return JsonResponse({'success': False, 'error': 'Term not found.'})
         except ClassYear.DoesNotExist:
-            print(f"Error: Class Year {class_year} not found.")
             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
         except Exception as e:
-            print(f"Unexpected error: {e}")
             return JsonResponse({'success': False, 'error': str(e)})
-
 
 
 
@@ -1914,146 +1991,6 @@ def generate_progressive_two_report(request):
 
 
 
-
-
-@login_required(login_url='login')
-def generate_progressive_three_report(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        student_name = data.get('student_name')
-        class_year = data.get('class_year')
-        term_name = data.get('term')
-
-        try:
-            # Fetch the student, class_year, and term objects
-            student = Student.objects.get(fullname=student_name)
-            class_year_obj = ClassYear.objects.get(name=class_year)
-            term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
-
-            # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term).distinct('subject')
-
-            # Function to calculate grade based on progressive_test_3_score
-            def get_grade_from_progressive_test_3_score(score):
-                if score >= 95 and score <= 100:
-                    return 'A*'
-                elif score >= 80 and score < 95:
-                    return 'A'
-                elif score >= 75 and score < 80:
-                    return 'B+'
-                elif score >= 70 and score < 75:
-                    return 'B'
-                elif score >= 65 and score < 70:
-                    return 'C+'
-                elif score >= 60 and score < 65:
-                    return 'C'
-                elif score >= 50 and score < 60:
-                    return 'D'
-                elif score >= 45 and score < 50:
-                    return 'E'
-                elif score >= 35 and score < 45:
-                    return 'F'
-                else:
-                    return 'Ungraded'
-
-            # Function to calculate GPA based on progressive_test_3_score
-            def get_gpa_from_progressive_test_3_score(score):
-                if score >= 95 and score <= 100:
-                    return 4.00
-                elif score >= 80 and score < 95:
-                    return 3.67
-                elif score >= 75 and score < 80:
-                    return 3.33
-                elif score >= 70 and score < 75:
-                    return 3.00
-                elif score >= 65 and score < 70:
-                    return 2.67
-                elif score >= 60 and score < 65:
-                    return 2.33
-                elif score >= 50 and score < 60:
-                    return 2.00
-                elif score >= 45 and score < 50:
-                    return 1.67
-                elif score >= 35 and score < 45:
-                    return 1.00
-                else:
-                    return 0.00
-
-            # Calculate individual GPA scores for each subject and then average them
-            individual_gpas = []
-            for score in scores:
-                if score.progressive_test_3_score is not None:
-                    individual_gpas.append(get_gpa_from_progressive_test_3_score(score.progressive_test_3_score))
-
-            # Calculate average GPA if there are any scores
-            if individual_gpas:
-                total_gpa = sum(individual_gpas) / len(individual_gpas)
-            else:
-                total_gpa = 0.00  # If no scores exist, default to 0 GPA
-
-            # Create or update the ProgressiveReport instance for this student and term
-            progressive_report, created = ProgressiveTestThreeReport.objects.get_or_create(
-                student=student,
-                term=term
-            )
-
-            # If it's a new report, set the fields and save
-            if created:
-                # Set the necessary fields for the new report
-                progressive_report.student = student
-                progressive_report.term = term
-                progressive_report.progressive_test3_gpa = float(total_gpa)
-                progressive_report.generated_by = request.user  # Automatically set generated_by to the current user
-
-                # Save the report first to generate an ID
-                progressive_report.save()
-
-                # Set the scores to the ProgressiveReport (many-to-many relationship)
-                progressive_report.student_scores.set(scores)  # Set the full Score instances to the report
-
-                # Save again after assigning the many-to-many relationship
-                progressive_report.save()
-
-            # Prepare data to be returned in the JSON response
-            progressive_report_data = {
-                'student_name': student.fullname,
-                'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
-                'term': term.term_name,
-                'total_gpa': total_gpa,  # Add the total GPA
-                'scores': [
-                    {
-                        'subject': score.subject.name,
-                        'progressive_test_3_score': score.progressive_test_3_score,
-                        'grade': get_grade_from_progressive_test_3_score(score.progressive_test_3_score),
-                        'gpa': get_gpa_from_progressive_test_3_score(score.progressive_test_3_score)
-                    }
-                    for score in scores
-                ]
-            }
-
-            # Render the HTML for the report using the 'generated_progressive_test_three_report.html' template
-            report_html = render_to_string('generated_progressive_test_three_report.html', {
-                'student_name': student.fullname,
-                'class_year': class_year_obj.name,
-                'term_name': term.term_name,
-                'gpa': total_gpa,
-                'report_data': progressive_report_data['scores'],  # Pass the scores directly
-            })
-
-            # Return a JsonResponse with the generated report data
-            return JsonResponse({
-                'success': True,
-                'report_html': report_html  # Pass the generated HTML content
-            })
-
-        except Student.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Student not found.'})
-        except Term.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Term not found.'})
-        except ClassYear.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Class Year not found.'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
 
 
 

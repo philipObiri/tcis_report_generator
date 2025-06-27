@@ -13,7 +13,7 @@ urlpatterns = [
 
     path('dashboard/entries/first-progressive-scores/', views.progressive_test_scores_one, name="progressive_score_one"),
     path('dashboard/entries/second-progressive-scores/', views.progressive_test_scores_two, name="progressive_score_two"),
-    path('third-progressive-scores/', views.progressive_test_scores_three, name="progressive_score_three"),
+    # path('third-progressive-scores/', views.progressive_test_scores_three, name="progressive_score_three"),
 
 
 
@@ -22,10 +22,11 @@ urlpatterns = [
     path('dashboard/entries/view_midterm_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_midterm_scores, name='view_midterm_scores'),
     path('dashboard/entries/view_mock_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_mock_scores, name='view_mock_scores'),
     # path('dashboard/entries/view_end_of_term_scores/<int:term_id>/', views.view_end_of_term_scores, name='view_end_of_term_scores'),
+    path('dashboard/get_comment/', views.get_comment, name='get_comment'),
     path('dashboard/entries/view_end_of_term_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_end_of_term_scores, name='view_end_of_term_scores'),
     path('dashboard/entries/view_progressive_one_test_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_progressive_one_test_scores, name='view_progressive_one_test_scores'),
     path('dashboard/entries/view_progressive_two_test_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_progressive_two_test_scores, name='view_progressive_two_test_scores'),
-    path('dashboard/entries/view_progressive_three_test_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_progressive_three_test_scores, name='view_progressive_three_test_scores'),
+    # path('dashboard/entries/view_progressive_three_tessst_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_progressive_three_test_scores, name='view_progressive_three_test_scores'),
 
 
     path('reports/scores/delete-score/<int:score_id>/', views.delete_score, name='delete_score'),
@@ -34,6 +35,7 @@ urlpatterns = [
     path('reports/generate_midterm_report/', views.generate_midterm_report, name="generate_midterm_report"),
     path('reports/generate_mock_report/', views.generate_mock_report, name="generate_mock_report"),
     path('reports/generate_progressive_one_report/', views.generate_progressive_one_report, name="generate_progressive_one_report"),
+    
 
     # Endpoint to get classes based on the selected level
     path('get-classes-by-level/<int:level_id>/', views.get_classes_by_level, name='get_classes_by_level'),
@@ -57,5 +59,5 @@ urlpatterns = [
     path('reports/get_mock_report_details/<int:student_id>/<int:term_id>/', views.view_mock_report, name='view_mock_report'),
     path('reports/get_progessive_one_report_details/<int:student_id>/<int:term_id>/', views.view_progressive_test_score_one_report, name='view_progressive_one_report'),
     path('reports/get_progessive_two_report_details/<int:student_id>/<int:term_id>/', views.view_progressive_test_score_two_report, name='view_progressive_two_report'),
-    path('reports/get_progessive_three_report_details/<int:student_id>/<int:term_id>/', views.view_progressive_test_score_three_report, name='view_progressive_three_report'),
+    # path('reports/get_progessive_three_report_details/<int:student_id>/<int:term_id>/', views.view_progressive_test_score_three_report, name='view_progressive_three_report'),
 ]

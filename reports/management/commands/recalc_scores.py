@@ -14,7 +14,7 @@ class Command(BaseCommand):
             .annotate(count=Count('id'))
             .filter(count__gt=1)
         )
-
+        
         for dup in duplicates:
             scores = Score.objects.filter(
                 student=dup['student'],
@@ -22,12 +22,15 @@ class Command(BaseCommand):
                 term=dup['term']
             ).order_by('-created_at')
 
-            to_delete = scores[1:]
-            if to_delete.exists():
+            to_delete = scores[1:]  # This is a slice, now treated properly
+
+            to_delete_ids = [s.id for s in to_delete]  # Get IDs of duplicates
+
+            if to_delete_ids:
                 self.stdout.write(
-                    f"Deleting {to_delete.count()} duplicate(s) for student={dup['student']}, subject={dup['subject']}, term={dup['term']}"
+                    f"Deleting {len(to_delete_ids)} duplicate(s) for student={dup['student']}, subject={dup['subject']}, term={dup['term']}"
                 )
-                to_delete.delete()
+                Score.objects.filter(id__in=to_delete_ids).delete()
 
         # Step 2: Assign grades based on total_score
         scores = Score.objects.all()

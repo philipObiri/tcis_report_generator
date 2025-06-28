@@ -73,8 +73,7 @@ def class_scores(request):
     scores = []
     term = None
     subject = None
-
-    students = Student.objects.all()
+    class_year = None
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Retrieve POST parameters for filters
@@ -83,70 +82,94 @@ def class_scores(request):
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
-        level = Level.objects.get(id=level_id) if level_id else None
-        class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
-        term = Term.objects.get(id=term_id) if term_id else None
-        subject = Subject.objects.get(id=subject_id) if subject_id else None
+        try:
+            level = Level.objects.get(id=level_id) if level_id else None
+            class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
+            term = Term.objects.get(id=term_id) if term_id else None
+            subject = Subject.objects.get(id=subject_id) if subject_id else None
 
-        if class_year:
+            if not all([class_year, term, subject]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please select class year, term, and subject.'
+                })
+
             students = Student.objects.filter(class_year=class_year)
 
-        # Process the submitted classwork scores
-        for student in students:
-            existing_score = Score.objects.filter(
-                student=student,
-                term=term,
-                subject=subject,
-                created_by=request.user
-            ).first()
+            # Process the submitted classwork scores
+            for student in students:
+                posted_class_score = request.POST.get(f'class_score_{student.id}')
+                if posted_class_score and posted_class_score.strip():
+                    try:
+                        class_work_score = Decimal(posted_class_score.strip())
 
-            class_work_score = 0
+                        score_instance, created = Score.objects.update_or_create(
+                            student=student,
+                            term=term,
+                            subject=subject,
+                            created_by=request.user,
+                            defaults={'class_work_score': class_work_score}
+                        )
 
-            if existing_score:
-                class_work_score = existing_score.class_work_score
+                        # The save method is automatically called by update_or_create
+                        # But we can explicitly call it to ensure calculations are updated
+                        score_instance.save()
 
-            posted_class_score = request.POST.get(f'class_score_{student.id}')
-            if posted_class_score:
-                try:
-                    class_work_score = Decimal(posted_class_score)
+                    except (ValueError, TypeError) as e:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': f'Invalid score value for {student.fullname}: {posted_class_score}'
+                        })
 
-                    score_instance, created = Score.objects.update_or_create(
-                        student=student,
-                        term=term,
-                        subject=subject,
-                        created_by=request.user,
-                        defaults={'class_work_score': class_work_score}
-                    )
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Classwork scores saved successfully!'
+            })
 
-                    # Recalculate after saving the class score
-                    score_instance.save()
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'An error occurred: {str(e)}'
+            })
 
-                except ValueError:
-                    return JsonResponse({
-                        'status': 'error',
-                        'message': f'Invalid score value for {student.fullname}.'
-                    })
-
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Classwork scores saved successfully!'
-        })
-
+    # Handle GET request for retrieving scores
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
+    class_year_id = request.GET.get('class_year')
     
     if term_id and subject_id:
-        term = Term.objects.get(id=term_id)
-        subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject, 
-        created_by=request.user
-        )
+        try:
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
+            
+            # Filter scores based on available parameters
+            score_filter = {
+                'term': term,
+                'subject': subject,
+                'created_by': request.user
+            }
+            
+            if class_year_id:
+                class_year = ClassYear.objects.get(id=class_year_id)
+                students = Student.objects.filter(class_year=class_year)
+                score_filter['student__class_year'] = class_year
+            else:
+                students = Student.objects.all()
+            
+            scores = Score.objects.filter(**score_filter).select_related('student', 'subject', 'term')
+            
+        except (Term.DoesNotExist, Subject.DoesNotExist, ClassYear.DoesNotExist):
+            pass
+    else:
+        students = Student.objects.all()
 
     return render(request, 'class_scores.html', {
         'students': students,
         'scores': scores,
+        'term': term,
+        'subject': subject,
+        'class_year': class_year,
     })
-
 
 
 #=========== Process First Progressive Test Scores =====================
@@ -156,6 +179,7 @@ def progressive_test_scores_one(request):
     scores = []
     term = None
     subject = None
+    class_year = None
 
     if request.method == 'POST':
         level_id = request.POST.get('level')
@@ -163,54 +187,81 @@ def progressive_test_scores_one(request):
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
-        if class_year_id:
+        try:
+            if not all([class_year_id, term_id, subject_id]):
+                messages.error(request, 'Please select class year, term, and subject.')
+                return redirect('progressive_score_one')
+
             class_year = ClassYear.objects.get(id=class_year_id)
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
             students = Student.objects.filter(class_year=class_year)
-        else:
-            students = Student.objects.all()
 
-        term = Term.objects.get(id=term_id) if term_id else None
-        subject = Subject.objects.get(id=subject_id) if subject_id else None
+            for student in students:
+                progressive_test_1_score = request.POST.get(f'progressive_test_1_score_{student.id}')
+                if progressive_test_1_score and progressive_test_1_score.strip():
+                    try:
+                        score_value = Decimal(progressive_test_1_score.strip())
 
-        for student in students:
-            progressive_test_1_score = request.POST.get(f'progressive_test_1_score_{student.id}')
-            if progressive_test_1_score:
-                try:
-                    progressive_test_1_score = Decimal(progressive_test_1_score)
-                except ValueError:
-                    progressive_test_1_score = None
+                        score_instance, created = Score.objects.update_or_create(
+                            student=student,
+                            term=term,
+                            subject=subject,
+                            created_by=request.user,
+                            defaults={'progressive_test_1_score': score_value}
+                        )
 
-                Score.objects.update_or_create(
-                    student=student,
-                    term=term,
-                    subject=subject,
-                    created_by=request.user,
-                    defaults={'progressive_test_1_score': progressive_test_1_score}
-                )
+                        # Ensure recalculation after saving the score
+                        score_instance.save()
 
-                # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject,
-                created_by=request.user
-                )
-                score_instance.save()
+                    except (ValueError, TypeError):
+                        messages.error(request, f'Invalid score value for {student.fullname}: {progressive_test_1_score}')
+                        return redirect('progressive_score_one')
 
-        messages.success(request, 'Progressive test data saved successfully.')
+            messages.success(request, 'Progressive test 1 data saved successfully.')
+            # Redirect with parameters to maintain context
+            return redirect(f'progressive_score_one?term={term_id}&subject={subject_id}&class_year={class_year_id}')
 
-        return redirect('progressive_score_one')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            return redirect('progressive_score_one')
 
+    # Handle GET request
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
+    class_year_id = request.GET.get('class_year')
 
     if term_id and subject_id:
-        term = Term.objects.get(id=term_id)
-        subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject,
-        created_by=request.user
-        )
+        try:
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
+            
+            score_filter = {
+                'term': term,
+                'subject': subject,
+                'created_by': request.user
+            }
+            
+            if class_year_id:
+                class_year = ClassYear.objects.get(id=class_year_id)
+                students = Student.objects.filter(class_year=class_year)
+                score_filter['student__class_year'] = class_year
+            else:
+                students = Student.objects.all()
+            
+            scores = Score.objects.filter(**score_filter).select_related('student', 'subject', 'term')
+            
+        except (Term.DoesNotExist, Subject.DoesNotExist, ClassYear.DoesNotExist):
+            students = Student.objects.all()
+    else:
+        students = Student.objects.all()
 
     context = {
-        'students': Student.objects.all(),
+        'students': students,
         'scores': scores,
+        'term': term,
+        'subject': subject,
+        'class_year': class_year,
     }
 
     return render(request, 'progressive_tests/progressive_test_1.html', context)
@@ -226,64 +277,90 @@ def progressive_test_scores_two(request):
     scores = []
     term = None
     subject = None
+    class_year = None
+
     if request.method == 'POST':
         level_id = request.POST.get('level')
         class_year_id = request.POST.get('class_year')
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
-        if class_year_id:
+        try:
+            if not all([class_year_id, term_id, subject_id]):
+                messages.error(request, 'Please select class year, term, and subject.')
+                return redirect('progressive_score_two')
+
             class_year = ClassYear.objects.get(id=class_year_id)
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
             students = Student.objects.filter(class_year=class_year)
-        else:
-            students = Student.objects.all()
 
-        term = Term.objects.get(id=term_id) if term_id else None
-        subject = Subject.objects.get(id=subject_id) if subject_id else None
+            for student in students:
+                progressive_test_2_score = request.POST.get(f'progressive_test_2_score_{student.id}')
+                if progressive_test_2_score and progressive_test_2_score.strip():
+                    try:
+                        score_value = Decimal(progressive_test_2_score.strip())
 
-        for student in students:
-            progressive_test_2_score = request.POST.get(f'progressive_test_2_score_{student.id}')
-            if progressive_test_2_score:
-                try:
-                    progressive_test_2_score = Decimal(progressive_test_2_score)
-                except ValueError:
-                    progressive_test_2_score = None
+                        score_instance, created = Score.objects.update_or_create(
+                            student=student,
+                            term=term,
+                            subject=subject,
+                            created_by=request.user,
+                            defaults={'progressive_test_2_score': score_value}
+                        )
 
-                Score.objects.update_or_create(
-                    student=student,
-                    term=term,
-                    subject=subject,
-                    created_by=request.user,
-                    defaults={'progressive_test_2_score': progressive_test_2_score}
-                )
+                        score_instance.save()
 
-                # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject,
-                created_by=request.user
-                )
-                score_instance.save()
+                    except (ValueError, TypeError):
+                        messages.error(request, f'Invalid score value for {student.fullname}: {progressive_test_2_score}')
+                        return redirect('progressive_score_two')
 
-        messages.success(request, 'Progressive Test 2 data saved successfully.')
+            messages.success(request, 'Progressive Test 2 data saved successfully.')
+            return redirect(f'progressive_score_two?term={term_id}&subject={subject_id}&class_year={class_year_id}')
 
-        return redirect('progressive_score_two')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            return redirect('progressive_score_two')
 
+    # Handle GET request
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
+    class_year_id = request.GET.get('class_year')
 
     if term_id and subject_id:
-        term = Term.objects.get(id=term_id)
-        subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject, 
-        created_by=request.user
-        )
+        try:
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
+            
+            score_filter = {
+                'term': term,
+                'subject': subject,
+                'created_by': request.user
+            }
+            
+            if class_year_id:
+                class_year = ClassYear.objects.get(id=class_year_id)
+                students = Student.objects.filter(class_year=class_year)
+                score_filter['student__class_year'] = class_year
+            else:
+                students = Student.objects.all()
+            
+            scores = Score.objects.filter(**score_filter).select_related('student', 'subject', 'term')
+            
+        except (Term.DoesNotExist, Subject.DoesNotExist, ClassYear.DoesNotExist):
+            students = Student.objects.all()
+    else:
+        students = Student.objects.all()
 
     context = {
         'students': students,
         'scores': scores,
+        'term': term,
+        'subject': subject,
+        'class_year': class_year,
     }
 
     return render(request, 'progressive_tests/progressive_test_2.html', context)
-
 
 
 
@@ -294,6 +371,7 @@ def progressive_test_scores_three(request):
     scores = []
     term = None
     subject = None
+    class_year = None
 
     if request.method == 'POST':
         level_id = request.POST.get('level')
@@ -301,54 +379,79 @@ def progressive_test_scores_three(request):
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
-        if class_year_id:
+        try:
+            if not all([class_year_id, term_id, subject_id]):
+                messages.error(request, 'Please select class year, term, and subject.')
+                return redirect('progressive_score_three')
+
             class_year = ClassYear.objects.get(id=class_year_id)
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
             students = Student.objects.filter(class_year=class_year)
-        else:
-            students = Student.objects.all()
 
-        term = Term.objects.get(id=term_id) if term_id else None
-        subject = Subject.objects.get(id=subject_id) if subject_id else None
+            for student in students:
+                progressive_test_3_score = request.POST.get(f'progressive_test_3_score_{student.id}')
+                if progressive_test_3_score and progressive_test_3_score.strip():
+                    try:
+                        score_value = Decimal(progressive_test_3_score.strip())
 
-        for student in students:
-            progressive_test_3_score = request.POST.get(f'progressive_test_3_score_{student.id}')
-            if progressive_test_3_score:
-                try:
-                    progressive_test_3_score = Decimal(progressive_test_3_score)
-                except ValueError:
-                    progressive_test_3_score = None
+                        score_instance, created = Score.objects.update_or_create(
+                            student=student,
+                            term=term,
+                            subject=subject,
+                            created_by=request.user,
+                            defaults={'progressive_test_3_score': score_value}
+                        )
 
-                Score.objects.update_or_create(
-                    student=student,
-                    term=term,
-                    subject=subject,
-                    created_by=request.user,
-                    defaults={'progressive_test_3_score': progressive_test_3_score}
-                )
+                        score_instance.save()
 
-                # Ensure recalculation after saving the score
-                score_instance = Score.objects.get(student=student, term=term, subject=subject, 
-                created_by=request.user
-                )
-                score_instance.save()
+                    except (ValueError, TypeError):
+                        messages.error(request, f'Invalid score value for {student.fullname}: {progressive_test_3_score}')
+                        return redirect('progressive_score_three')
 
-        messages.success(request, 'Progressive Test 3 data saved successfully.')
+            messages.success(request, 'Progressive Test 3 data saved successfully.')
+            return redirect(f'progressive_score_three?term={term_id}&subject={subject_id}&class_year={class_year_id}')
 
-        return redirect('progressive_score_three')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            return redirect('progressive_score_three')
 
+    # Handle GET request
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
+    class_year_id = request.GET.get('class_year')
 
     if term_id and subject_id:
-        term = Term.objects.get(id=term_id)
-        subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject,
-        created_by=request.user
-        )
+        try:
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
+            
+            score_filter = {
+                'term': term,
+                'subject': subject,
+                'created_by': request.user
+            }
+            
+            if class_year_id:
+                class_year = ClassYear.objects.get(id=class_year_id)
+                students = Student.objects.filter(class_year=class_year)
+                score_filter['student__class_year'] = class_year
+            else:
+                students = Student.objects.all()
+            
+            scores = Score.objects.filter(**score_filter).select_related('student', 'subject', 'term')
+            
+        except (Term.DoesNotExist, Subject.DoesNotExist, ClassYear.DoesNotExist):
+            students = Student.objects.all()
+    else:
+        students = Student.objects.all()
 
     context = {
         'students': students,
         'scores': scores,
+        'term': term,
+        'subject': subject,
+        'class_year': class_year,
     }
 
     return render(request, 'progressive_tests/progressive_test_3.html', context)
@@ -362,8 +465,7 @@ def midterm_scores(request):
     scores = []
     term = None
     subject = None
-
-    students = Student.objects.all()
+    class_year = None
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Retrieve POST parameters for filters
@@ -372,71 +474,94 @@ def midterm_scores(request):
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
-        level = Level.objects.get(id=level_id) if level_id else None
-        class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
-        term = Term.objects.get(id=term_id) if term_id else None
-        subject = Subject.objects.get(id=subject_id) if subject_id else None
+        try:
+            level = Level.objects.get(id=level_id) if level_id else None
+            class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
+            term = Term.objects.get(id=term_id) if term_id else None
+            subject = Subject.objects.get(id=subject_id) if subject_id else None
 
-        if class_year:
+            if not all([class_year, term, subject]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please select class year, term, and subject.'
+                })
+
             students = Student.objects.filter(class_year=class_year)
 
-        for student in students:
-            existing_score = Score.objects.filter(
-                student=student,
-                term=term,
-                subject=subject,
-                created_by=request.user
-            ).first()
+            for student in students:
+                posted_midterm_score = request.POST.get(f'midterm_score_{student.id}')
+                if posted_midterm_score and posted_midterm_score.strip():
+                    try:
+                        midterm_score = Decimal(posted_midterm_score.strip())
 
-            midterm_score = 0
+                        # Update or create the score instance and save
+                        score_instance, created = Score.objects.update_or_create(
+                            student=student,
+                            term=term,
+                            subject=subject,
+                            created_by=request.user,
+                            defaults={'midterm_score': midterm_score}
+                        )
 
-            if existing_score:
-                midterm_score = existing_score.midterm_score
+                        # Explicit save to ensure calculations are updated
+                        score_instance.save()
 
-            posted_midterm_score = request.POST.get(f'midterm_score_{student.id}')
-            if posted_midterm_score:
-                try:
-                    midterm_score = Decimal(posted_midterm_score)
+                    except (ValueError, TypeError):
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': f'Invalid midterm score value for {student.fullname}: {posted_midterm_score}'
+                        })
 
-                    # Update or create the score instance and save
-                    score_instance, created = Score.objects.update_or_create(
-                        student=student,
-                        term=term,
-                        subject=subject,
-                        created_by=request.user,
-                        defaults={'midterm_score': midterm_score}
-                    )
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Midterm scores saved successfully!'
+            })
 
-                    # No need to call score_instance.save() as update_or_create will trigger the save.
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'An error occurred: {str(e)}'
+            })
 
-                except ValueError:
-                    return JsonResponse({
-                        'status': 'error',
-                        'message': f'Invalid midterm score value for {student.fullname}.'
-                    })
-
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Midterm scores saved successfully!'
-        })
-
+    # Handle GET request
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
+    class_year_id = request.GET.get('class_year')
 
     if term_id and subject_id:
-        term = Term.objects.get(id=term_id)
-        subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(term=term, subject=subject,
-        created_by=request.user
-        )
+        try:
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
+            
+            score_filter = {
+                'term': term,
+                'subject': subject,
+                'created_by': request.user
+            }
+            
+            if class_year_id:
+                class_year = ClassYear.objects.get(id=class_year_id)
+                students = Student.objects.filter(class_year=class_year)
+                score_filter['student__class_year'] = class_year
+            else:
+                students = Student.objects.all()
+            
+            scores = Score.objects.filter(**score_filter).select_related('student', 'subject', 'term')
+            
+        except (Term.DoesNotExist, Subject.DoesNotExist, ClassYear.DoesNotExist):
+            students = Student.objects.all()
+    else:
+        students = Student.objects.all()
 
     context = {
         'students': students,
         'scores': scores,
+        'term': term,
+        'subject': subject,
+        'class_year': class_year,
     }
 
     return render(request, 'midterm.html', context)
-
 
 
 #========== Process Mock Scores ====================
@@ -446,8 +571,7 @@ def mock_scores(request):
     scores = []
     term = None
     subject = None
-
-    students = Student.objects.all()
+    class_year = None
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Retrieve POST parameters for filters
@@ -456,69 +580,91 @@ def mock_scores(request):
         term_id = request.POST.get('term')
         subject_id = request.POST.get('subject')
 
-        level = Level.objects.get(id=level_id) if level_id else None
-        class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
-        term = Term.objects.get(id=term_id) if term_id else None
-        subject = Subject.objects.get(id=subject_id) if subject_id else None
+        try:
+            level = Level.objects.get(id=level_id) if level_id else None
+            class_year = ClassYear.objects.get(id=class_year_id) if class_year_id else None
+            term = Term.objects.get(id=term_id) if term_id else None
+            subject = Subject.objects.get(id=subject_id) if subject_id else None
 
-        if class_year:
+            if not all([class_year, term, subject]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please select class year, term, and subject.'
+                })
+
             students = Student.objects.filter(class_year=class_year)
 
-        for student in students:
-            existing_score = Score.objects.filter(
-                student=student,
-                term=term,
-                subject=subject,
-                created_by=request.user
-            ).first()
+            for student in students:
+                posted_mock_score = request.POST.get(f'mock_score_{student.id}')
+                if posted_mock_score and posted_mock_score.strip():
+                    try:
+                        mock_score = Decimal(posted_mock_score.strip())
 
-            mock_score = 0
+                        # Update or create the score instance and save
+                        score_instance, created = Score.objects.update_or_create(
+                            student=student,
+                            term=term,
+                            subject=subject,
+                            created_by=request.user,
+                            defaults={'mock_score': mock_score}
+                        )
 
-            if existing_score:
-                mock_score = existing_score.mock_score
+                        # Explicit save to ensure calculations are updated
+                        score_instance.save()
 
-            posted_mock_score = request.POST.get(f'mock_score_{student.id}')
-            if posted_mock_score:
-                try:
-                    mock_score = Decimal(posted_mock_score)
+                    except (ValueError, TypeError):
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': f'Invalid mock score value for {student.fullname}: {posted_mock_score}'
+                        })
 
-                    # Update or create the score instance and save
-                    score_instance, created = Score.objects.update_or_create(
-                        student=student,
-                        term=term,
-                        subject=subject,
-                        created_by=request.user,
-                        defaults={'mock_score': mock_score}
-                    )
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Mock Scores saved successfully!'
+            })
 
-                    # No need to call score_instance.save() as update_or_create will trigger the save.
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'An error occurred: {str(e)}'
+            })
 
-                except ValueError:
-                    return JsonResponse({
-                        'status': 'error',
-                        'message': f'Invalid mock score value for {student.fullname}.'
-                    })
-
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Mock Scores saved successfully!'
-        })
-
+    # Handle GET request
     term_id = request.GET.get('term')
     subject_id = request.GET.get('subject')
+    class_year_id = request.GET.get('class_year')
 
     if term_id and subject_id:
-        term = Term.objects.get(id=term_id)
-        subject = Subject.objects.get(id=subject_id)
-        scores = Score.objects.filter(
-            term=term, 
-            subject=subject, 
-            created_by=request.user
-            )
+        try:
+            term = Term.objects.get(id=term_id)
+            subject = Subject.objects.get(id=subject_id)
+            
+            score_filter = {
+                'term': term,
+                'subject': subject,
+                'created_by': request.user
+            }
+            
+            if class_year_id:
+                class_year = ClassYear.objects.get(id=class_year_id)
+                students = Student.objects.filter(class_year=class_year)
+                score_filter['student__class_year'] = class_year
+            else:
+                students = Student.objects.all()
+            
+            scores = Score.objects.filter(**score_filter).select_related('student', 'subject', 'term')
+            
+        except (Term.DoesNotExist, Subject.DoesNotExist, ClassYear.DoesNotExist):
+            students = Student.objects.all()
+    else:
+        students = Student.objects.all()
 
     context = {
         'students': students,
         'scores': scores,
+        'term': term,
+        'subject': subject,
+        'class_year': class_year,
     }
 
     return render(request, 'mock_scores.html', context)
@@ -1256,82 +1402,7 @@ def delete_score(request, score_id):
     return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
 
 
-# View that generates reports
-# @login_required(login_url='login')
-# def generate_report(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         student_name = data.get('student_name')
-#         class_year = data.get('class_year')
-#         term_name = data.get('term')
-
-#         print(f"Request received: student_name={student_name}, class_year={class_year}, term_name={term_name}")
-
-#         try:
-#             # Fetch the student, class_year, and term objects
-#             student = Student.objects.get(fullname=student_name)
-#             class_year_obj = ClassYear.objects.get(name=class_year)
-#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
-
-#             print(f"Fetched: student={student.fullname}, class_year={class_year_obj.name}, term={term.term_name}")
-
-#             # Fetch all scores for the student in the selected term
-#             scores = Score.objects.filter(student=student, term=term).distinct('subject')
-#             print(f"Fetched scores: {len(scores)} scores found for student {student_name} in term {term_name}")
-
-#             if not scores.exists():
-#                 print(f"No scores found for {student_name} in term {term_name}")
-#                 return JsonResponse({
-#                     'success': False,
-#                     'error': f'No scores found for {student_name} in {term_name}.'
-#                 })
-
-#             # Create or update the AcademicReport instance for this student and term
-#             academic_report, created = AcademicReport.objects.get_or_create(
-#                 student=student,
-#                 term=term
-#             )
-
-#             if created:
-#                 print(f"New AcademicReport created for {student_name} - {term_name}")
-#                 academic_report.student_scores.set(scores)  # Assign the scores to the report
-
-#             # Save the academic report which will trigger GPA calculation
-#             academic_report.save()  # The GPA will be automatically calculated by the model's save method
-#             print(f"Academic report saved with ID: {academic_report.id} and GPA: {academic_report.student_gpa}")
-
-#             # Render the HTML for the report using the 'generated_report.html' template
-#             report_html = render_to_string('generated_report.html', {
-#                 'student_name': student_name,
-#                 'class_year': class_year,
-#                 'term_name': term_name,
-#                 'gpa': academic_report.student_gpa,
-#                 'report_data': scores,  # Pass the scores directly
-#             })
-
-#             print(f"Report HTML generated successfully.")
-
-#             # Return the HTML content in the JSON response
-#             return JsonResponse({
-#                 'success': True,
-#                 'report_html': report_html  # Pass the generated HTML content
-#             })
-
-#         except Student.DoesNotExist:
-#             print(f"Error: Student {student_name} not found.")
-#             return JsonResponse({'success': False, 'error': 'Student not found.'})
-#         except Term.DoesNotExist:
-#             print(f"Error: Term {term_name} not found.")
-#             return JsonResponse({'success': False, 'error': 'Term not found.'})
-#         except ClassYear.DoesNotExist:
-#             print(f"Error: Class Year {class_year} not found.")
-#             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
-#         except Exception as e:
-#             print(f"Unexpected error: {e}")
-#             return JsonResponse({'success': False, 'error': str(e)})
-
-
-
+# View that fetches the existing comments on the end of term reports
 @csrf_exempt
 # @login_required
 def get_comment(request):
@@ -1991,12 +2062,8 @@ def generate_progressive_two_report(request):
 
 
 
-
-
-
 #=============== Logic for viewing the saved scores ===============
 # Viewing Saved End of Term  Scores by Term:
-
 @login_required(login_url='login')
 def view_end_of_term_scores(request, term_id=None, level_id=None, class_id=None):
     # Ensure that term_id, level_id, and class_id are provided
@@ -2508,7 +2575,6 @@ def view_progressive_one_test_scores(request, term_id=None, level_id=None, class
 
 
 # Viewing Saved Progressive Test Two Scores by Term:
-
 @login_required(login_url='login')
 def view_progressive_two_test_scores(request, term_id=None, level_id=None, class_id=None):
     # Ensure that term_id, level_id, and class_id are provided
@@ -2633,7 +2699,6 @@ def view_progressive_two_test_scores(request, term_id=None, level_id=None, class
 
 
 # Viewing Saved Progressive Test Three Scores by Term:
-
 @login_required(login_url='login')
 def view_progressive_three_test_scores(request, term_id=None, level_id=None, class_id=None):
     # Ensure that term_id, level_id, and class_id are provided

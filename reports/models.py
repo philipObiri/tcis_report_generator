@@ -100,6 +100,11 @@ class Score(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+    class Meta:
+        # Add unique constraint to prevent duplicates
+        unique_together = ['student', 'subject', 'term', 'created_by']
+
     def save(self, *args, **kwargs):
         # Calculate the sum of all the component scores (now out of 400)
         total_continuous_assessment_score = (

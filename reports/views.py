@@ -69,6 +69,14 @@ def select_progressive_option(request):
 #============ Process Class Scores View ================
 @login_required(login_url='login')
 def class_scores(request):
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
+
     students = []
     scores = []
     term = None
@@ -169,12 +177,21 @@ def class_scores(request):
         'term': term,
         'subject': subject,
         'class_year': class_year,
+        'is_head_class_teacher': is_head_class_teacher,
     })
 
 
 #=========== Process First Progressive Test Scores =====================
 @login_required(login_url='login')
 def progressive_test_scores_one(request):
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
+
     students = []
     scores = []
     term = None
@@ -262,6 +279,7 @@ def progressive_test_scores_one(request):
         'term': term,
         'subject': subject,
         'class_year': class_year,
+        'is_head_class_teacher': is_head_class_teacher,
     }
 
     return render(request, 'progressive_tests/progressive_test_1.html', context)
@@ -273,6 +291,14 @@ def progressive_test_scores_one(request):
 #=========== Process Second Progressive Test Scores =====================
 @login_required(login_url='login')
 def progressive_test_scores_two(request):
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
+
     students = []
     scores = []
     term = None
@@ -358,6 +384,7 @@ def progressive_test_scores_two(request):
         'term': term,
         'subject': subject,
         'class_year': class_year,
+        'is_head_class_teacher': is_head_class_teacher,
     }
 
     return render(request, 'progressive_tests/progressive_test_2.html', context)
@@ -367,6 +394,14 @@ def progressive_test_scores_two(request):
 #=========== Process Third Progressive Test Scores =====================
 @login_required(login_url='login')
 def progressive_test_scores_three(request):
+
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
     students = []
     scores = []
     term = None
@@ -452,6 +487,7 @@ def progressive_test_scores_three(request):
         'term': term,
         'subject': subject,
         'class_year': class_year,
+        'is_head_class_teacher': is_head_class_teacher,
     }
 
     return render(request, 'progressive_tests/progressive_test_3.html', context)
@@ -461,6 +497,13 @@ def progressive_test_scores_three(request):
 #========== Process MidTerm Scores ====================
 @login_required(login_url='login')
 def midterm_scores(request):
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
     students = []
     scores = []
     term = None
@@ -559,6 +602,7 @@ def midterm_scores(request):
         'term': term,
         'subject': subject,
         'class_year': class_year,
+        'is_head_class_teacher': is_head_class_teacher,
     }
 
     return render(request, 'midterm.html', context)
@@ -567,6 +611,15 @@ def midterm_scores(request):
 #========== Process Mock Scores ====================
 @login_required(login_url='login')
 def mock_scores(request):
+
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
+
     students = []
     scores = []
     term = None
@@ -665,6 +718,7 @@ def mock_scores(request):
         'term': term,
         'subject': subject,
         'class_year': class_year,
+        'is_head_class_teacher': is_head_class_teacher,
     }
 
     return render(request, 'mock_scores.html', context)
@@ -674,6 +728,13 @@ def mock_scores(request):
 ##=============== Logic for processing and display the saved end of term scores for the user ===============
 @login_required(login_url='login')
 def process_scores_view(request):
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
     formset = None
     students = []
     scores = []
@@ -737,6 +798,7 @@ def process_scores_view(request):
         'formset': formset,
         'students': students,
         'scores': scores,
+        'is_head_class_teacher': is_head_class_teacher,
     })
 
 
@@ -1406,6 +1468,7 @@ def delete_score(request, score_id):
 @csrf_exempt
 # @login_required
 def get_comment(request):
+
     if request.method == 'POST':
         data = json.loads(request.body)
         student_name = data.get('student_name')
@@ -1426,6 +1489,13 @@ def get_comment(request):
 
 @login_required(login_url='login')
 def generate_report(request):
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass 
+    
     if request.method == 'POST':
         data = json.loads(request.body)
         student_name = data.get('student_name')
@@ -1467,6 +1537,7 @@ def generate_report(request):
                 'term_name': term_name,
                 'gpa': academic_report.student_gpa,
                 'report_data': scores,
+                'is_head_class_teacher': is_head_class_teacher,
                 'comment_text': academic_report.comment  # Include comment
             })
 
@@ -1489,6 +1560,12 @@ def generate_report(request):
 # This logic allows me to generate midterm reports dynamically
 @login_required(login_url='login')
 def generate_midterm_report(request):
+    is_head_class_teacher = False
+    try :
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
     if request.method == 'POST':
         data = json.loads(request.body)
         student_name = data.get('student_name')
@@ -1610,6 +1687,7 @@ def generate_midterm_report(request):
                 'class_year': class_year_obj.name,
                 'term_name': term.term_name,
                 'gpa': average_gpa,
+                'is_head_class_teacher': is_head_class_teacher,
                 'report_data': midterm_report_data['scores'],  # Pass the scores directly
             })
 

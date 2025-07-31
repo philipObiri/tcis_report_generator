@@ -357,7 +357,10 @@ class AcademicReport(models.Model):
     # ForeignKey to the User model (user who generated the report)
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
 
-    comment = models.TextField(blank=True, null=True)
+    # NEW FIELDS
+    academic_comment = models.TextField(blank=True, null=True)
+    behavioral_comment = models.TextField(blank=True, null=True)
+    promotion = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         verbose_name = "End of Term Report"
@@ -389,18 +392,30 @@ class AcademicReport(models.Model):
     def __str__(self):
         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
 
-    def add_remark(self,user, remark):
-        # check if the user is a head class teacher
+    # def add_remark(self,user, remark):
+    #     # check if the user is a head class teacher
+    #     try:
+    #         teacher_profile = TeacherProfile.objects.get(user=user)
+    #         if teacher_profile.is_head_class_teacher:
+    #             self.comment = remark
+    #             self.save()
+    #             return True
+    #     except TeacherProfile.DoesNotExist:
+    #         pass
+    #     return False
+    
+
+    def add_remark(self, user, academic, behavioral):
         try:
             teacher_profile = TeacherProfile.objects.get(user=user)
             if teacher_profile.is_head_class_teacher:
-                self.comment = remark
+                self.academic_comment = academic
+                self.behavioral_comment = behavioral
                 self.save()
                 return True
         except TeacherProfile.DoesNotExist:
             pass
         return False
-    
 
 class TeacherProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  

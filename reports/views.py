@@ -17,6 +17,7 @@ from decimal import Decimal
 from django.shortcuts import get_object_or_404
 from reports.utils import calculate_gpa
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 
 #==================== Login View ====================
@@ -1467,44 +1468,71 @@ def delete_score(request, score_id):
 # View that fetches the existing comments on the end of term reports
 @csrf_exempt
 # @login_required
-def get_comment(request):
+# def get_comment(request):
 
-    if request.method == 'POST':
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         student_name = data.get('student_name')
+#         class_year = data.get('class_year')
+#         term_name = data.get('term')
+
+#         try:
+#             student = Student.objects.get(fullname=student_name)
+#             class_year_obj = ClassYear.objects.get(name=class_year)
+#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
+
+#             report = AcademicReport.objects.filter(student=student, term=term).first()
+#             return JsonResponse({'comment': report.comment if report else ''})
+#         except Exception:
+#             return JsonResponse({'comment': ''})
+
+@require_POST
+def get_comment(request):
+    try:
         data = json.loads(request.body)
         student_name = data.get('student_name')
         class_year = data.get('class_year')
         term_name = data.get('term')
 
-        try:
-            student = Student.objects.get(fullname=student_name)
-            class_year_obj = ClassYear.objects.get(name=class_year)
-            term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
+        student = Student.objects.get(fullname=student_name)
+        class_year_obj = ClassYear.objects.get(name=class_year)
+        term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            report = AcademicReport.objects.filter(student=student, term=term).first()
-            return JsonResponse({'comment': report.comment if report else ''})
-        except Exception:
-            return JsonResponse({'comment': ''})
+        report = AcademicReport.objects.filter(student=student, term=term).first()
+        return JsonResponse({
+            'academic_comment': report.academic_comment if report else '',
+            'behavioral_comment': report.behavioral_comment if report else '',
+            'promotion': report.promotion if report else ''
+        })
 
+    except Exception:
+        return JsonResponse({
+            'academic_comment': '',
+            'behavioral_comment': '',
+            'promotion': ''
+        })
 
 
 @login_required(login_url='login')
 def generate_report(request):
     is_head_class_teacher = False
-    try :
+    try:
         teacher_profile = TeacherProfile.objects.get(user=request.user)
         is_head_class_teacher = teacher_profile.is_head_class_teacher
     except TeacherProfile.DoesNotExist:
-        pass 
-    
+        pass
+
     if request.method == 'POST':
         data = json.loads(request.body)
         student_name = data.get('student_name')
         class_year = data.get('class_year')
         term_name = data.get('term')
-        comment = data.get('comment', '').strip()
+        academic_comment = data.get('academic_comment', '').strip()
+        behavioral_comment = data.get('behavioral_comment', '').strip()
+        promotion = data.get('promotion', '').strip()
 
-        if not comment:
-            return JsonResponse({'success': False, 'error': 'A comment is required before generating the report.'})
+        if not academic_comment and not behavioral_comment:
+            return JsonResponse({'success': False, 'error': 'At least one comment is required before generating the report.'})
 
         try:
             student = Student.objects.get(fullname=student_name)
@@ -1519,17 +1547,18 @@ def generate_report(request):
                     'error': f'No scores found for {student_name} in {term_name}.'
                 })
 
-            academic_report, created = AcademicReport.objects.get_or_create(
-                student=student,
-                term=term
-            )
+            academic_report, created = AcademicReport.objects.get_or_create(student=student, term=term)
 
             if created:
                 academic_report.student_scores.set(scores)
 
-            academic_report.comment = comment  
+            academic_report.academic_comment = academic_comment
+            academic_report.behavioral_comment = behavioral_comment
+            academic_report.promotion = promotion if promotion else None
             academic_report.generated_by = request.user
             academic_report.save()
+
+            print(f"Generated report for {student_name} in {term_name} with comments: {academic_comment}, {behavioral_comment}, Promotion: {promotion}")
 
             report_html = render_to_string('generated_report.html', {
                 'student_name': student_name,
@@ -1538,13 +1567,12 @@ def generate_report(request):
                 'gpa': academic_report.student_gpa,
                 'report_data': scores,
                 'is_head_class_teacher': is_head_class_teacher,
-                'comment_text': academic_report.comment  # Include comment
+                'promotion': academic_report.promotion,
+                'academic_comment': academic_comment,
+                'behavioral_comment': behavioral_comment
             })
 
-            return JsonResponse({
-                'success': True,
-                'report_html': report_html
-            })
+            return JsonResponse({'success': True, 'report_html': report_html})
 
         except Student.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Student not found.'})
@@ -1554,6 +1582,7 @@ def generate_report(request):
             return JsonResponse({'success': False, 'error': 'Class Year not found.'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
+
 
 
 

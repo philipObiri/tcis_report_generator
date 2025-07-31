@@ -293,6 +293,21 @@ End of Term Records
       </div>
       <div class="modal-body">
         <textarea class="form-control" id="report-comment" rows="5" placeholder="Enter comment..."></textarea>
+
+          <!-- Promotion Dropdown (Initially hidden) -->
+        <div id="promotion-field" class="form-group mt-3 d-none">
+          <label for="promotion-select"><strong>Promoted to:</strong></label>
+          <select class="form-select" id="promotion-select">
+            <option value="">-- Select Class Year --</option>
+            <option value="Year 7 (Lower Secondary)">Year 7 (Lower Secondary)</option>
+            <option value="Year 8 (Lower Secondary)">Year 8 (Lower Secondary)</option>
+            <option value="Year 9 (Lower Secondary)">Year 9 (Lower Secondary)</option>
+            <option value="Year 10 (Upper Secondary)">Year 10 (Upper Secondary)</option>
+            <option value="Year 11 (Upper Secondary)">Year 11 (Upper Secondary)</option>
+            <option value="Year 12 (Sixth Form)">Year 12 (Sixth Form)</option>
+            <option value="Year 13 (Sixth Form)">Year 13 (Sixth Form)</option>
+          </select>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -308,6 +323,18 @@ End of Term Records
 <script src="{% static 'js/report.js' %}"></script>
 <script>
   $(document).ready(function () {
+    // Show promotion field when Term 3 is selected
+    $('#term-dropdown').on('change', function () {
+      const selectedTerm = $(this).val();
+      if (selectedTerm === 'Term 3') {
+        $('#promotion-field').removeClass('d-none');
+      } else {
+        $('#promotion-field').addClass('d-none');
+        $('#promotion-select').val('');
+      }
+    });
+
+
     // Event listener for the "View Scores" button
     $('#view-end-of-term-scores-btn').on('click', function () {
       var term = $('#term-select').val();

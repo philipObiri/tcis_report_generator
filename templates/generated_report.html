@@ -12,6 +12,10 @@
   <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
   <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
   <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
+
+  <!-- PDF Generation Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <title>End of Term Report - {{ student_name }}</title>
 
   <style>
@@ -110,23 +114,81 @@
       font-weight: bold;
     }
 
-    .print-btn {
+    .action-buttons {
+      display: flex;
+      gap: 10px;
       margin-top: 20px;
+    }
+
+    .print-btn,
+    .download-btn {
       padding: 10px 20px;
-      background-color: #007bff;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .print-btn {
+      background-color: #007bff;
     }
 
     .print-btn:hover {
       background-color: #0056b3;
     }
 
+    .download-btn {
+      background-color: #28a745;
+    }
+
+    .download-btn:hover {
+      background-color: #218838;
+    }
+
+    .download-btn:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .gpa_grade {
       margin-top: 1rem;
+    }
+
+    /* Hide buttons when printing */
+    @media print {
+      .action-buttons {
+        display: none !important;
+      }
+
+      body {
+        background-color: white;
+      }
+
+      .container {
+        box-shadow: none;
+        margin: 0;
+        padding: 20px;
+      }
     }
 
     /* Responsive design for smaller screens */
@@ -147,9 +209,15 @@
         padding: 20px;
       }
 
-      .print-btn {
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .print-btn,
+      .download-btn {
         width: 100%;
         padding: 15px;
+        justify-content: center;
       }
     }
   </style>
@@ -313,8 +381,17 @@
 
     </div>
 
-    <!-- Print Button -->
-    <button class="print-btn" onclick="window.print();">Print Report</button>
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="print-btn" onclick="printReport();">
+        <span>🖨️</span>
+        Print Report
+      </button>
+      <button class="download-btn" onclick="downloadPDF();" id="downloadBtn">
+        <span id="downloadIcon">📄</span>
+        <span id="downloadText">Download PDF</span>
+      </button>
+    </div>
   </div>
 
   <script>
@@ -333,13 +410,154 @@
       cell.textContent = seventyPercentScore;
     });
 
-  </script>
+    // Print function
+    function printReport() {
+      window.print();
+    }
 
-  <script>
-    document.querySelector('.print-btn').addEventListener('click', function () {
-      window.print()
-    })
+    // Download PDF function using html2canvas and jsPDF
+    async function downloadPDF() {
+      const downloadBtn = document.getElementById('downloadBtn');
+      const downloadIcon = document.getElementById('downloadIcon');
+      const downloadText = document.getElementById('downloadText');
 
+      try {
+        // Disable button and show loading state
+        downloadBtn.disabled = true;
+        downloadIcon.innerHTML = '<div class="loading-spinner"></div>';
+        downloadText.textContent = 'Generating PDF...';
+
+        // Get student name for filename
+        const studentName = '{{ student_name }}' || 'Student';
+        const termName = '{{ term_name }}' || 'Term';
+        const filename = `${studentName.replace(/\s+/g, '_')}_${termName.replace(/\s+/g, '_')}_Report.pdf`.replace(/[^a-zA-Z0-9._-]/g, '');
+
+        // Get the content to convert (everything except the buttons)
+        const element = document.querySelector('.container');
+        const header = document.querySelector('.header');
+
+        // Create a temporary container with both header and content
+        const tempContainer = document.createElement('div');
+        tempContainer.style.backgroundColor = 'white';
+        tempContainer.style.padding = '20px';
+
+        // Clone header and content
+        const headerClone = header.cloneNode(true);
+        const contentClone = element.cloneNode(true);
+
+        // Remove action buttons from the cloned content
+        const actionButtons = contentClone.querySelector('.action-buttons');
+        if (actionButtons) {
+          actionButtons.remove();
+        }
+
+        // Append to temp container
+        tempContainer.appendChild(headerClone);
+        tempContainer.appendChild(contentClone);
+
+        // Add temp container to body (hidden)
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '210mm'; // A4 width
+        document.body.appendChild(tempContainer);
+
+        // Configure html2canvas options
+        const canvas = await html2canvas(tempContainer, {
+          scale: 2, // Higher resolution
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: tempContainer.scrollWidth,
+          height: tempContainer.scrollHeight,
+          onclone: function (clonedDoc) {
+            // Ensure watermark is visible in the clone
+            const watermark = clonedDoc.querySelector('.watermark');
+            if (watermark) {
+              watermark.style.opacity = '0.05';
+              watermark.style.zIndex = '-1';
+            }
+          }
+        });
+
+        // Remove temp container
+        document.body.removeChild(tempContainer);
+
+        // Create PDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        // Calculate dimensions
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Add image to PDF
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // Add new pages if content is longer than one page
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // Save the PDF
+        pdf.save(filename);
+
+        // Show success notification
+        showNotification('PDF downloaded successfully!', 'success');
+
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        showNotification('Error generating PDF. Please try again.', 'error');
+      } finally {
+        // Reset button state
+        downloadBtn.disabled = false;
+        downloadIcon.textContent = '📄';
+        downloadText.textContent = 'Download PDF';
+      }
+    }
+
+    // Show notification function
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      const bgColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff';
+
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${bgColor};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 10000;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        max-width: 300px;
+      `;
+
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      // Remove notification after 3 seconds
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 3000);
+    }
   </script>
 </body>
 

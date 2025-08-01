@@ -1,291 +1,528 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="{% static 'favicon/favicon-96x96.png' %}" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="{% static 'favicon/favicon.svg' %}" />
-    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}" />
-    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
-    <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
-    <title>MidTerm Report - {{ student_name }}</title>
 
-    <style>
-      /* Import the font */
-      @import url('https://fonts.googleapis.com/css?family=Denk+One');
-      @import url('https://fonts.googleapis.com/css?family=Arimo');
-      
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'favicon/favicon-96x96.png' %}" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="{% static 'favicon/favicon.svg' %}" />
+  <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}" />
+  <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
+  <link rel="stylesheet" href="{% static 'css/tabler.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}" />
+
+  <!-- PDF Generation Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <title>Mock Report - {{ student_name }}</title>
+
+  <style>
+    /* Import the font */
+    @import url('https://fonts.googleapis.com/css?family=Denk+One');
+    @import url('https://fonts.googleapis.com/css?family=Arimo');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: rgba(248, 249, 250, 0.5);
+      /* Light gray with transparency */
+      position: relative;
+      /* This makes the watermark align relative to the body */
+    }
+
+    /* Watermark styling */
+    .watermark {
+      position: absolute;
+      top: 50%;
+      /* Center vertically */
+      left: 50%;
+      /* Center horizontally */
+      transform: translate(-50%, -50%) rotate(331deg);
+      /* Rotate the watermark */
+      opacity: 0.05;
+      /* Very subtle watermark */
+      font-size: 12em;
+      /* Size of the watermark text */
+      color: rgba(255, 5, 5, 0.17);
+      /* Light red color with transparency */
+      font-family: 'Denk One', sans-serif;
+      text-transform: uppercase;
+      pointer-events: none;
+      /* Prevent watermark from interfering with content */
+      z-index: -1;
+      /* Keep the watermark behind the content */
+      width: 100%;
+      /* Ensure it stretches across the screen */
+      text-align: center;
+      /* Center the text */
+    }
+
+    .header {
+      width: 100%;
+      height: 150px;
+      text-align: center;
+    }
+
+    .header img {
+      width: auto;
+      height: 100%;
+      filter: grayscale(60%) brightness(1);
+    }
+
+    .container {
+      margin-top: 20px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      position: relative;
+      /* Ensures content is above watermark */
+      z-index: 1;
+    }
+
+    h3 {
+      color: #007bff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .total-cell {
+      font-weight: bold;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .print-btn,
+    .download-btn {
+      padding: 10px 20px;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .print-btn {
+      background-color: #007bff;
+    }
+
+    .print-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .download-btn {
+      background-color: #28a745;
+    }
+
+    .download-btn:hover {
+      background-color: #218838;
+    }
+
+    .download-btn:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
       }
-      
+    }
+
+    .gpa_grade {
+      margin-top: 1rem;
+    }
+
+    /* Hide buttons when printing */
+    @media print {
+      .action-buttons {
+        display: none !important;
+      }
+
       body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: rgba(248, 249, 250, 0.5); /* Light gray with transparency */
-        position: relative; /* This makes the watermark align relative to the body */
-      }
-      
-      /* Watermark styling */
-      .watermark {
-        position: absolute;
-        top: 50%; /* Center vertically */
-        left: 50%; /* Center horizontally */
-        transform: translate(-50%, -50%) rotate(331deg); /* Rotate the watermark */
-        opacity: 0.05; /* Very subtle watermark */
-        font-size: 12em; /* Size of the watermark text */
-        color: rgba(255, 5, 5, 0.17); /* Light red color with transparency */
-        font-family: 'Denk One', sans-serif;
-        text-transform: uppercase;
-        pointer-events: none; /* Prevent watermark from interfering with content */
-        z-index: -1; /* Keep the watermark behind the content */
-        width: 100%; /* Ensure it stretches across the screen */
-        text-align: center; /* Center the text */
-      }
-      
-      .header {
-        width: 100%;
-        height: 150px;
-        text-align: center;
-      }
-      
-      .header img {
-        width: auto;
-        height: 100%;
-        filter: grayscale(60%) brightness(1);
-      }
-      
-      .container {
-        margin-top: 20px;
         background-color: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        position: relative; /* Ensures content is above watermark */
-        z-index: 1;
       }
-      
-      h3 {
-        color: #007bff;
+
+      .container {
+        box-shadow: none;
+        margin: 0;
+        padding: 20px;
       }
-      
-      table {
+    }
+
+    /* Responsive design for smaller screens */
+    @media (max-width: 800px) {
+      .navbar {
+        display: flex !important;
+        justify-content: center !important;
+        align-content: center !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header {
+        height: 150px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .print-btn,
+      .download-btn {
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
+        padding: 15px;
+        justify-content: center;
       }
-      
-      th,
-      td {
-        padding: 12px;
-        text-align: center;
-        border: 1px solid #ddd;
-      }
-      
-      th {
-        background-color: #f2f2f2;
-      }
-      
-      .total-cell {
-        font-weight: bold;
-      }
-      
-      .print-btn {
-        margin-top: 20px;
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      
-      .print-btn:hover {
-        background-color: #0056b3;
-      }
-      
-      .gpa_grade {
-        margin-top: 1rem;
-      }
-      
-      /* Responsive design for smaller screens */
-      @media (max-width: 800px) {
-        .navbar {
-          display: flex !important;
-          justify-content: center !important;
-          align-content: center !important;
-        }
-      }
-      
-      @media (max-width: 600px) {
-        .header {
-          height: 150px;
-        }
-      
-        .container {
-          padding: 20px;
-        }
-      
-        .print-btn {
-          width: 100%;
-          padding: 15px;
-        }
-      }
-    </style>
-  </head>
+    }
+  </style>
+</head>
 
-  <body>
-    <!-- Watermark Text -->
-    <div class="watermark">Watermark</div>
+<body>
+  <!-- Watermark Text -->
+  <div class="watermark">Watermark</div>
 
-    <!-- Header with image -->
-    <div class="header">
-      <img src="{% static 'images/tcis_report_logo.png' %}" alt="Report Logo" />
-    </div>
+  <!-- Header with image -->
+  <div class="header">
+    <img src="{% static 'images/tcis_report_logo.png' %}" alt="Report Logo" />
+  </div>
 
-    <div class="container mt-5">
-      <h4>MidTerm Report for {{ student_name }}</h4>
+  <div class="container mt-5">
+    <h4>Mock Report for {{ student_name }}</h4>
+    <p>
+      <strong>Class/Year:</strong> {{ class_year }}
+    </p>
+    <p>
+      <strong>Term:</strong> {{ term_name }}
+    </p>
+
+    <!-- Table to display subjects and scores -->
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Score</th>
+          <th>Grade</th>
+          <th>GPA</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in report_data %}
+        <tr>
+          <td>{{ item.subject }}</td>
+          <td>{{ item.mock_score }}</td>
+          <td>{{ item.grade}}</td>
+          <td>{{ item.gpa}}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center">No scores available for this student in this term.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Display GPA -->
+    <p class="gpa_grade">
+      <strong>GPA:</strong> {{ gpa|floatformat:2 }}
+    </p>
+
+    <div class="gpa-table">
       <p>
-        <strong>Class/Year:</strong> {{ class_year }}
+        <strong>GPA Table</strong>
       </p>
-      <p>
-        <strong>Term:</strong> {{ term_name }}
-      </p>
-
-      <!-- Table to display subjects and scores -->
-      <table>
+      <table class="table">
         <thead>
           <tr>
-            <th>Subject</th>
-            <th>Score</th>
-            <th>Grade</th>
-            <th>GPA</th>
+            <th scope="col">Grade</th>
+            <th scope="col">Percentage Range</th>
+            <th scope="col">Grade Point Range</th>
+            <th scope="col">Remarks</th>
           </tr>
         </thead>
         <tbody>
-          {% for item in report_data %}
-            <tr>
-              <td>{{ item.subject }}</td>
-              <td>{{ item.mock_score }}</td>
-              <td>{{ item.grade}}</td>
-              <td>{{ item.gpa}}</td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="5" class="text-center">No scores available for this student in this term.</td>
-            </tr>
-          {% endfor %}
+          <tr>
+            <td>A*</td>
+            <td>95% - 100%</td>
+            <td>4.00</td>
+            <td>Distinction</td>
+          </tr>
+          <tr>
+            <td>A</td>
+            <td>80% - 94%</td>
+            <td>3.67</td>
+            <td>Excellent</td>
+          </tr>
+          <tr>
+            <td>B+</td>
+            <td>75% - 79%</td>
+            <td>3.33</td>
+            <td>Very Good</td>
+          </tr>
+          <tr>
+            <td>B</td>
+            <td>70% - 74%</td>
+            <td>3.00</td>
+            <td>Good</td>
+          </tr>
+          <tr>
+            <td>C+</td>
+            <td>65% - 69%</td>
+            <td>2.67</td>
+            <td>Average</td>
+          </tr>
+          <tr>
+            <td>C</td>
+            <td>60% - 64%</td>
+            <td>2.33</td>
+            <td>Pass</td>
+          </tr>
+          <tr>
+            <td>D</td>
+            <td>50% - 59%</td>
+            <td>2.00</td>
+            <td>Credit</td>
+          </tr>
+          <tr>
+            <td>E</td>
+            <td>45% - 49%</td>
+            <td>1.67</td>
+            <td>Failed</td>
+          </tr>
+          <tr>
+            <td>F</td>
+            <td>35% - 44%</td>
+            <td>1.00</td>
+            <td>Failed</td>
+          </tr>
+          <tr>
+            <td>Ungraded</td>
+            <td>0% - 34%</td>
+            <td>0.00</td>
+            <td>Ungraded</td>
+          </tr>
         </tbody>
       </table>
 
-      <!-- Display GPA -->
-      <p class="gpa_grade">
-        <strong>GPA:</strong> {{ gpa|floatformat:2 }}
-      </p>
-
-      <div class="gpa-table">
-        <p>
-          <strong>GPA Table</strong>
-        </p>
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">Grade</th>
-              <th scope="col">Percentage Range</th>
-              <th scope="col">Grade Point Range</th>
-              <th scope="col">Remarks</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>A*</td>
-              <td>95% - 100%</td>
-              <td>4.00</td>
-              <td>Distinction</td>
-            </tr>
-            <tr>
-              <td>A</td>
-              <td>80% - 94%</td>
-              <td>3.67</td>
-              <td>Excellent</td>
-            </tr>
-            <tr>
-              <td>B+</td>
-              <td>75% - 79%</td>
-              <td>3.33</td>
-              <td>Very Good</td>
-            </tr>
-            <tr>
-              <td>B</td>
-              <td>70% - 74%</td>
-              <td>3.00</td>
-              <td>Good</td>
-            </tr>
-            <tr>
-              <td>C+</td>
-              <td>65% - 69%</td>
-              <td>2.67</td>
-              <td>Average</td>
-            </tr>
-            <tr>
-              <td>C</td>
-              <td>60% - 64%</td>
-              <td>2.33</td>
-              <td>Pass</td>
-            </tr>
-            <tr>
-              <td>D</td>
-              <td>50% - 59%</td>
-              <td>2.00</td>
-              <td>Credit</td>
-            </tr>
-            <tr>
-              <td>E</td>
-              <td>45% - 49%</td>
-              <td>1.67</td>
-              <td>Failed</td>
-            </tr>
-            <tr>
-              <td>F</td>
-              <td>35% - 44%</td>
-              <td>1.00</td>
-              <td>Failed</td>
-            </tr>
-            <tr>
-              <td>Ungraded</td>
-              <td>0% - 34%</td>
-              <td>0.00</td>
-              <td>Ungraded</td>
-            </tr>
-          </tbody>
-        </table>
-
-
-              <div style="margin-top: 60px; display: flex; justify-content: flex-end; text-align: right;">
-        <div>
+      <div style="margin-top: 60px; display: flex; justify-content: flex-end; text-align: right;">
+        <div style="justify-content: center; align-items: center; text-align: center;">
           <p>Academic Principal's Signature</p>
-          <p style="margin-top: 40px; border-top: 1px solid #000; width: 200px;">Signature</p>
-          <p><strong>(Mr. William Agabkpe)</strong></p>        
+          <img src="{% static 'images/signatures/kevin-esignature.png' %}" alt="Principal's Signature"
+            style="width:200px; height: 50px; margin-bottom:5px;" />
+          <p><strong>(Mr. Kevin Titi-Ofei)</strong></p>
         </div>
       </div>
-
-      </div>
-
-      <!-- Print Button -->
-      <button class="print-btn" onclick="window.print();">Print Report</button>
     </div>
 
-    <script>
-      document.querySelector('.print-btn').addEventListener('click', function () {
-        window.print()
-      })
-    </script>
-  </body>
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="print-btn" onclick="printReport();">
+        <span>🖨️</span>
+        Print Report
+      </button>
+      <button class="download-btn" onclick="downloadPDF();" id="downloadBtn">
+        <span id="downloadIcon">📄</span>
+        <span id="downloadText">Download PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Print function
+    function printReport() {
+      window.print();
+    }
+
+    // Download PDF function using html2canvas and jsPDF
+    async function downloadPDF() {
+      const downloadBtn = document.getElementById('downloadBtn');
+      const downloadIcon = document.getElementById('downloadIcon');
+      const downloadText = document.getElementById('downloadText');
+
+      try {
+        // Disable button and show loading state
+        downloadBtn.disabled = true;
+        downloadIcon.innerHTML = '<div class="loading-spinner"></div>';
+        downloadText.textContent = 'Generating PDF...';
+
+        // Get student name for filename
+        const studentName = '{{ student_name }}' || 'Student';
+        const termName = '{{ term_name }}' || 'Term';
+        const filename = `${studentName.replace(/\s+/g, '_')}_${termName.replace(/\s+/g, '_')}_Mock_Report.pdf`.replace(/[^a-zA-Z0-9._-]/g, '');
+
+        // Get the content to convert (everything except the buttons)
+        const element = document.querySelector('.container');
+        const header = document.querySelector('.header');
+
+        // Create a temporary container with both header and content
+        const tempContainer = document.createElement('div');
+        tempContainer.style.backgroundColor = 'white';
+        tempContainer.style.padding = '20px';
+
+        // Clone header and content
+        const headerClone = header.cloneNode(true);
+        const contentClone = element.cloneNode(true);
+
+        // Remove action buttons from the cloned content
+        const actionButtons = contentClone.querySelector('.action-buttons');
+        if (actionButtons) {
+          actionButtons.remove();
+        }
+
+        // Append to temp container
+        tempContainer.appendChild(headerClone);
+        tempContainer.appendChild(contentClone);
+
+        // Add temp container to body (hidden)
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '210mm'; // A4 width
+        document.body.appendChild(tempContainer);
+
+        // Configure html2canvas options
+        const canvas = await html2canvas(tempContainer, {
+          scale: 2, // Higher resolution
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: tempContainer.scrollWidth,
+          height: tempContainer.scrollHeight,
+          onclone: function (clonedDoc) {
+            // Ensure watermark is visible in the clone
+            const watermark = clonedDoc.querySelector('.watermark');
+            if (watermark) {
+              watermark.style.opacity = '0.05';
+              watermark.style.zIndex = '-1';
+            }
+          }
+        });
+
+        // Remove temp container
+        document.body.removeChild(tempContainer);
+
+        // Create PDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        // Calculate dimensions
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Add image to PDF
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // Add new pages if content is longer than one page
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // Save the PDF
+        pdf.save(filename);
+
+        // Show success notification
+        showNotification('PDF downloaded successfully!', 'success');
+
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        showNotification('Error generating PDF. Please try again.', 'error');
+      } finally {
+        // Reset button state
+        downloadBtn.disabled = false;
+        downloadIcon.textContent = '📄';
+        downloadText.textContent = 'Download PDF';
+      }
+    }
+
+    // Show notification function
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      const bgColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff';
+
+      notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: ${bgColor};
+          color: white;
+          padding: 15px 20px;
+          border-radius: 5px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          z-index: 10000;
+          font-family: Arial, sans-serif;
+          font-size: 14px;
+          max-width: 300px;
+        `;
+
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      // Remove notification after 3 seconds
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 3000);
+    }
+  </script>
+</body>
+
 </html>

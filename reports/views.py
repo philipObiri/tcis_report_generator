@@ -806,23 +806,67 @@ def process_scores_view(request):
 
 
 # Functional Logic to fetch all end of term scores :
+# @login_required(login_url='login')
+# def view_academic_report(request, student_id, term_id):
+#     try:
+#         student = Student.objects.get(id=student_id)
+#         scores = Score.objects.filter(student=student, term=term_id, subject__in=student.subjects.all())
+#         term = get_object_or_404(Term, id=term_id)
+        
+#         # Ensure that class_year is serialized to a string or relevant field
+#         class_year = student.class_year.name if hasattr(student.class_year, 'name') else str(student.class_year)
+
+#         # Calculate GPA based on scores (e.g., using weighted average of grades)
+#         gpa = calculate_gpa(scores)
+
+#         # Prepare data to be returned in the JSON response
+#         report = {
+#             'student_name': student.fullname,
+#             'class_year': class_year,  # Ensure it's a serializable value (e.g., string)
+#             'term': term.term_name,
+#             'gpa': gpa,
+#             'scores': [
+#                 {
+#                     'subject': score.subject.name,
+#                     'ca': score.continuous_assessment,
+#                     'exam': score.exam_score,
+#                     'total': score.total_score,  # Assuming you have a method to calculate total score
+#                     'grade': score.grade
+#                 }
+#                 for score in scores
+#             ]
+#         }
+
+#         # Return a JsonResponse with the report data
+#         return JsonResponse(report)
+
+#     except Student.DoesNotExist:
+#         return JsonResponse({'error': 'Student not found'}, status=404)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
+
+
+
 @login_required(login_url='login')
 def view_academic_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
-        scores = Score.objects.filter(student=student, term=term_id)
-        term = get_object_or_404(Term, id=term_id)
         
-        # Ensure that class_year is serialized to a string or relevant field
+        # ✅ Only get scores for subjects assigned to the student
+        scores = Score.objects.filter(
+            student=student,
+            term=term_id,
+            subject__in=student.subjects.all()
+        )
+
+        term = get_object_or_404(Term, id=term_id)
         class_year = student.class_year.name if hasattr(student.class_year, 'name') else str(student.class_year)
 
-        # Calculate GPA based on scores (e.g., using weighted average of grades)
         gpa = calculate_gpa(scores)
 
-        # Prepare data to be returned in the JSON response
         report = {
             'student_name': student.fullname,
-            'class_year': class_year,  # Ensure it's a serializable value (e.g., string)
+            'class_year': class_year,
             'term': term.term_name,
             'gpa': gpa,
             'scores': [
@@ -830,21 +874,19 @@ def view_academic_report(request, student_id, term_id):
                     'subject': score.subject.name,
                     'ca': score.continuous_assessment,
                     'exam': score.exam_score,
-                    'total': score.total_score,  # Assuming you have a method to calculate total score
+                    'total': score.total_score,
                     'grade': score.grade
                 }
                 for score in scores
             ]
         }
 
-        # Return a JsonResponse with the report data
         return JsonResponse(report)
 
     except Student.DoesNotExist:
         return JsonResponse({'error': 'Student not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
 
 
 # Functional Logic to fetch all midterm test scores :
@@ -1618,6 +1660,138 @@ def get_promotion_choices(request):
     })
 
 
+# @login_required(login_url='login')
+# @require_POST
+# def generate_report(request):
+#     is_head_class_teacher = False
+#     try:
+#         teacher_profile = TeacherProfile.objects.get(user=request.user)
+#         is_head_class_teacher = teacher_profile.is_head_class_teacher
+#     except TeacherProfile.DoesNotExist:
+#         pass
+
+#     try:
+#         data = json.loads(request.body)
+#         student_name = data.get('student_name', '').strip()
+#         class_year = data.get('class_year', '').strip()
+#         term_name = data.get('term', '').strip()
+#         academic_comment = data.get('academic_comment', '').strip()
+#         behavioral_comment = data.get('behavioral_comment', '').strip()
+#         promotion = data.get('promotion', '').strip()
+
+#         # Validate required fields
+#         if not all([student_name, class_year, term_name]):
+#             return JsonResponse({
+#                 'success': False, 
+#                 'error': 'Student name, class year, and term are required.'
+#             })
+
+#         # Validate that at least one comment is provided
+#         if not academic_comment and not behavioral_comment:
+#             return JsonResponse({
+#                 'success': False, 
+#                 'error': 'At least one comment (academic or behavioral) is required before generating the report.'
+#             })
+
+#         # Get the student, class year, and term objects
+#         try:
+#             student = Student.objects.get(fullname=student_name)
+#         except Student.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': f'Student "{student_name}" not found.'})
+
+#         try:
+#             class_year_obj = ClassYear.objects.get(name=class_year)
+#         except ClassYear.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': f'Class Year "{class_year}" not found.'})
+
+#         try:
+#             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
+#         except Term.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': f'Term "{term_name}" not found for class "{class_year}".'})
+
+#         # Get scores for the student in this term
+#         scores = Score.objects.filter(student=student, term=term, subject__in=student.subjects.all()).distinct('subject')
+
+#         if not scores.exists():
+#             return JsonResponse({
+#                 'success': False,
+#                 'error': f'No scores found for {student_name} in {term_name}. Please ensure scores have been entered.'
+#             })
+
+#         # Get or create the academic report
+#         academic_report, created = AcademicReport.objects.get_or_create(
+#             student=student, 
+#             term=term,
+#             defaults={
+#                 'generated_by': request.user
+#             }
+#         )
+
+#         # If it's a new report, set the student scores
+#         if created:
+#             academic_report.student_scores.set(scores)
+
+#         # Update the report fields
+#         academic_report.academic_comment = academic_comment
+#         academic_report.behavioral_comment = behavioral_comment
+        
+#         # Handle promotion - debug logs
+#         print(f"Received promotion value: '{promotion}'")
+#         print(f"Term name: '{term_name}'")
+#         print(f"Is Term 3: {term_name == 'Term 3'}")
+        
+#         # Handle promotion - only for Term 3
+#         if term_name == 'Term 3':
+#             if promotion:  # If promotion is provided and not empty
+#                 academic_report.promotion = promotion
+#                 print(f"Setting promotion to: '{promotion}'")
+#             else:
+#                 # Keep existing promotion if no new one provided
+#                 print(f"No promotion provided, keeping existing: '{academic_report.promotion}'")
+#         else:
+#             # Clear promotion for non-Term 3 terms
+#             academic_report.promotion = None
+#             print("Clearing promotion for non-Term 3")
+
+#         academic_report.generated_by = request.user
+#         academic_report.save()
+
+#         print(f"Final promotion saved: '{academic_report.promotion}'")
+
+#         print(f"Generated report for {student_name} in {term_name}")
+#         print(f"Academic comment: {academic_comment}")
+#         print(f"Behavioral comment: {behavioral_comment}")
+#         print(f"Promotion: {promotion if promotion else 'None'}")
+
+#         # Render the report HTML
+#         context = {
+#             'student_name': student_name,
+#             'class_year': class_year,
+#             'term_name': term_name,
+#             'gpa': academic_report.student_gpa,
+#             'report_data': scores,
+#             'is_head_class_teacher': is_head_class_teacher,
+#             'promotion': academic_report.promotion,  # This will be None if not set
+#             'academic_comment': academic_comment,
+#             'behavioral_comment': behavioral_comment
+#         }
+
+#         report_html = render_to_string('generated_report.html', context)
+
+#         return JsonResponse({
+#             'success': True, 
+#             'report_html': report_html,
+#             'message': f'Report generated successfully for {student_name} in {term_name}'
+#         })
+
+#     except json.JSONDecodeError:
+#         return JsonResponse({'success': False, 'error': 'Invalid JSON data provided.'})
+#     except Exception as e:
+#         print(f"Unexpected error in generate_report: {str(e)}")
+#         return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {str(e)}'})
+
+
+
 @login_required(login_url='login')
 @require_POST
 def generate_report(request):
@@ -1637,21 +1811,18 @@ def generate_report(request):
         behavioral_comment = data.get('behavioral_comment', '').strip()
         promotion = data.get('promotion', '').strip()
 
-        # Validate required fields
         if not all([student_name, class_year, term_name]):
             return JsonResponse({
                 'success': False, 
                 'error': 'Student name, class year, and term are required.'
             })
 
-        # Validate that at least one comment is provided
         if not academic_comment and not behavioral_comment:
             return JsonResponse({
                 'success': False, 
                 'error': 'At least one comment (academic or behavioral) is required before generating the report.'
             })
 
-        # Get the student, class year, and term objects
         try:
             student = Student.objects.get(fullname=student_name)
         except Student.DoesNotExist:
@@ -1667,8 +1838,12 @@ def generate_report(request):
         except Term.DoesNotExist:
             return JsonResponse({'success': False, 'error': f'Term "{term_name}" not found for class "{class_year}".'})
 
-        # Get scores for the student in this term
-        scores = Score.objects.filter(student=student, term=term).distinct('subject')
+        # ✅ Filter scores by subjects assigned to student
+        scores = Score.objects.filter(
+            student=student,
+            term=term,
+            subject__in=student.subjects.all()
+        ).distinct('subject')
 
         if not scores.exists():
             return JsonResponse({
@@ -1676,52 +1851,27 @@ def generate_report(request):
                 'error': f'No scores found for {student_name} in {term_name}. Please ensure scores have been entered.'
             })
 
-        # Get or create the academic report
         academic_report, created = AcademicReport.objects.get_or_create(
-            student=student, 
+            student=student,
             term=term,
-            defaults={
-                'generated_by': request.user
-            }
+            defaults={'generated_by': request.user}
         )
 
-        # If it's a new report, set the student scores
         if created:
             academic_report.student_scores.set(scores)
 
-        # Update the report fields
         academic_report.academic_comment = academic_comment
         academic_report.behavioral_comment = behavioral_comment
-        
-        # Handle promotion - debug logs
-        print(f"Received promotion value: '{promotion}'")
-        print(f"Term name: '{term_name}'")
-        print(f"Is Term 3: {term_name == 'Term 3'}")
-        
-        # Handle promotion - only for Term 3
+
         if term_name == 'Term 3':
-            if promotion:  # If promotion is provided and not empty
+            if promotion:
                 academic_report.promotion = promotion
-                print(f"Setting promotion to: '{promotion}'")
-            else:
-                # Keep existing promotion if no new one provided
-                print(f"No promotion provided, keeping existing: '{academic_report.promotion}'")
         else:
-            # Clear promotion for non-Term 3 terms
             academic_report.promotion = None
-            print("Clearing promotion for non-Term 3")
 
         academic_report.generated_by = request.user
         academic_report.save()
 
-        print(f"Final promotion saved: '{academic_report.promotion}'")
-
-        print(f"Generated report for {student_name} in {term_name}")
-        print(f"Academic comment: {academic_comment}")
-        print(f"Behavioral comment: {behavioral_comment}")
-        print(f"Promotion: {promotion if promotion else 'None'}")
-
-        # Render the report HTML
         context = {
             'student_name': student_name,
             'class_year': class_year,
@@ -1729,7 +1879,7 @@ def generate_report(request):
             'gpa': academic_report.student_gpa,
             'report_data': scores,
             'is_head_class_teacher': is_head_class_teacher,
-            'promotion': academic_report.promotion,  # This will be None if not set
+            'promotion': academic_report.promotion,
             'academic_comment': academic_comment,
             'behavioral_comment': behavioral_comment
         }
@@ -1737,7 +1887,7 @@ def generate_report(request):
         report_html = render_to_string('generated_report.html', context)
 
         return JsonResponse({
-            'success': True, 
+            'success': True,
             'report_html': report_html,
             'message': f'Report generated successfully for {student_name} in {term_name}'
         })
@@ -1747,6 +1897,7 @@ def generate_report(request):
     except Exception as e:
         print(f"Unexpected error in generate_report: {str(e)}")
         return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {str(e)}'})
+
 
 
 # This logic allows me to generate midterm reports dynamically

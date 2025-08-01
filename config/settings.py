@@ -82,25 +82,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-# if DEBUG == True :
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3',
-#         }}
-# else:
-# DATABASES = {
-#         'default': {
-#             'ENGINE': env('DB_ENGINE'),
-#             'NAME': env('DB_NAME'),
-#             'USER': env('DB_USER'),
-#             'PASSWORD': env('DB_PASSWORD'),
-#             'HOST': env('DB_HOST'),
-#             'PORT': env('DB_PORT'),
-#         }
-#     }
-
-
+# Using environment variables for database configuration
+# This allows for easy configuration changes without modifying the codebase
 DATABASES = {
     "default": {
         "ENGINE": env("DB_ENGINE"),

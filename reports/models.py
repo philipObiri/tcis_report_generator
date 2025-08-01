@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User  
 from decimal import Decimal,ROUND_HALF_UP
+from django.core.exceptions import ValidationError
 from reports.utils import calculate_gpa
 
 class Level(models.Model):
@@ -346,76 +347,147 @@ class ProgressiveTestTwoReport(models.Model):
         return f"Progressive Test 2 Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.progressive_test2_gpa}"
 
 
+# class AcademicReport(models.Model):
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
+#     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
+
+#     # Many to Many relation to the Score model to represent the student's individual scores
+#     student_scores = models.ManyToManyField(Score, related_name='academic_reports')
+#     student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
+#     # ForeignKey to the User model (user who generated the report)
+#     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
+
+#     # NEW FIELDS
+#     academic_comment = models.TextField(blank=True, null=True)
+#     behavioral_comment = models.TextField(blank=True, null=True)
+#     promotion = models.CharField(max_length=100, blank=True, null=True)
+
+#     class Meta:
+#         verbose_name = "End of Term Report"
+#         verbose_name_plural = "End of Term Reports"
+
+#     def save(self, *args, **kwargs):
+#         # Check if this report already exists for the given student and term
+#         existing_report = AcademicReport.objects.filter(student=self.student, term=self.term).first()
+
+#         if existing_report:
+#             # If the report exists, just update the fields and save it
+#             self.pk = existing_report.pk  # Set the primary key to the existing report's pk
+#             self.student_gpa = existing_report.student_gpa  # If needed, update the GPA
+#         else:
+#             # If the report doesn't exist, proceed with creating a new one
+#             scores = Score.objects.filter(student=self.student, term=self.term)
+
+#             # Calculate GPA using the external calculate_gpa function
+#             gpa = calculate_gpa(scores)
+#             self.student_gpa = gpa
+
+#         # Now save the report (either update or create)
+#         super().save(*args, **kwargs)
+
+#         # Set the ManyToManyField after saving the object to ensure the ID is set
+#         scores = Score.objects.filter(student=self.student, term=self.term)
+#         self.student_scores.set(scores)
+
+#     def __str__(self):
+#         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
+
+#     # def add_remark(self,user, remark):
+#     #     # check if the user is a head class teacher
+#     #     try:
+#     #         teacher_profile = TeacherProfile.objects.get(user=user)
+#     #         if teacher_profile.is_head_class_teacher:
+#     #             self.comment = remark
+#     #             self.save()
+#     #             return True
+#     #     except TeacherProfile.DoesNotExist:
+#     #         pass
+#     #     return False
+    
+
+#     def add_remark(self, user, academic, behavioral):
+#         try:
+#             teacher_profile = TeacherProfile.objects.get(user=user)
+#             if teacher_profile.is_head_class_teacher:
+#                 self.academic_comment = academic
+#                 self.behavioral_comment = behavioral
+#                 self.save()
+#                 return True
+#         except TeacherProfile.DoesNotExist:
+#             pass
+#         return False
+
+
+
 class AcademicReport(models.Model):
+    PROMOTION_CHOICES = [
+        ('Year 7 (Lower Secondary)', 'Year 7 (Lower Secondary)'),
+        ('Year 8 (Lower Secondary)', 'Year 8 (Lower Secondary)'),
+        ('Year 9 (Lower Secondary)', 'Year 9 (Lower Secondary)'),
+        ('Year 10 (Upper Secondary)', 'Year 10 (Upper Secondary)'),
+        ('Year 11 (Upper Secondary)', 'Year 11 (Upper Secondary)'),
+        ('Year 12 (Sixth Form)', 'Year 12 (Sixth Form)'),
+        ('Year 13 (Sixth Form)', 'Year 13 (Sixth Form)'),
+    ]
+    
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='academic_reports')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='academic_reports')
-
-    # Many to Many relation to the Score model to represent the student's individual scores
-    student_scores = models.ManyToManyField(Score, related_name='academic_reports')
+    student_scores = models.ManyToManyField(Score, related_name='academic_reports', blank=True)
     student_gpa = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
-    # ForeignKey to the User model (user who generated the report)
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
-
-    # NEW FIELDS
+    
+    # Comment fields
     academic_comment = models.TextField(blank=True, null=True)
     behavioral_comment = models.TextField(blank=True, null=True)
-    promotion = models.CharField(max_length=100, blank=True, null=True)
+    promotion = models.CharField(max_length=100, choices=PROMOTION_CHOICES, blank=True, null=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "End of Term Report"
         verbose_name_plural = "End of Term Reports"
+        unique_together = ('student', 'term')
 
     def save(self, *args, **kwargs):
-        # Check if this report already exists for the given student and term
-        existing_report = AcademicReport.objects.filter(student=self.student, term=self.term).first()
-
-        if existing_report:
-            # If the report exists, just update the fields and save it
-            self.pk = existing_report.pk  # Set the primary key to the existing report's pk
-            self.student_gpa = existing_report.student_gpa  # If needed, update the GPA
-        else:
-            # If the report doesn't exist, proceed with creating a new one
+        # Calculate GPA if not already set
+        if not self.student_gpa:
             scores = Score.objects.filter(student=self.student, term=self.term)
-
-            # Calculate GPA using the external calculate_gpa function
-            gpa = calculate_gpa(scores)
-            self.student_gpa = gpa
-
-        # Now save the report (either update or create)
+            if scores.exists():
+                self.student_gpa = calculate_gpa(scores)
+        
+        # Only allow promotion for Term 3
+        if self.term.term_name != 'Term 3':
+            self.promotion = None
+        
         super().save(*args, **kwargs)
-
-        # Set the ManyToManyField after saving the object to ensure the ID is set
-        scores = Score.objects.filter(student=self.student, term=self.term)
-        self.student_scores.set(scores)
+        
+        # Set student scores if not already set
+        if not self.student_scores.exists():
+            scores = Score.objects.filter(student=self.student, term=self.term)
+            if scores.exists():
+                self.student_scores.set(scores)
 
     def __str__(self):
         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"
 
-    # def add_remark(self,user, remark):
-    #     # check if the user is a head class teacher
-    #     try:
-    #         teacher_profile = TeacherProfile.objects.get(user=user)
-    #         if teacher_profile.is_head_class_teacher:
-    #             self.comment = remark
-    #             self.save()
-    #             return True
-    #     except TeacherProfile.DoesNotExist:
-    #         pass
-    #     return False
+    def clean(self):
+        # Validate that promotion is only set for Term 3
+        if self.promotion and self.term and self.term.term_name != 'Term 3':
+            raise ValidationError('Promotion can only be set for Term 3 reports.')
     
+    @classmethod
+    def get_or_create_report(cls, student, term, generated_by=None):
+        """Get existing report or create a new one"""
+        report, created = cls.objects.get_or_create(
+            student=student,
+            term=term,
+            defaults={'generated_by': generated_by}
+        )
+        return report, created
 
-    def add_remark(self, user, academic, behavioral):
-        try:
-            teacher_profile = TeacherProfile.objects.get(user=user)
-            if teacher_profile.is_head_class_teacher:
-                self.academic_comment = academic
-                self.behavioral_comment = behavioral
-                self.save()
-                return True
-        except TeacherProfile.DoesNotExist:
-            pass
-        return False
 
 class TeacherProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  

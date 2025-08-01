@@ -23,6 +23,7 @@ urlpatterns = [
     path('dashboard/entries/view_mock_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_mock_scores, name='view_mock_scores'),
     # path('dashboard/entries/view_end_of_term_scores/<int:term_id>/', views.view_end_of_term_scores, name='view_end_of_term_scores'),
     path('dashboard/get_comment/', views.get_comment, name='get_comment'),
+    path('dashboard/get_promotion_choices/', views.get_promotion_choices, name='get_promotion_choices'),
     path('dashboard/entries/view_end_of_term_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_end_of_term_scores, name='view_end_of_term_scores'),
     path('dashboard/entries/view_progressive_one_test_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_progressive_one_test_scores, name='view_progressive_one_test_scores'),
     path('dashboard/entries/view_progressive_two_test_scores/<int:term_id>/<int:level_id>/<int:class_id>/', views.view_progressive_two_test_scores, name='view_progressive_two_test_scores'),

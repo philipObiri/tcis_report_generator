@@ -174,6 +174,18 @@
       margin-top: 1rem;
     }
 
+    .gpa-table{
+      margin-top: 1rem;
+    }
+
+    .promotion-section {
+      margin-top: 1rem;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+    }
+
     /* Hide buttons when printing */
     @media print {
       .action-buttons {
@@ -241,7 +253,6 @@
       <strong>Term:</strong> {{ term_name }}
     </p>
 
-
     <!-- Table to display subjects and scores -->
     <table>
       <thead>
@@ -274,6 +285,13 @@
     <p class="gpa_grade">
       <strong>GPA:</strong> {{ gpa|floatformat:2 }}
     </p>
+
+    <!-- Display Promotion if available and it's Term 3 -->
+    {% if promotion and term_name == 'Term 3' %}
+    <div class="promotion-section">
+      <p><strong>Promotion:</strong> {{ promotion }}</p>
+    </div>
+    {% endif %}
 
     <div class="gpa-table">
       <p>
@@ -352,22 +370,25 @@
         </tbody>
       </table>
 
-      {% if promotion %}
-      <p><strong>Promotion:</strong> {{ promotion }}</p>
-      {% endif %}
+      <hr style="margin: 30px 0;">
 
-      <hr>
+      <div style="margin-bottom: 20px;">
+        <strong>
+          <h5>Academic Comment:</h5>
+        </strong>
+        <p style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+          {{ academic_comment|default:"No academic comment provided." }}
+        </p>
+      </div>
 
-      <strong>
-        <h5>Academic Comment:</h5>
-      </strong>
-      <p>{{ academic_comment }}</p>
-
-      <strong>
-        <h5>Behavioral Comment:</h5>
-      </strong>
-      <p>{{ behavioral_comment }}</p>
-
+      <div style="margin-bottom: 20px;">
+        <strong>
+          <h5>Behavioral Comment:</h5>
+        </strong>
+        <p style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+          {{ behavioral_comment|default:"No behavioral comment provided." }}
+        </p>
+      </div>
 
       <div style="margin-top: 60px; display: flex; justify-content: flex-end; text-align: right;">
         <div style="justify-content: center; align-items: center; text-align: center;">
@@ -377,8 +398,6 @@
           <p><strong>(Mr. Kevin Titi-Ofei)</strong></p>
         </div>
       </div>
-
-
     </div>
 
     <!-- Action Buttons -->

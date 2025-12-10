@@ -117,12 +117,135 @@ All report types now consistently filter scores by student subjects before calcu
 
 ---
 
+## 5. Created Management Command for Recalculating All Scores
+
+### Purpose
+Added a Django management command that recalculates all scores, exam calculations (70%), total scores, grades, and GPAs for every student across all report types in the system.
+
+### Files Created
+- **`reports/management/__init__.py`** - Package initialization
+- **`reports/management/commands/__init__.py`** - Commands package initialization
+- **`reports/management/commands/recalculate_scores.py`** - Main recalculation command
+
+### What It Does
+The command performs the following operations for ALL students in the system:
+
+1. **Recalculates Individual Scores** (Score model):
+   - Triggers the save() method which recalculates:
+     - Continuous Assessment (30% of normalized CA)
+     - Total Score (CA 30% + Exam 70%)
+     - Letter Grade based on total score
+   - Saves all recalculated scores to database
+
+2. **Recalculates Academic Reports (End of Term)**:
+   - Fetches scores only for assigned subjects
+   - Recalculates student GPA using calculate_gpa() utility
+   - Updates student_scores many-to-many relationship
+   - Saves updated report with new GPA
+
+3. **Recalculates Midterm Reports**:
+   - Calculates GPA from midterm_score field
+   - Updates student_scores relationship
+   - Saves report with new midterm_gpa
+
+4. **Recalculates Mock Reports**:
+   - Calculates GPA from mock_score field
+   - Updates student_scores relationship
+   - Saves report with new mock_gpa
+
+5. **Recalculates Progressive Test 1 Reports**:
+   - Calculates GPA from progressive_test_1_score field
+   - Updates student_scores relationship
+   - Saves report with new progressive_test1_gpa
+
+6. **Recalculates Progressive Test 2 Reports**:
+   - Calculates GPA from progressive_test_2_score field
+   - Updates student_scores relationship
+   - Saves report with new progressive_test2_gpa
+
+### Usage
+
+**Dry Run Mode** (Preview changes without saving):
+```bash
+python manage.py recalculate_scores --dry-run
+```
+
+**Live Mode** (Save all changes to database):
+```bash
+python manage.py recalculate_scores
+```
+
+### Features
+- **Progress Tracking**: Shows real-time progress for score recalculation
+- **Change Logging**: Displays GPA changes (old → new) for academic reports
+- **Transaction Safety**: Uses database transactions to ensure data integrity
+- **Dry Run Mode**: Allows previewing changes before committing
+- **Comprehensive Statistics**: Shows summary of all updates made
+
+### Output Example
+```
+======================================================================
+LIVE MODE - All changes will be saved to database
+======================================================================
+
+Step 1: Recalculating all exam scores and totals...
+  Progress: 500/500 scores processed (100.0%)
+✓ Recalculated 500 scores
+
+Step 2: Recalculating Academic Report GPAs (End of Term)...
+  Updated: John Doe - Term 1 (GPA: 3.45 → 3.52)
+  Updated: Jane Smith - Term 1 (GPA: 2.89 → 2.95)
+✓ Updated 150 Academic Reports
+
+Step 3: Recalculating Midterm Report GPAs...
+✓ Updated 120 Midterm Reports
+
+Step 4: Recalculating Mock Report GPAs...
+✓ Updated 80 Mock Reports
+
+Step 5: Recalculating Progressive Test 1 GPAs...
+✓ Updated 100 Progressive Test 1 Reports
+
+Step 6: Recalculating Progressive Test 2 GPAs...
+✓ Updated 95 Progressive Test 2 Reports
+
+======================================================================
+RECALCULATION COMPLETE
+======================================================================
+
+Total Students in System: 150
+Individual Scores Recalculated: 500
+Academic Reports (End of Term) Updated: 150
+Midterm Reports Updated: 120
+Mock Reports Updated: 80
+Progressive Test 1 Reports Updated: 100
+Progressive Test 2 Reports Updated: 95
+
+All changes have been saved to the database!
+```
+
+### When to Use
+- After fixing the 70% exam score calculation
+- After bulk score imports
+- After changing grading scale or GPA calculations
+- When data inconsistencies are detected
+- As part of system maintenance
+
+### Impact
+- Ensures all historical scores reflect the correct 70% exam calculation
+- Updates all GPAs to be consistent with current grading scale
+- Fixes any inconsistencies in student_scores relationships
+- Provides audit trail of all changes made
+
+---
+
 ## Summary of Files Modified
 
 1. `reports/views.py` - Multiple functions updated
 2. `templates/generated_report.html` - Fixed exam score display
 3. `static/js/report.js` - Added Class Advisor authorization check
 4. `templates/dashboard.html` - Added hidden input for authorization status
+5. `reports/management/commands/recalculate_scores.py` - Created (NEW)
 
 ## Testing Recommendations
 
@@ -148,12 +271,35 @@ All report types now consistently filter scores by student subjects before calcu
 
 ---
 
+## Important: Run the Recalculation Command
+
+⚠️ **ACTION REQUIRED**: After deploying these fixes, you MUST run the management command to update all existing data in the database:
+
+```bash
+# Preview changes first (safe)
+python manage.py recalculate_scores --dry-run
+
+# Then apply changes
+python manage.py recalculate_scores
+```
+
+This will:
+- Recalculate all exam scores (apply 70% calculation)
+- Update all total scores and grades
+- Recalculate all GPAs across all report types
+- Fix any existing data inconsistencies
+
+📖 **See `COMMAND_USAGE.md` for detailed instructions**
+
+---
+
 ## Notes
 
 - All changes are backward compatible
 - No database migrations required
-- Existing reports in the database are not affected
+- **Existing reports need to be recalculated using the management command**
 - All changes apply to new report generation going forward
+- Management command safely updates all historical data
 
 ---
 

@@ -123,8 +123,12 @@ $(document).ready(function () {
                             var continuousAssessment = (item.scores && item.scores[0] && item.scores[0].continuous_assessment !== undefined) ? parseFloat(item.scores[0].continuous_assessment) : 0.0;
                             var examScore = (item.scores && item.scores[0] && item.scores[0].exam_score !== undefined) ? parseFloat(item.scores[0].exam_score) : 0.0;
 
+                            // Calculate 70% of exam score for display
+                            var examScoreDisplay = examScore * 0.70;
+
                             console.log('Continuous Assessment:', continuousAssessment);  // Check the value
-                            console.log('Exam Score:', examScore);  // Check the value
+                            console.log('Exam Score (original):', examScore);  // Check the value
+                            console.log('Exam Score (70% for display):', examScoreDisplay);  // Check the value
 
                             studentRows += '<tr>';
                             studentRows += '<td>' + item.student_name + '</td>';
@@ -132,8 +136,13 @@ $(document).ready(function () {
                             // Display continuous assessment as a disabled input field (view-only)
                             studentRows += '<td><input type="number" value="' + continuousAssessment.toFixed(2) + '" class="form-control" min="0" step="any" disabled></td>';
 
-                            // Display exam score as an input field
-                            studentRows += '<td><input type="number" name="exam_score_' + item.student_id + '" value="' + examScore.toFixed(2) + '" class="form-control" min="0" max="100" step="any"></td>';
+                            // Display exam score: show 70% for display, but allow entering full score
+                            studentRows += '<td>';
+                            studentRows += '<div class="input-group">';
+                            studentRows += '<input type="number" name="exam_score_' + item.student_id + '" value="' + examScore.toFixed(2) + '" class="form-control" min="0" max="100" step="any" title="Enter full exam score (system will calculate 70%)">';
+                            studentRows += '<span class="input-group-text" title="Displayed as 70%">→ ' + examScoreDisplay.toFixed(2) + '</span>';
+                            studentRows += '</div>';
+                            studentRows += '</td>';
 
                             studentRows += '<td><button type="button" class="btn btn-danger btn-sm remove-entry" data-student-id="' + item.student_id + '"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12" /></svg></button></td>';
                             studentRows += '</tr>';

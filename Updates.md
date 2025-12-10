@@ -239,23 +239,86 @@ All changes have been saved to the database!
 
 ---
 
+## 6. Fixed Duplicate Scores in Reports
+
+### Problem
+Some students had duplicate entries for the same subject in their reports because multiple teachers could create scores for the same student/subject/term combination (due to `unique_together` including `created_by`).
+
+### Solution
+- **File Modified**: `reports/views.py` (all score query functions)
+- Updated all score queries to use `.order_by('subject', '-updated_at').distinct('subject')`
+- This ensures only the most recently updated score per subject is displayed
+- Applied to all report types: End of Term, Midterm, Mock, Progressive Tests
+
+### Code Change:
+```python
+# Before (allowed duplicates)
+scores = Score.objects.filter(
+    student=student,
+    term=term,
+    subject__in=student.subjects.all()
+).distinct('subject')
+
+# After (gets latest score per subject)
+scores = Score.objects.filter(
+    student=student,
+    term=term,
+    subject__in=student.subjects.all()
+).order_by('subject', '-updated_at').distinct('subject')
+```
+
+### Impact
+- Reports now show only one entry per subject
+- Always displays the most recently updated score
+- Eliminates confusion from duplicate entries
+
+---
+
+## 7. Improved Exam Score Display in Dashboard
+
+### Problem
+Dashboard was showing full exam score without indicating it represents 70% in calculations.
+
+### Solution
+- **File Modified**: `static/js/app.js`
+- Added visual display showing both the entered score and the 70% calculated value
+- Teachers enter full score (e.g., 85) and see "→ 59.50" indicating 70%
+- Improved user experience with input group showing real-time calculation
+
+### Impact
+- Teachers can clearly see the 70% calculation while entering scores
+- Reduces confusion about what value to enter
+- Maintains accurate data entry
+
+---
+
 ## Summary of Files Modified
 
-1. `reports/views.py` - Multiple functions updated
+1. `reports/views.py` - Multiple functions updated (score queries + exam display)
 2. `templates/generated_report.html` - Fixed exam score display
 3. `static/js/report.js` - Added Class Advisor authorization check
-4. `templates/dashboard.html` - Added hidden input for authorization status
-5. `reports/management/commands/recalculate_scores.py` - Created (NEW)
+4. `static/js/app.js` - Improved exam score display in dashboard
+5. `templates/dashboard.html` - Added hidden input for authorization status
+6. `reports/utils.py` - Fixed GPA calculation to handle numeric values
+7. `reports/management/commands/recalculate_scores.py` - Created (NEW)
 
 ## Testing Recommendations
 
 1. **Exam Score Display**:
    - Enter an exam score (e.g., 85) for a student
+   - Dashboard should show: `85` in input field with `→ 59.50` next to it
    - Generate the end-of-term report
    - Verify the Exam column shows 59.50 (70% of 85)
    - Verify the Total score is correctly calculated as CA + 59.50
 
-2. **Class Advisor Authorization**:
+2. **Duplicate Scores Fix**:
+   - View a student's report who had duplicate subject entries
+   - Verify only ONE entry per subject appears
+   - Verify it shows the most recent score
+   - Generate reports for multiple students
+   - Confirm no duplicate subjects in any report
+
+3. **Class Advisor Authorization**:
    - Login as a non-Class Advisor teacher
    - Attempt to generate a report with comments
    - Verify error message appears both on frontend and backend

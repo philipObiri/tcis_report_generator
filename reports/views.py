@@ -852,12 +852,12 @@ def view_academic_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
         
-        # ✅ Only get scores for subjects assigned to the student
+        # ✅ Only get scores for subjects assigned to the student (latest score per subject)
         scores = Score.objects.filter(
             student=student,
             term=term_id,
             subject__in=student.subjects.all()
-        )
+        ).order_by('subject', '-updated_at').distinct('subject').order_by('subject', '-updated_at').distinct('subject')
 
         term = get_object_or_404(Term, id=term_id)
         class_year = student.class_year.name if hasattr(student.class_year, 'name') else str(student.class_year)
@@ -873,7 +873,7 @@ def view_academic_report(request, student_id, term_id):
                 {
                     'subject': score.subject.name,
                     'ca': score.continuous_assessment,
-                    'exam': score.exam_score,
+                    'exam': float(score.exam_score) * 0.70,  # Show 70% of exam score
                     'total': score.total_score,
                     'grade': score.grade
                 }
@@ -898,7 +898,7 @@ def view_midterm_report(request, student_id, term_id):
             student=student,
             term=term_id,
             subject__in=student.subjects.all()
-        ).distinct('subject')
+        ).order_by('subject', '-updated_at').distinct('subject').order_by('subject', '-updated_at').distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -997,7 +997,7 @@ def view_mock_report(request, student_id, term_id):
             student=student,
             term=term_id,
             subject__in=student.subjects.all()
-        ).distinct('subject')
+        ).order_by('subject', '-updated_at').distinct('subject').order_by('subject', '-updated_at').distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1097,7 +1097,7 @@ def view_progressive_test_score_one_report(request, student_id, term_id):
             student=student,
             term=term_id,
             subject__in=student.subjects.all()
-        )
+        ).order_by('subject', '-updated_at').distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1197,7 +1197,7 @@ def view_progressive_test_score_two_report(request, student_id, term_id):
             student=student,
             term=term_id,
             subject__in=student.subjects.all()
-        )
+        ).order_by('subject', '-updated_at').distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1297,7 +1297,7 @@ def view_progressive_test_score_three_report(request, student_id, term_id):
             student=student,
             term=term_id,
             subject__in=student.subjects.all()
-        )
+        ).order_by('subject', '-updated_at').distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1959,7 +1959,7 @@ def generate_midterm_report(request):
                 student=student,
                 term=term,
                 subject__in=student.subjects.all()
-            ).distinct('subject')
+            ).order_by('subject', '-updated_at').distinct('subject')
 
             # Function to calculate grade based on midterm_score
             def get_grade_from_midterm_score(score):
@@ -2108,7 +2108,7 @@ def generate_mock_report(request):
                 student=student,
                 term=term,
                 subject__in=student.subjects.all()
-            ).distinct('subject')
+            ).order_by('subject', '-updated_at').distinct('subject')
 
             # Function to calculate grade based on midterm_score
             def get_grade_from_mock_score(score):
@@ -2258,7 +2258,7 @@ def generate_progressive_one_report(request):
                 student=student,
                 term=term,
                 subject__in=student.subjects.all()
-            ).distinct('subject')
+            ).order_by('subject', '-updated_at').distinct('subject')
 
             # Function to calculate grade based on progressive_test_1_score
             def get_grade_from_progressive_test_1_score(score):
@@ -2405,7 +2405,7 @@ def generate_progressive_two_report(request):
                 student=student,
                 term=term,
                 subject__in=student.subjects.all()
-            ).distinct('subject')
+            ).order_by('subject', '-updated_at').distinct('subject')
 
             # Function to calculate grade based on progressive_test_2_score
             def get_grade_from_progressive_test_2_score(score):

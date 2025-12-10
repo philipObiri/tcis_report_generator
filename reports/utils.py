@@ -48,13 +48,17 @@ def calculate_gpa(scores):
     # Iterate through the list of scores and calculate total GPA points
     for score in scores:
         try:
-            # Ensure the score is a valid Score instance and has a total_score
+            # Handle both Score instances and numeric values
             if isinstance(score, Score):
-                total_score = Decimal(score.total_score)  # Access total_score of the Score instance
+                # It's a Score object, use total_score
+                total_score = float(score.total_score)
+            elif isinstance(score, (int, float, Decimal)):
+                # It's a numeric value (for midterm, mock, progressive tests)
+                total_score = float(score)
             else:
-                # If the input is invalid (not a Score instance), set the score to 0.0
-                print(f"Invalid score encountered: {score}. Defaulting to 0.0")
-                total_score = Decimal('0.0')
+                # Invalid input
+                print(f"Invalid score type encountered: {type(score)}. Defaulting to 0.0")
+                total_score = 0.0
 
             # Get GPA for the current score
             gpa = get_gpa_from_score(total_score)

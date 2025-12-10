@@ -269,7 +269,7 @@
         <tr>
           <td>{{ item.subject.name }}</td>
           <td>{{ item.continuous_assessment }}</td>
-          <td data-exam-score="{{ item.exam_score }}">{{ item.exam_score }}</td>
+          <td>{{ item.exam_score_display|floatformat:2 }}</td>
           <td class="total-cell">{{ item.total_score }}</td>
           <td>{{ item.grade }}</td>
         </tr>
@@ -414,21 +414,6 @@
   </div>
 
   <script>
-    // Get all the table cells that contain the exam scores
-    const examScoreCells = document.querySelectorAll('td[data-exam-score]');
-
-    // Loop through each cell and calculate 70% of the exam score
-    examScoreCells.forEach(function (cell) {
-      // Get the original exam score from the cell's data attribute
-      const originalScore = parseFloat(cell.getAttribute('data-exam-score'));
-
-      // Calculate 70% of the exam score
-      const seventyPercentScore = (originalScore * 0.70).toFixed(2);  // Rounded to 2 decimal places
-
-      // Update the cell's content with the 70% score
-      cell.textContent = seventyPercentScore;
-    });
-
     // Print function
     function printReport() {
       window.print();

@@ -5,9 +5,16 @@ $(document).ready(function () {
         const studentName = $('#student-name').text().trim();
         const classYear = $('#class-year').text().trim();
         const selectedTerm = $('#term-dropdown').val().trim();
+        const isHeadClassTeacher = $('#is-head-class-teacher').val() === 'True';
 
         if (!studentName || !selectedTerm) {
             Swal.fire('Error!', 'Please select a student and a term first.', 'error');
+            return;
+        }
+
+        // Check if user is a Class Advisor (Head Class Teacher)
+        if (!isHeadClassTeacher) {
+            Swal.fire('Error!', 'Only Class Advisors (Head Class Teachers) are authorized to generate reports with comments.', 'error');
             return;
         }
 

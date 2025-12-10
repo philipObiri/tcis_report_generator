@@ -894,7 +894,11 @@ def view_academic_report(request, student_id, term_id):
 def view_midterm_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
-        scores = Score.objects.filter(student=student, term=term_id).distinct('subject')
+        scores = Score.objects.filter(
+            student=student,
+            term=term_id,
+            subject__in=student.subjects.all()
+        ).distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -989,7 +993,11 @@ def view_midterm_report(request, student_id, term_id):
 def view_mock_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
-        scores = Score.objects.filter(student=student, term=term_id).distinct('subject')
+        scores = Score.objects.filter(
+            student=student,
+            term=term_id,
+            subject__in=student.subjects.all()
+        ).distinct('subject')
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1085,7 +1093,11 @@ def view_mock_report(request, student_id, term_id):
 def view_progressive_test_score_one_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
-        scores = Score.objects.filter(student=student, term=term_id)
+        scores = Score.objects.filter(
+            student=student,
+            term=term_id,
+            subject__in=student.subjects.all()
+        )
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1181,7 +1193,11 @@ def view_progressive_test_score_one_report(request, student_id, term_id):
 def view_progressive_test_score_two_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
-        scores = Score.objects.filter(student=student, term=term_id)
+        scores = Score.objects.filter(
+            student=student,
+            term=term_id,
+            subject__in=student.subjects.all()
+        )
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1277,7 +1293,11 @@ def view_progressive_test_score_two_report(request, student_id, term_id):
 def view_progressive_test_score_three_report(request, student_id, term_id):
     try:
         student = Student.objects.get(id=student_id)
-        scores = Score.objects.filter(student=student, term=term_id)
+        scores = Score.objects.filter(
+            student=student,
+            term=term_id,
+            subject__in=student.subjects.all()
+        )
         term = get_object_or_404(Term, id=term_id)
         
         # Ensure that class_year is serialized to a string or relevant field
@@ -1813,13 +1833,20 @@ def generate_report(request):
 
         if not all([student_name, class_year, term_name]):
             return JsonResponse({
-                'success': False, 
+                'success': False,
                 'error': 'Student name, class year, and term are required.'
+            })
+
+        # Check if user is a head class teacher (Class Advisor) before allowing comments
+        if (academic_comment or behavioral_comment) and not is_head_class_teacher:
+            return JsonResponse({
+                'success': False,
+                'error': 'Only Class Advisors (Head Class Teachers) are authorized to add Academic and Behavioural Comments.'
             })
 
         if not academic_comment and not behavioral_comment:
             return JsonResponse({
-                'success': False, 
+                'success': False,
                 'error': 'At least one comment (academic or behavioral) is required before generating the report.'
             })
 
@@ -1872,12 +1899,18 @@ def generate_report(request):
         academic_report.generated_by = request.user
         academic_report.save()
 
+        # Prepare report data with calculated 70% exam scores
+        report_data = []
+        for score in scores:
+            score.exam_score_display = float(score.exam_score) * 0.70
+            report_data.append(score)
+
         context = {
             'student_name': student_name,
             'class_year': class_year,
             'term_name': term_name,
             'gpa': academic_report.student_gpa,
-            'report_data': scores,
+            'report_data': report_data,
             'is_head_class_teacher': is_head_class_teacher,
             'promotion': academic_report.promotion,
             'academic_comment': academic_comment,
@@ -1921,8 +1954,12 @@ def generate_midterm_report(request):
             class_year_obj = ClassYear.objects.get(name=class_year)
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term).distinct('subject')
+            # Fetch all scores for the student in the selected term (only for subjects assigned to student)
+            scores = Score.objects.filter(
+                student=student,
+                term=term,
+                subject__in=student.subjects.all()
+            ).distinct('subject')
 
             # Function to calculate grade based on midterm_score
             def get_grade_from_midterm_score(score):
@@ -2066,8 +2103,12 @@ def generate_mock_report(request):
             class_year_obj = ClassYear.objects.get(name=class_year)
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term).distinct('subject')
+            # Fetch all scores for the student in the selected term (only for subjects assigned to student)
+            scores = Score.objects.filter(
+                student=student,
+                term=term,
+                subject__in=student.subjects.all()
+            ).distinct('subject')
 
             # Function to calculate grade based on midterm_score
             def get_grade_from_mock_score(score):
@@ -2212,8 +2253,12 @@ def generate_progressive_one_report(request):
             class_year_obj = ClassYear.objects.get(name=class_year)
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term).distinct('subject')
+            # Fetch all scores for the student in the selected term (only for subjects assigned to student)
+            scores = Score.objects.filter(
+                student=student,
+                term=term,
+                subject__in=student.subjects.all()
+            ).distinct('subject')
 
             # Function to calculate grade based on progressive_test_1_score
             def get_grade_from_progressive_test_1_score(score):
@@ -2355,8 +2400,12 @@ def generate_progressive_two_report(request):
             class_year_obj = ClassYear.objects.get(name=class_year)
             term = Term.objects.get(term_name=term_name, class_year=class_year_obj)
 
-            # Fetch all scores for the student in the selected term
-            scores = Score.objects.filter(student=student, term=term).distinct('subject')
+            # Fetch all scores for the student in the selected term (only for subjects assigned to student)
+            scores = Score.objects.filter(
+                student=student,
+                term=term,
+                subject__in=student.subjects.all()
+            ).distinct('subject')
 
             # Function to calculate grade based on progressive_test_2_score
             def get_grade_from_progressive_test_2_score(score):

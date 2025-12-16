@@ -87,4 +87,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+
+    // ========== STUDENT SEARCH FUNCTIONALITY ==========
+
+    // Search functionality for student list
+    $('#student-search-input').on('keyup', function() {
+        var searchTerm = $(this).val().toLowerCase()
+
+        $('#students-table tbody tr').each(function() {
+            var studentName = $(this).find('td:first').text().toLowerCase()
+
+            if (studentName.indexOf(searchTerm) === -1) {
+                $(this).hide()
+            } else {
+                $(this).show()
+            }
+        })
+    })
 });

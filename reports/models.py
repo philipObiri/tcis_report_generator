@@ -49,8 +49,22 @@ class Term(models.Model):
         return f"{self.term_name} - {self.class_year.name}"
 
 class Subject(models.Model):
+    STANDARD = 'standard'
+    CAMBRIDGE = 'cambridge'
+
+    GRADING_SYSTEM_CHOICES = [
+        (STANDARD, 'Standard Grading System'),
+        (CAMBRIDGE, 'Cambridge Grading System'),
+    ]
+
     name = models.CharField(max_length=100)
     class_year = models.ManyToManyField(ClassYear, related_name='subjects')
+    grading_system = models.CharField(
+        max_length=20,
+        choices=GRADING_SYSTEM_CHOICES,
+        default=STANDARD,
+        help_text='Select the grading system for this subject'
+    )
 
     def __str__(self):
         return self.name
@@ -98,6 +112,10 @@ class Score(models.Model):
     total_score = models.DecimalField(max_digits=100, decimal_places=2, default=Decimal('0.0'))
     grade = models.CharField(max_length=255, blank=True)
 
+    # Comments (only for exam scores / end of term reports)
+    academic_comment = models.TextField(blank=True, null=True, help_text='Academic comment by head class teacher')
+    behavioral_comment = models.TextField(blank=True, null=True, help_text='Behavioral comment by head class teacher')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -107,25 +125,50 @@ class Score(models.Model):
         unique_together = ['student', 'subject', 'term', 'created_by']
 
     def save(self, *args, **kwargs):
-        # Calculate the sum of all the component scores (now out of 400)
-        total_continuous_assessment_score = (
-            self.class_work_score +
-            self.progressive_test_1_score +
-            self.progressive_test_2_score +
-            self.midterm_score
-        )
+        # Check the subject's grading system
+        grading_system = self.subject.grading_system if self.subject else Subject.STANDARD
 
-        # Normalize continuous_assessment to a 100% scale (total is now out of 400)
-        normalized_continuous_assessment = (total_continuous_assessment_score / Decimal('400')) * Decimal('100')
+        if grading_system == Subject.CAMBRIDGE:
+            # Cambridge Grading System with Progressive Test 2 included
+            # Weights scaled to total 30% CA:
+            # - Classwork & Homework: 3.75% (originally 5%, scaled by 0.75)
+            # - Progressive Test 1: 7.5% (originally 10%, scaled by 0.75)
+            # - Progressive Test 2: 7.5% (originally 10%, scaled by 0.75)
+            # - Midterm: 11.25% (originally 15%, scaled by 0.75)
+            # Total CA: 30%
 
-        # Calculate Continuous Assessment as 30% of normalized value
-        self.continuous_assessment = normalized_continuous_assessment * Decimal('0.30')
+            ca_raw = (
+                (self.class_work_score * Decimal('0.0375')) +      # 3.75%
+                (self.progressive_test_1_score * Decimal('0.075')) + # 7.5%
+                (self.progressive_test_2_score * Decimal('0.075')) + # 7.5%
+                (self.midterm_score * Decimal('0.1125'))            # 11.25%
+            )
+            # Round CA to 2 decimal places
+            self.continuous_assessment = ca_raw.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        else:
+            # Standard Grading System
+            # Calculate the sum of all the component scores (now out of 400)
+            total_continuous_assessment_score = (
+                self.class_work_score +
+                self.progressive_test_1_score +
+                self.progressive_test_2_score +
+                self.midterm_score
+            )
+
+            # Normalize continuous_assessment to a 100% scale (total is now out of 400)
+            normalized_continuous_assessment = (total_continuous_assessment_score / Decimal('400')) * Decimal('100')
+
+            # Calculate Continuous Assessment as 30% of normalized value
+            ca_raw = normalized_continuous_assessment * Decimal('0.30')
+
+            # Round CA to 2 decimal places
+            self.continuous_assessment = ca_raw.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
         # Calculate Total Score: 30% of CA + 70% of exam
         raw_total_score = self.continuous_assessment + (self.exam_score * Decimal('0.70'))
 
-        # Round total_score to the nearest whole number
-        self.total_score = raw_total_score.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        # Round total_score to 2 decimal places
+        self.total_score = raw_total_score.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
         # Assign grade based on rounded total_score
         if Decimal('95') <= self.total_score <= Decimal('100'):
@@ -452,23 +495,35 @@ class AcademicReport(models.Model):
         unique_together = ('student', 'term')
 
     def save(self, *args, **kwargs):
-        # Calculate GPA if not already set
-        if not self.student_gpa:
-            scores = Score.objects.filter(student=self.student, term=self.term)
-            if scores.exists():
-                self.student_gpa = calculate_gpa(scores)
-        
+        # Calculate GPA using latest scores for subjects assigned to student
+        # Always recalculate to ensure it's up-to-date
+        scores = Score.objects.filter(
+            student=self.student,
+            term=self.term,
+            subject__in=self.student.subjects.all()
+        ).order_by('subject', '-updated_at').distinct('subject')
+
+        if scores.exists():
+            self.student_gpa = calculate_gpa(scores)
+        else:
+            self.student_gpa = Decimal('0.00')
+
         # Only allow promotion for Term 3
         if self.term.term_name != 'Term 3':
             self.promotion = None
         
         super().save(*args, **kwargs)
-        
-        # Set student scores if not already set
-        if not self.student_scores.exists():
-            scores = Score.objects.filter(student=self.student, term=self.term)
-            if scores.exists():
-                self.student_scores.set(scores)
+
+        # Always update student scores to ensure they're current
+        # Use the same query as GPA calculation
+        scores = Score.objects.filter(
+            student=self.student,
+            term=self.term,
+            subject__in=self.student.subjects.all()
+        ).order_by('subject', '-updated_at').distinct('subject')
+
+        if scores.exists():
+            self.student_scores.set(scores)
 
     def __str__(self):
         return f"Report for {self.student.fullname} - {self.term.term_name} - GPA: {self.student_gpa}"

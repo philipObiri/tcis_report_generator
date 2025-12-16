@@ -256,9 +256,9 @@
         {% for item in report_data %}
         <tr>
           <td>{{ item.subject }}</td>
-          <td>{{ item.midterm_score }}</td>
+          <td>{{ item.midterm_score|floatformat:2 }}</td>
           <td>{{ item.grade}}</td>
-          <td>{{ item.gpa}}</td>
+          <td>{{ item.gpa|floatformat:2 }}</td>
         </tr>
         {% empty %}
         <tr>

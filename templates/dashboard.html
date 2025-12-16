@@ -52,13 +52,19 @@ End of Term Records
           <!-- Student Scores Section -->
           <div class="p-4 d-none table-responsive" id="student-scores-section">
             <h3 class="card-title mb-3" id="student-scores-title">Student Scores</h3>
+
+            <!-- Search Input -->
+            <div class="form-group mb-3">
+              <input type="text" id="student-search-input" class="form-control" placeholder="🔍 Search student by name..." />
+            </div>
+
             <table id="students-table" class="table table-bordered">
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>C.A</th>
-                  <th>Exam Score</th>
-                  <th>Action</th>
+                  <th>C.A (30%)</th>
+                  <th>Exam Score <span style="color: #007bff; font-weight: bold;">(Worth 70%)</span></th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="student-rows"></tbody>
@@ -252,13 +258,18 @@ End of Term Records
 
 <!-- View Saved Scores Modal -->
 <div class="modal fade" id="scoresModal" tabindex="-1" aria-labelledby="scoresModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="scoresModalLabel">Saved End of Term Scores</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <!-- Search Input for Modal -->
+        <div class="form-group mb-3">
+          <input type="text" id="modal-student-search-input" class="form-control" placeholder="🔍 Search student by name..." />
+        </div>
+
         <table class="table">
           <thead>
             <tr>
@@ -283,6 +294,40 @@ End of Term Records
 </div>
 
 
+
+<!-- Student Comment Modal (for exam scores - head teachers only) -->
+<div class="modal fade" id="studentCommentModal" tabindex="-1" aria-labelledby="studentCommentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="studentCommentModalLabel">Add Comments for <span id="comment-student-name" style="color: #007bff;"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="comment-student-id" />
+
+        <div class="form-group mb-3">
+          <label for="academic-comment-input"><strong>Academic Comment:</strong></label>
+          <textarea class="form-control" id="academic-comment-input" rows="4" placeholder="Enter academic performance comment..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="behavioral-comment-input"><strong>Behavioral Comment:</strong></label>
+          <textarea class="form-control" id="behavioral-comment-input" rows="4" placeholder="Enter behavioral comment..."></textarea>
+        </div>
+
+        <div id="comment-exists-warning" class="alert alert-info mt-3 d-none">
+          <small>This student already has comments. You can edit them above.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="delete-comment-btn" class="btn btn-danger me-auto d-none">Delete Comments</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="save-comment-btn" class="btn btn-primary">Save Comments</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Comment Modal -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">

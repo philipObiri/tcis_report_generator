@@ -39,31 +39,10 @@ class ScoreForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
 
-        # Calculate the Continuous Assessment score: 30% of the total of the individual scores
-        continuous_assessment = (instance.class_work_score + 
-                                 instance.progressive_test_1_score + 
-                                 instance.progressive_test_2_score + 
-                                 instance.progressive_test_3_score + 
-                                 instance.midterm_score)
-
-        instance.continuous_assessment = continuous_assessment * Decimal('0.30')
-
-        # Calculate the Total Score: 30% of Continuous Assessment + 70% of Exam Score
-        instance.total_score = (instance.continuous_assessment + (instance.exam_score * Decimal('0.70')))
-
-        # Save the grade based on the total score
-        if instance.total_score >= Decimal('90'):
-            instance.grade = 'A*'
-        elif instance.total_score >= Decimal('80'):
-            instance.grade = 'A'
-        elif instance.total_score >= Decimal('70'):
-            instance.grade = 'B'
-        elif instance.total_score >= Decimal('60'):
-            instance.grade = 'C'
-        elif instance.total_score >= Decimal('50'):
-            instance.grade = 'D'
-        else:
-            instance.grade = 'F'
+        # Note: Calculation logic has been moved to the Score model's save() method
+        # to support both Standard and Cambridge grading systems.
+        # The model will automatically calculate continuous_assessment, total_score,
+        # and grade based on the subject's grading_system configuration.
 
         if commit:
             instance.save()

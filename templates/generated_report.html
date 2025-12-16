@@ -258,6 +258,7 @@
       <thead>
         <tr>
           <th>Subject</th>
+          <th>Grading System</th>
           <th>Continous Assessment (30%)</th>
           <th>Exam (70%)</th>
           <th>Total</th>
@@ -268,14 +269,32 @@
         {% for item in report_data %}
         <tr>
           <td>{{ item.subject.name }}</td>
-          <td>{{ item.continuous_assessment }}</td>
+          <td>{% if item.subject.grading_system == 'cambridge' %}<span style="color: #007bff; font-weight: bold;">Cambridge</span>{% else %}Standard{% endif %}</td>
+          <td>{{ item.continuous_assessment|floatformat:2 }}</td>
           <td>{{ item.exam_score_display|floatformat:2 }}</td>
-          <td class="total-cell">{{ item.total_score }}</td>
+          <td class="total-cell">{{ item.total_score|floatformat:2 }}</td>
           <td>{{ item.grade }}</td>
         </tr>
+        {% if item.academic_comment or item.behavioral_comment %}
+        <tr style="background-color: #f8f9fa;">
+          <td colspan="6" style="padding: 10px;">
+            <small><strong>Subject Comments:</strong></small>
+            {% if item.academic_comment %}
+            <div style="margin-top: 5px;">
+              <small><em>Academic:</em> {{ item.academic_comment }}</small>
+            </div>
+            {% endif %}
+            {% if item.behavioral_comment %}
+            <div style="margin-top: 5px;">
+              <small><em>Behavioral:</em> {{ item.behavioral_comment }}</small>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
         {% empty %}
         <tr>
-          <td colspan="5" class="text-center">No scores available for this student in this term.</td>
+          <td colspan="6" class="text-center">No scores available for this student in this term.</td>
         </tr>
         {% endfor %}
       </tbody>

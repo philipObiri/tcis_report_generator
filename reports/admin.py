@@ -34,10 +34,14 @@ class TermAdmin(admin.ModelAdmin):
 
 # Register the Subject model
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'grading_system', 'get_class_years')
     search_fields = ('name',)
-    list_filter = ('class_year',)
+    list_filter = ('grading_system', 'class_year',)
     filter_horizontal = ('class_year',)
+
+    def get_class_years(self, obj):
+        return ", ".join([cy.name for cy in obj.class_year.all()])
+    get_class_years.short_description = 'Class Years'
 
 
 
@@ -74,12 +78,16 @@ class TeacherProfileAdmin(admin.ModelAdmin):
 
 # Register the Score model
 class ScoreAdmin(admin.ModelAdmin):
-    list_display = ('student', 'subject', 'term', 'class_work_score', 'progressive_test_1_score', 'progressive_test_2_score', 
-                
-                    'midterm_score','mock_score', 'exam_score', 'continuous_assessment', 'total_score', 'grade')
+    list_display = ('student', 'subject', 'get_grading_system', 'term', 'class_work_score', 'progressive_test_1_score',
+                    'progressive_test_2_score', 'midterm_score','mock_score', 'exam_score',
+                    'continuous_assessment', 'total_score', 'grade')
     search_fields = ('student__fullname', 'subject__name', 'term__term_name')
-    list_filter = ('term', 'subject', 'created_by')
-    # readonly_fields = ('continuous_assessment', 'total_score', 'grade')  # Make these fields readonly as they are auto-calculated
+    list_filter = ('term', 'subject', 'subject__grading_system', 'created_by')
+    readonly_fields = ('continuous_assessment', 'total_score', 'grade', 'get_grading_system')
+
+    def get_grading_system(self, obj):
+        return obj.subject.get_grading_system_display() if obj.subject else 'N/A'
+    get_grading_system.short_description = 'Grading System'
 
 
 

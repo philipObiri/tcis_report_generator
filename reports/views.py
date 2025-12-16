@@ -771,6 +771,10 @@ def process_scores_view(request):
             # Fetch the exam score from POST request (it may not exist if the user didn't input it)
             exam_score = request.POST.get(f'exam_score_{student.id}', 0.0)
 
+            # Fetch comments from POST request (only for head class teachers)
+            academic_comment = request.POST.get(f'academic_comment_{student.id}', '').strip()
+            behavioral_comment = request.POST.get(f'behavioral_comment_{student.id}', '').strip()
+
             try:
                 # Convert exam_score to Decimal, if it's not 0.0
                 exam_score = Decimal(str(exam_score)) if exam_score else Decimal('0.0')
@@ -781,6 +785,12 @@ def process_scores_view(request):
             if existing_score:
                 # Update existing score (don't manually recalculate)
                 existing_score.exam_score = exam_score
+
+                # Update comments (only if user is head class teacher)
+                if is_head_class_teacher:
+                    existing_score.academic_comment = academic_comment if academic_comment else existing_score.academic_comment
+                    existing_score.behavioral_comment = behavioral_comment if behavioral_comment else existing_score.behavioral_comment
+
                 existing_score.save()  # This will trigger the `save()` method to recalculate total_score and grade
             else:
                 # Create a new score object if no existing score
@@ -791,6 +801,12 @@ def process_scores_view(request):
                     created_by=request.user,
                     exam_score=exam_score,
                 )
+
+                # Add comments if user is head class teacher
+                if is_head_class_teacher:
+                    new_score.academic_comment = academic_comment
+                    new_score.behavioral_comment = behavioral_comment
+
                 new_score.save()  # This will trigger the `save()` method to calculate total_score and grade
 
         return JsonResponse({'status': 'success', 'message': 'End of Term Scores saved successfully!'})
@@ -857,7 +873,7 @@ def view_academic_report(request, student_id, term_id):
             student=student,
             term=term_id,
             subject__in=student.subjects.all()
-        ).order_by('subject', '-updated_at').distinct('subject').order_by('subject', '-updated_at').distinct('subject')
+        ).order_by('subject', '-updated_at').distinct('subject')
 
         term = get_object_or_404(Term, id=term_id)
         class_year = student.class_year.name if hasattr(student.class_year, 'name') else str(student.class_year)
@@ -868,13 +884,13 @@ def view_academic_report(request, student_id, term_id):
             'student_name': student.fullname,
             'class_year': class_year,
             'term': term.term_name,
-            'gpa': gpa,
+            'gpa': round(float(gpa), 2),
             'scores': [
                 {
                     'subject': score.subject.name,
-                    'ca': score.continuous_assessment,
-                    'exam': float(score.exam_score) * 0.70,  # Show 70% of exam score
-                    'total': score.total_score,
+                    'ca': round(float(score.continuous_assessment), 2),
+                    'exam': round(float(score.exam_score) * 0.70, 2),  # Show 70% of exam score, rounded
+                    'total': round(float(score.total_score), 2),
                     'grade': score.grade
                 }
                 for score in scores
@@ -1463,8 +1479,8 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
         term = Term.objects.get(id=term_id)
         subject = Subject.objects.get(id=subject_id)
 
-        # Fetch students based on the selected class year and subject
-        students = Student.objects.filter(class_year=class_year, subjects=subject)
+        # Fetch students based on the selected class year and subject, ordered alphabetically
+        students = Student.objects.filter(class_year=class_year, subjects=subject).order_by('fullname')
 
         # Fetch the corresponding scores for each student for the selected term and subject
         scores = Score.objects.filter(student__in=students, term=term, subject=subject)
@@ -1495,7 +1511,9 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
                     'exam_score': str(score.exam_score),
                     'continuous_assessment': str(score.continuous_assessment),
                     'total_score': str(score.total_score),
-                    'grade': score.grade
+                    'grade': score.grade,
+                    'academic_comment': score.academic_comment or '',
+                    'behavioral_comment': score.behavioral_comment or ''
                 })
 
             # Add the student's information to the list
@@ -1865,12 +1883,12 @@ def generate_report(request):
         except Term.DoesNotExist:
             return JsonResponse({'success': False, 'error': f'Term "{term_name}" not found for class "{class_year}".'})
 
-        # ✅ Filter scores by subjects assigned to student
+        # ✅ Filter scores by subjects assigned to student (latest score per subject)
         scores = Score.objects.filter(
             student=student,
             term=term,
             subject__in=student.subjects.all()
-        ).distinct('subject')
+        ).order_by('subject', '-updated_at').distinct('subject')
 
         if not scores.exists():
             return JsonResponse({
@@ -1884,12 +1902,11 @@ def generate_report(request):
             defaults={'generated_by': request.user}
         )
 
-        if created:
-            academic_report.student_scores.set(scores)
-
+        # Update comments
         academic_report.academic_comment = academic_comment
         academic_report.behavioral_comment = behavioral_comment
 
+        # Handle promotion (only for Term 3)
         if term_name == 'Term 3':
             if promotion:
                 academic_report.promotion = promotion
@@ -1897,19 +1914,27 @@ def generate_report(request):
             academic_report.promotion = None
 
         academic_report.generated_by = request.user
+
+        # Save the report - this will automatically:
+        # 1. Recalculate GPA using latest scores
+        # 2. Update student_scores with latest scores
+        # (See AcademicReport.save() method in models.py)
         academic_report.save()
+
+        # Calculate GPA from the SAME scores being displayed (match preview exactly)
+        gpa = calculate_gpa(scores)
 
         # Prepare report data with calculated 70% exam scores
         report_data = []
         for score in scores:
-            score.exam_score_display = float(score.exam_score) * 0.70
+            score.exam_score_display = round(float(score.exam_score) * 0.70, 2)
             report_data.append(score)
 
         context = {
             'student_name': student_name,
             'class_year': class_year,
             'term_name': term_name,
-            'gpa': academic_report.student_gpa,
+            'gpa': round(float(gpa), 2),  # Use live-calculated GPA, same as preview
             'report_data': report_data,
             'is_head_class_teacher': is_head_class_teacher,
             'promotion': academic_report.promotion,
@@ -2049,13 +2074,13 @@ def generate_midterm_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
                 'term': term.term_name,
-                'average_gpa': average_gpa,  # Add the average GPA
+                'average_gpa': round(float(average_gpa), 2),  # Round to 2 decimals
                 'scores': [
                     {
                         'subject': score.subject.name,
-                        'midterm_score': score.midterm_score,
+                        'midterm_score': round(float(score.midterm_score), 2),  # Round to 2 decimals
                         'grade': get_grade_from_midterm_score(score.midterm_score),
-                        'gpa': get_gpa_from_midterm_score(score.midterm_score)
+                        'gpa': round(get_gpa_from_midterm_score(score.midterm_score), 2)  # Round to 2 decimals
                     }
                     for score in scores
                 ]
@@ -2066,7 +2091,7 @@ def generate_midterm_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,
                 'term_name': term.term_name,
-                'gpa': average_gpa,
+                'gpa': round(float(average_gpa), 2),  # Round to 2 decimals
                 'is_head_class_teacher': is_head_class_teacher,
                 'report_data': midterm_report_data['scores'],  # Pass the scores directly
             })
@@ -2198,13 +2223,13 @@ def generate_mock_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
                 'term': term.term_name,
-                'average_gpa': average_gpa,  # Add the average GPA
+                'average_gpa': round(float(average_gpa), 2),  # Round to 2 decimals
                 'scores': [
                     {
                         'subject': score.subject.name,
-                        'mock_score': score.mock_score,
+                        'mock_score': round(float(score.mock_score), 2),  # Round to 2 decimals
                         'grade': get_grade_from_mock_score(score.mock_score),
-                        'gpa': get_gpa_from_mock_score(score.mock_score)
+                        'gpa': round(get_gpa_from_mock_score(score.mock_score), 2)  # Round to 2 decimals
                     }
                     for score in scores
                 ]
@@ -2215,7 +2240,7 @@ def generate_mock_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,
                 'term_name': term.term_name,
-                'gpa': average_gpa,
+                'gpa': round(float(average_gpa), 2),  # Round to 2 decimals
                 'report_data': mock_report_data['scores'],  # Pass the scores directly
             })
 
@@ -2346,13 +2371,13 @@ def generate_progressive_one_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
                 'term': term.term_name,
-                'total_gpa': total_gpa,  # Add the total GPA
+                'total_gpa': round(float(total_gpa), 2),  # Round to 2 decimals
                 'scores': [
                     {
                         'subject': score.subject.name,
-                        'progressive_test_1_score': score.progressive_test_1_score,
+                        'progressive_test_1_score': round(float(score.progressive_test_1_score), 2),  # Round to 2 decimals
                         'grade': get_grade_from_progressive_test_1_score(score.progressive_test_1_score),
-                        'gpa': get_gpa_from_progressive_test_1_score(score.progressive_test_1_score)
+                        'gpa': round(get_gpa_from_progressive_test_1_score(score.progressive_test_1_score), 2)  # Round to 2 decimals
                     }
                     for score in scores
                 ]
@@ -2363,7 +2388,7 @@ def generate_progressive_one_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,
                 'term_name': term.term_name,
-                'gpa': total_gpa,
+                'gpa': round(float(total_gpa), 2),  # Round to 2 decimals
                 'report_data': progressive_report_data['scores'],  # Pass the scores directly
             })
 
@@ -2493,13 +2518,13 @@ def generate_progressive_two_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,  # Ensure it's a serializable value (e.g., string)
                 'term': term.term_name,
-                'total_gpa': total_gpa,  # Add the total GPA
+                'total_gpa': round(float(total_gpa), 2),  # Round to 2 decimals
                 'scores': [
                     {
                         'subject': score.subject.name,
-                        'progressive_test_2_score': score.progressive_test_2_score,
+                        'progressive_test_2_score': round(float(score.progressive_test_2_score), 2),  # Round to 2 decimals
                         'grade': get_grade_from_progressive_test_2_score(score.progressive_test_2_score),
-                        'gpa': get_gpa_from_progressive_test_2_score(score.progressive_test_2_score)
+                        'gpa': round(get_gpa_from_progressive_test_2_score(score.progressive_test_2_score), 2)  # Round to 2 decimals
                     }
                     for score in scores
                 ]
@@ -2510,7 +2535,7 @@ def generate_progressive_two_report(request):
                 'student_name': student.fullname,
                 'class_year': class_year_obj.name,
                 'term_name': term.term_name,
-                'gpa': total_gpa,
+                'gpa': round(float(total_gpa), 2),  # Round to 2 decimals
                 'report_data': progressive_report_data['scores'],  # Pass the scores directly
             })
 
@@ -2653,6 +2678,9 @@ def view_end_of_term_scores(request, term_id=None, level_id=None, class_id=None)
         # Include term in the JSON response
         students_list = list(students_data.values())
 
+        # Sort students alphabetically by name
+        students_list.sort(key=lambda x: x['student_name'].lower())
+
         return JsonResponse({
             'students': students_list,
             'term': term.term_name,
@@ -2777,6 +2805,9 @@ def view_midterm_scores(request, term_id=None, level_id=None, class_id=None):
         # Include term in the JSON response
         students_list = list(students_data.values())
 
+        # Sort students alphabetically by name
+        students_list.sort(key=lambda x: x['student_name'].lower())
+
         return JsonResponse({
             'students': students_list,
             'term': term.term_name,
@@ -2900,6 +2931,9 @@ def view_mock_scores(request, term_id=None, level_id=None, class_id=None):
 
         # Include term in the JSON response
         students_list = list(students_data.values())
+
+        # Sort students alphabetically by name
+        students_list.sort(key=lambda x: x['student_name'].lower())
 
         return JsonResponse({
             'students': students_list,
@@ -3027,6 +3061,9 @@ def view_progressive_one_test_scores(request, term_id=None, level_id=None, class
         # Include term in the JSON response
         students_list = list(students_data.values())
 
+        # Sort students alphabetically by name
+        students_list.sort(key=lambda x: x['student_name'].lower())
+
         return JsonResponse({
             'students': students_list,
             'term': term.term_name,
@@ -3152,6 +3189,9 @@ def view_progressive_two_test_scores(request, term_id=None, level_id=None, class
         # Include term in the JSON response
         students_list = list(students_data.values())
 
+        # Sort students alphabetically by name
+        students_list.sort(key=lambda x: x['student_name'].lower())
+
         return JsonResponse({
             'students': students_list,
             'term': term.term_name,
@@ -3275,6 +3315,9 @@ def view_progressive_three_test_scores(request, term_id=None, level_id=None, cla
 
         # Include term in the JSON response
         students_list = list(students_data.values())
+
+        # Sort students alphabetically by name
+        students_list.sort(key=lambda x: x['student_name'].lower())
 
         return JsonResponse({
             'students': students_list,

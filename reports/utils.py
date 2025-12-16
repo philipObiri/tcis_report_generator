@@ -1,5 +1,46 @@
 from decimal import Decimal
 
+def calculate_continuous_assessment(class_work, pt1, pt2, midterm, grading_system='standard'):
+    """
+    Calculate continuous assessment based on the grading system.
+
+    Parameters:
+    class_work (Decimal): Classwork score (0-100 as percentage)
+    pt1 (Decimal): Progressive Test 1 score (0-100 as percentage)
+    pt2 (Decimal): Progressive Test 2 score (0-100 as percentage)
+    midterm (Decimal): Midterm score (0-100 as percentage)
+    grading_system (str): 'standard' or 'cambridge'
+
+    Returns:
+    Decimal: Continuous assessment score (0-30% of total grade)
+    """
+    class_work = Decimal(str(class_work))
+    pt1 = Decimal(str(pt1))
+    pt2 = Decimal(str(pt2))
+    midterm = Decimal(str(midterm))
+
+    if grading_system == 'cambridge':
+        # Cambridge Grading System with Progressive Test 2 included
+        # Weights scaled to total 30% CA:
+        # - Classwork & Homework: 3.75% (originally 5%, scaled by 0.75)
+        # - Progressive Test 1: 7.5% (originally 10%, scaled by 0.75)
+        # - Progressive Test 2: 7.5% (originally 10%, scaled by 0.75)
+        # - Midterm: 11.25% (originally 15%, scaled by 0.75)
+        continuous_assessment = (
+            (class_work * Decimal('0.0375')) +      # 3.75%
+            (pt1 * Decimal('0.075')) +              # 7.5%
+            (pt2 * Decimal('0.075')) +              # 7.5%
+            (midterm * Decimal('0.1125'))           # 11.25%
+        )
+    else:
+        # Standard Grading System
+        # All four components equally weighted
+        total_score = class_work + pt1 + pt2 + midterm
+        normalized = (total_score / Decimal('400')) * Decimal('100')
+        continuous_assessment = normalized * Decimal('0.30')
+
+    return continuous_assessment
+
 def calculate_gpa(scores):
     """
     Calculate the final GPA from a list of Score instances, with each score's GPA 

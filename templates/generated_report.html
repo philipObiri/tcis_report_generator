@@ -258,7 +258,6 @@
       <thead>
         <tr>
           <th>Subject</th>
-          <th>Grading System</th>
           <th>Continous Assessment (30%)</th>
           <th>Exam (70%)</th>
           <th>Total</th>
@@ -269,7 +268,7 @@
         {% for item in report_data %}
         <tr>
           <td>{{ item.subject.name }}</td>
-          <td>{% if item.subject.grading_system == 'cambridge' %}<span style="color: #007bff; font-weight: bold;">Cambridge</span>{% else %}Standard{% endif %}</td>
+          <!-- <td>{% if item.subject.grading_system == 'cambridge' %}<span style="color: #007bff; font-weight: bold;">Cambridge</span>{% else %}Standard{% endif %}</td> -->
           <td>{{ item.continuous_assessment|floatformat:2 }}</td>
           <td>{{ item.exam_score_display|floatformat:2 }}</td>
           <td class="total-cell">{{ item.total_score|floatformat:2 }}</td>

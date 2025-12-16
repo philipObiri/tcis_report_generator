@@ -83,3 +83,5 @@ staticfiles
 gunicorn_setup.txt
 
 progress.txt
+
+.claude 

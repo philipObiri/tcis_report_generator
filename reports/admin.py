@@ -83,7 +83,7 @@ class ScoreAdmin(admin.ModelAdmin):
                     'continuous_assessment', 'total_score', 'grade')
     search_fields = ('student__fullname', 'subject__name', 'term__term_name')
     list_filter = ('term', 'subject', 'subject__grading_system', 'created_by')
-    readonly_fields = ('continuous_assessment', 'total_score', 'grade', 'get_grading_system')
+    readonly_fields = ('continuous_assessment', 'total_score', 'get_grading_system')
 
     def get_grading_system(self, obj):
         return obj.subject.get_grading_system_display() if obj.subject else 'N/A'

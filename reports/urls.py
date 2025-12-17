@@ -37,6 +37,10 @@ urlpatterns = [
     path('reports/generate_mock_report/', views.generate_mock_report, name="generate_mock_report"),
     path('reports/delete_mock_report/<int:report_id>/', views.delete_mock_report, name="delete_mock_report"),
     path('reports/generate_progressive_one_report/', views.generate_progressive_one_report, name="generate_progressive_one_report"),
+
+    # Comment save endpoints
+    path('dashboard/entries/save-report-comment/', views.save_report_comment, name='save_report_comment'),
+    path('dashboard/entries/save-mock-comment/', views.save_mock_comment, name='save_mock_comment'),
     
 
     # Endpoint to get classes based on the selected level

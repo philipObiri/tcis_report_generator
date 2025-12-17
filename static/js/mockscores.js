@@ -130,26 +130,9 @@ $(document).ready(function () {
                                 });
                             }
 
-                            // Extract mock report comments
-                            var academicComment = item.mock_academic_comment || '';
-                            var behavioralComment = item.mock_behavioral_comment || '';
-                            var hasComments = academicComment || behavioralComment;
-
                             studentRows += '<tr>'
                             studentRows += '<td>' + item.student_name + '</td>'
                             studentRows += '<td><input type="number" name="mock_score_' + item.student_id + '" value="' + mockScore + '" class="form-control shadow-none" min="0" max="100" step="any"></td>'
-
-                            // Add comment button column if user is head class teacher
-                            if (isHeadClassTeacher) {
-                                var commentBtnClass = hasComments ? 'btn-warning' : 'btn-info';
-                                var commentBtnText = hasComments ? '✓ Comments' : '+ Comments';
-                                studentRows += '<td><button type="button" class="btn ' + commentBtnClass + ' btn-sm mock-comment-btn" ' +
-                                    'data-student-id="' + item.student_id + '" ' +
-                                    'data-academic-comment="' + (academicComment || '') + '" ' +
-                                    'data-behavioral-comment="' + (behavioralComment || '') + '">' +
-                                    commentBtnText + '</button></td>';
-                            }
-
                             studentRows += '<td><button type="button" class="btn btn-danger btn-sm remove-entry" data-student-id="' + item.student_id + '"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12" /></svg></button></td>'
                             studentRows += '</tr>'
                         })
@@ -158,8 +141,7 @@ $(document).ready(function () {
                         $('#student-scores-section').removeClass('d-none')
                         $('#student-scores-title').text('Student Mock  Scores for ' + data.subject_name) // Update the subject name dynamically
                     } else {
-                        var colspanCount = isHeadClassTeacher ? 4 : 3;
-                        $('#student-rows').html('<tr><td colspan="' + colspanCount + '">No students found for the selected filters.</td></tr>')
+                        $('#student-rows').html('<tr><td colspan="3">No students found for the selected filters.</td></tr>')
                         $('#student-scores-section').removeClass('d-none') // Show the section even if no students are found
                     }
                 }
@@ -314,173 +296,6 @@ $(document).ready(function () {
         $('.form-control').removeClass('is-invalid')
         $('.invalid-feedback').remove()
     }
-
-
-    // ========== MOCK REPORT COMMENTS FUNCTIONALITY ==========
-
-    // Handle comment button click
-    $(document).on('click', '.mock-comment-btn', function() {
-        var studentId = $(this).data('student-id');
-        var academicComment = $(this).data('academic-comment');
-        var behavioralComment = $(this).data('behavioral-comment');
-
-        // Populate modal with existing comments
-        $('#mock-comment-student-id').val(studentId);
-        $('#mock-academic-comment-input').val(academicComment);
-        $('#mock-behavioral-comment-input').val(behavioralComment);
-
-        // Show delete button if comments exist
-        if (academicComment || behavioralComment) {
-            $('#mock-delete-comment-btn').show();
-        } else {
-            $('#mock-delete-comment-btn').hide();
-        }
-
-        // Show modal
-        $('#mockCommentModal').modal('show');
-    });
-
-    // Handle save comments
-    $('#mock-save-comment-btn').click(function() {
-        var studentId = $('#mock-comment-student-id').val();
-        var academicComment = $('#mock-academic-comment-input').val();
-        var behavioralComment = $('#mock-behavioral-comment-input').val();
-
-        // Get current filter values
-        var termId = $('#term-select').val();
-        var classYearId = $('#class-year-select').val();
-        var levelId = $('#level-select').val();
-        var subjectId = $('#subject-select').val();
-
-        // Save comments via AJAX
-        var formData = new FormData();
-        formData.append('level', levelId);
-        formData.append('class_year', classYearId);
-        formData.append('term', termId);
-        formData.append('subject', subjectId);
-        formData.append('mock_academic_comment_' + studentId, academicComment);
-        formData.append('mock_behavioral_comment_' + studentId, behavioralComment);
-        formData.append('csrfmiddlewaretoken', $('input[name=csrfmiddlewaretoken]').val());
-
-        $.ajax({
-            type: 'POST',
-            url: '/dashboard/entries/mock-scores/',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(response) {
-                // Update button appearance
-                var commentBtn = $('[data-student-id="' + studentId + '"].mock-comment-btn');
-                commentBtn.data('academic-comment', academicComment);
-                commentBtn.data('behavioral-comment', behavioralComment);
-                commentBtn.attr('data-academic-comment', academicComment);
-                commentBtn.attr('data-behavioral-comment', behavioralComment);
-                commentBtn.removeClass('btn-info').addClass('btn-warning');
-                commentBtn.html('✓ Comments');
-
-                // Close modal
-                $('#mockCommentModal').modal('hide');
-
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Mock report comments saved successfully!',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            },
-            error: function() {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Failed to save comments. Please try again.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-            }
-        });
-    });
-
-    // Handle delete comments
-    $('#mock-delete-comment-btn').click(function() {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you want to delete these comments?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                var studentId = $('#mock-comment-student-id').val();
-
-                // Get current filter values
-                var termId = $('#term-select').val();
-                var classYearId = $('#class-year-select').val();
-                var levelId = $('#level-select').val();
-                var subjectId = $('#subject-select').val();
-
-                // Delete comments via AJAX
-                var formData = new FormData();
-                formData.append('level', levelId);
-                formData.append('class_year', classYearId);
-                formData.append('term', termId);
-                formData.append('subject', subjectId);
-                formData.append('mock_academic_comment_' + studentId, '');
-                formData.append('mock_behavioral_comment_' + studentId, '');
-                formData.append('csrfmiddlewaretoken', $('input[name=csrfmiddlewaretoken]').val());
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/dashboard/entries/mock-scores/',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    success: function(response) {
-                        // Clear comments from button
-                        var commentBtn = $('[data-student-id="' + studentId + '"].mock-comment-btn');
-                        commentBtn.data('academic-comment', '');
-                        commentBtn.data('behavioral-comment', '');
-                        commentBtn.attr('data-academic-comment', '');
-                        commentBtn.attr('data-behavioral-comment', '');
-
-                        // Update button appearance
-                        commentBtn.removeClass('btn-warning').addClass('btn-info');
-                        commentBtn.html('+ Comments');
-
-                        // Clear modal inputs
-                        $('#mock-academic-comment-input').val('');
-                        $('#mock-behavioral-comment-input').val('');
-
-                        // Close modal
-                        $('#mockCommentModal').modal('hide');
-
-                        Swal.fire({
-                            title: 'Deleted!',
-                            text: 'Comments deleted successfully!',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    },
-                    error: function() {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'Failed to delete comments. Please try again.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                });
-            }
-        });
-    });
 
     // ========== STUDENT SEARCH FUNCTIONALITY ==========
 

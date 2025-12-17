@@ -373,6 +373,31 @@
 
       <hr style="margin: 30px 0;">
 
+      <!-- Hidden data for JavaScript -->
+      <input type="hidden" id="student-id" value="{{ student_id }}" />
+      <input type="hidden" id="class-year-id" value="{{ class_year_id }}" />
+      <input type="hidden" id="term-id" value="{{ term_id }}" />
+      <input type="hidden" id="can-edit-comments" value="{% if is_head_class_teacher or can_print_results %}true{% else %}false{% endif %}" />
+
+      {% if is_head_class_teacher or can_print_results %}
+      <div style="margin-bottom: 20px;">
+        <strong>
+          <h5>Academic Comment:</h5>
+        </strong>
+        <textarea id="academic-comment-input" class="form-control" rows="4" placeholder="Enter academic comment...">{{ academic_comment }}</textarea>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <strong>
+          <h5>Behavioral Comment:</h5>
+        </strong>
+        <textarea id="behavioral-comment-input" class="form-control" rows="4" placeholder="Enter behavioral comment...">{{ behavioral_comment }}</textarea>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <button class="btn btn-success" id="save-comments-btn" onclick="saveComments()">Save Comments</button>
+      </div>
+      {% else %}
       <div style="margin-bottom: 20px;">
         <strong>
           <h5>Academic Comment:</h5>
@@ -390,6 +415,7 @@
           {{ behavioral_comment|default:"No behavioral comment provided." }}
         </p>
       </div>
+      {% endif %}
 
       <div style="margin-top: 60px; display: flex; justify-content: flex-end; text-align: right;">
         <div style="justify-content: center; align-items: center; text-align: center;">
@@ -402,6 +428,7 @@
     </div>
 
     <!-- Action Buttons -->
+    {% if can_print_results %}
     <div class="action-buttons">
       <button class="print-btn" onclick="printReport();">
         <span>🖨️</span>
@@ -412,6 +439,7 @@
         <span id="downloadText">Download PDF</span>
       </button>
     </div>
+    {% endif %}
   </div>
 
   <script>
@@ -562,6 +590,73 @@
           document.body.removeChild(notification);
         }
       }, 3000);
+    }
+
+    // Save comments function
+    function saveComments() {
+      const academicComment = document.getElementById('academic-comment-input').value.trim();
+      const behavioralComment = document.getElementById('behavioral-comment-input').value.trim();
+      const studentId = document.getElementById('student-id').value;
+      const classYearId = document.getElementById('class-year-id').value;
+      const termId = document.getElementById('term-id').value;
+
+      // Get CSRF token from cookies
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      const csrftoken = getCookie('csrftoken');
+
+      // Prepare data
+      const data = {
+        student_id: studentId,
+        class_year_id: classYearId,
+        term_id: termId,
+        academic_comment: academicComment,
+        behavioral_comment: behavioralComment
+      };
+
+      // Disable button during save
+      const saveBtn = document.getElementById('save-comments-btn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      // Send AJAX request
+      fetch('/dashboard/entries/save-report-comment/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          showNotification('Comments saved successfully!', 'success');
+        } else {
+          showNotification('Error saving comments: ' + (result.error || 'Unknown error'), 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error saving comments. Please try again.', 'error');
+      })
+      .finally(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Comments';
+      });
     }
   </script>
 </body>

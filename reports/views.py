@@ -777,23 +777,6 @@ def process_scores_view(request):
         if class_year:
             students = Student.objects.filter(class_year=class_year)
 
-        # Check if this is a comment-only save (no exam scores provided)
-        comment_only_save = False
-        for key in request.POST.keys():
-            if key.startswith('academic_comment_') or key.startswith('behavioral_comment_'):
-                comment_only_save = True
-                break
-
-        # If comment-only save, only process students who have comments
-        if comment_only_save:
-            students_to_process = []
-            for student in students:
-                student_academic = request.POST.get(f'academic_comment_{student.id}', '').strip()
-                student_behavioral = request.POST.get(f'behavioral_comment_{student.id}', '').strip()
-                if student_academic or student_behavioral:
-                    students_to_process.append(student)
-            students = students_to_process
-
         for student in students:
             # Fetch existing score for the student, term, and subject
             existing_score = Score.objects.filter(
@@ -803,54 +786,32 @@ def process_scores_view(request):
                 created_by=request.user
             ).first()
 
-            # Fetch comments from POST request (only for head class teachers)
-            # These are REPORT-LEVEL comments, not subject-specific
-            academic_comment = request.POST.get(f'academic_comment_{student.id}', '').strip()
-            behavioral_comment = request.POST.get(f'behavioral_comment_{student.id}', '').strip()
+            # Fetch the exam score from POST request (it may not exist if the user didn't input it)
+            exam_score = request.POST.get(f'exam_score_{student.id}', 0.0)
 
-            # Save comments to StudentReportComment model (separate from scores)
-            if is_head_class_teacher and (academic_comment is not None):
-                from reports.models import StudentReportComment
-                StudentReportComment.objects.update_or_create(
+            try:
+                # Convert exam_score to Decimal, if it's not 0.0
+                exam_score = Decimal(str(exam_score)) if exam_score else Decimal('0.0')
+            except:
+                exam_score = Decimal('0.0')  # If the value can't be converted, set to 0.0
+
+            # If a score exists for the student, use that to fetch or update the score
+            if existing_score:
+                # Update existing score (don't manually recalculate)
+                existing_score.exam_score = exam_score
+                existing_score.save()  # This will trigger the `save()` method to recalculate total_score and grade
+            else:
+                # Create a new score object if no existing score
+                new_score = Score(
                     student=student,
-                    class_year=class_year,
                     term=term,
-                    defaults={
-                        'academic_comment': academic_comment,
-                        'behavioral_comment': behavioral_comment,
-                        'created_by': request.user
-                    }
+                    subject=subject,
+                    created_by=request.user,
+                    exam_score=exam_score,
                 )
+                new_score.save()  # This will trigger the `save()` method to calculate total_score and grade
 
-            # Only process exam scores if not comment-only save
-            if not comment_only_save:
-                # Fetch the exam score from POST request (it may not exist if the user didn't input it)
-                exam_score = request.POST.get(f'exam_score_{student.id}', 0.0)
-
-                try:
-                    # Convert exam_score to Decimal, if it's not 0.0
-                    exam_score = Decimal(str(exam_score)) if exam_score else Decimal('0.0')
-                except:
-                    exam_score = Decimal('0.0')  # If the value can't be converted, set to 0.0
-
-                # If a score exists for the student, use that to fetch or update the score
-                if existing_score:
-                    # Update existing score (don't manually recalculate)
-                    existing_score.exam_score = exam_score
-                    existing_score.save()  # This will trigger the `save()` method to recalculate total_score and grade
-                else:
-                    # Create a new score object if no existing score
-                    new_score = Score(
-                        student=student,
-                        term=term,
-                        subject=subject,
-                        created_by=request.user,
-                        exam_score=exam_score,
-                    )
-                    new_score.save()  # This will trigger the `save()` method to calculate total_score and grade
-
-        message = 'Comments saved successfully!' if comment_only_save else 'End of Term Scores saved successfully!'
-        return JsonResponse({'status': 'success', 'message': message})
+        return JsonResponse({'status': 'success', 'message': 'End of Term Scores saved successfully!'})
 
     return render(request, 'dashboard.html', {
         'formset': formset,
@@ -1498,30 +1459,7 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
             # Get the scores for each student for current subject
             student_scores = scores.filter(student=student)
 
-            # Get comments from StudentReportComment model (separate from scores)
-            from reports.models import StudentReportComment
-            academic_comment = ''
-            behavioral_comment = ''
-
-            try:
-                student_comment = StudentReportComment.objects.get(
-                    student=student,
-                    class_year=class_year,
-                    term=term
-                )
-                academic_comment = student_comment.academic_comment or ''
-                behavioral_comment = student_comment.behavioral_comment or ''
-                # Debug logging
-                if student.fullname in ['Tamar Williams', 'Kirk Tamakloe']:
-                    print(f"DEBUG: Found StudentReportComment for {student.fullname}")
-                    print(f"  Academic: '{academic_comment[:100] if academic_comment else ''}'")
-                    print(f"  Behavioral: '{behavioral_comment[:100] if behavioral_comment else ''}'")
-            except StudentReportComment.DoesNotExist:
-                if student.fullname in ['Tamar Williams', 'Kirk Tamakloe']:
-                    print(f"DEBUG: NO StudentReportComment found for {student.fullname} in {term.term_name}")
-                pass
-
-            # Get mock report comments (separate from end-of-term comments)
+            # Get mock report comments
             from reports.models import MockReportComment
             mock_academic_comment = ''
             mock_behavioral_comment = ''
@@ -1541,8 +1479,6 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
             student_info = {
                 'student_id': student.id,
                 'student_name': student.fullname,  # assuming 'fullname' is a field in your Student model
-                'academic_comment': academic_comment,  # Student-level comments (end-of-term)
-                'behavioral_comment': behavioral_comment,  # Student-level comments (end-of-term)
                 'mock_academic_comment': mock_academic_comment,  # Mock report comments
                 'mock_behavioral_comment': mock_behavioral_comment,  # Mock report comments
                 'scores': []
@@ -1567,17 +1503,10 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
             # Add the student's information to the list
             student_data.append(student_info)
 
-            # Debug: Print final student_info for specific students
-            if student.fullname in ['Tamar Williams', 'Kirk Tamakloe']:
-                print(f"DEBUG: Final student_info for {student.fullname}:")
-                print(f"  academic_comment in dict: '{student_info.get('academic_comment', 'KEY NOT FOUND')}'")
-                print(f"  behavioral_comment in dict: '{student_info.get('behavioral_comment', 'KEY NOT FOUND')}'")
-
         # Return the serialized student data along with the subject name
         return JsonResponse({
             'student_data': student_data,
-            'subject_name': subject.name,  # Include subject name here
-            'is_head_class_teacher': is_head_class_teacher  # Include head class teacher status
+            'subject_name': subject.name  # Include subject name here
         })
 
     except (Level.DoesNotExist, ClassYear.DoesNotExist, Term.DoesNotExist, Subject.DoesNotExist):
@@ -1889,9 +1818,11 @@ def get_promotion_choices(request):
 @require_POST
 def generate_report(request):
     is_head_class_teacher = False
+    can_print_results = False
     try:
         teacher_profile = TeacherProfile.objects.get(user=request.user)
         is_head_class_teacher = teacher_profile.is_head_class_teacher
+        can_print_results = teacher_profile.can_print_results
     except TeacherProfile.DoesNotExist:
         pass
 
@@ -1996,6 +1927,7 @@ def generate_report(request):
             'gpa': round(float(gpa), 2),  # Use live-calculated GPA, same as preview
             'report_data': report_data,
             'is_head_class_teacher': is_head_class_teacher,
+            'can_print_results': can_print_results,
             'promotion': academic_report.promotion,
             'academic_comment': academic_comment,
             'behavioral_comment': behavioral_comment
@@ -2015,6 +1947,57 @@ def generate_report(request):
         print(f"Unexpected error in generate_report: {str(e)}")
         return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {str(e)}'})
 
+
+# Save end-of-term report comments
+@login_required(login_url='login')
+@require_POST
+def save_report_comment(request):
+    try:
+        data = json.loads(request.body)
+        student_id = data.get('student_id')
+        class_year_id = data.get('class_year_id')
+        term_id = data.get('term_id')
+        academic_comment = data.get('academic_comment', '')
+        behavioral_comment = data.get('behavioral_comment', '')
+
+        # Verify user has permission (is_head_class_teacher or can_print_results)
+        try:
+            teacher_profile = TeacherProfile.objects.get(user=request.user)
+            if not (teacher_profile.is_head_class_teacher or teacher_profile.can_print_results):
+                return JsonResponse({'success': False, 'error': 'You do not have permission to edit comments.'})
+        except TeacherProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Teacher profile not found.'})
+
+        # Get the required objects
+        student = Student.objects.get(id=student_id)
+        class_year = ClassYear.objects.get(id=class_year_id)
+        term = Term.objects.get(id=term_id)
+
+        # Update or create the comment
+        from reports.models import StudentReportComment
+        StudentReportComment.objects.update_or_create(
+            student=student,
+            class_year=class_year,
+            term=term,
+            defaults={
+                'academic_comment': academic_comment,
+                'behavioral_comment': behavioral_comment,
+                'created_by': request.user
+            }
+        )
+
+        return JsonResponse({'success': True, 'message': 'Comments saved successfully!'})
+
+    except Student.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Student not found.'})
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Class year not found.'})
+    except Term.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Term not found.'})
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
 
 
 # This logic allows me to generate midterm reports dynamically
@@ -2177,9 +2160,11 @@ def generate_midterm_report(request):
 def generate_mock_report(request):
     # Check if user is head class teacher
     is_head_class_teacher = False
+    can_print_results = False
     try:
         teacher_profile = TeacherProfile.objects.get(user=request.user)
         is_head_class_teacher = teacher_profile.is_head_class_teacher
+        can_print_results = teacher_profile.can_print_results
     except TeacherProfile.DoesNotExist:
         pass
 
@@ -2328,7 +2313,8 @@ def generate_mock_report(request):
                 'report_data': mock_report_data['scores'],  # Pass the scores directly
                 'academic_comment': academic_comment,
                 'behavioral_comment': behavioral_comment,
-                'is_head_class_teacher': is_head_class_teacher
+                'is_head_class_teacher': is_head_class_teacher,
+                'can_print_results': can_print_results
             })
 
             # Return a JsonResponse with the generated report data
@@ -2346,6 +2332,57 @@ def generate_mock_report(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
+
+# Save mock report comments
+@login_required(login_url='login')
+@require_POST
+def save_mock_comment(request):
+    try:
+        data = json.loads(request.body)
+        student_id = data.get('student_id')
+        class_year_id = data.get('class_year_id')
+        term_id = data.get('term_id')
+        academic_comment = data.get('academic_comment', '')
+        behavioral_comment = data.get('behavioral_comment', '')
+
+        # Verify user has permission (is_head_class_teacher or can_print_results)
+        try:
+            teacher_profile = TeacherProfile.objects.get(user=request.user)
+            if not (teacher_profile.is_head_class_teacher or teacher_profile.can_print_results):
+                return JsonResponse({'success': False, 'error': 'You do not have permission to edit comments.'})
+        except TeacherProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Teacher profile not found.'})
+
+        # Get the required objects
+        student = Student.objects.get(id=student_id)
+        class_year = ClassYear.objects.get(id=class_year_id)
+        term = Term.objects.get(id=term_id)
+
+        # Update or create the comment
+        from reports.models import MockReportComment
+        MockReportComment.objects.update_or_create(
+            student=student,
+            class_year=class_year,
+            term=term,
+            defaults={
+                'academic_comment': academic_comment,
+                'behavioral_comment': behavioral_comment,
+                'created_by': request.user
+            }
+        )
+
+        return JsonResponse({'success': True, 'message': 'Comments saved successfully!'})
+
+    except Student.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Student not found.'})
+    except ClassYear.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Class year not found.'})
+    except Term.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Term not found.'})
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
 
 
 @login_required(login_url='login')

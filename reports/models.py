@@ -523,13 +523,15 @@ class AcademicReport(models.Model):
 
 
 class TeacherProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     subjects = models.ManyToManyField(Subject, related_name='teachers')
     is_head_class_teacher = models.BooleanField(default=False)
+    can_print_results = models.BooleanField(default=False, help_text="Allow user to print and download reports as PDF")
+
     class Meta:
         verbose_name="Teacher Profile"
         verbose_name_plural = "Teacher Profiles"
-        
+
     def __str__(self):
         return f"Teacher Profile: {self.user.username}"
 

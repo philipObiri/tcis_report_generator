@@ -91,45 +91,6 @@ class ScoreAdmin(admin.ModelAdmin):
 
 
 
-
-
-# # Custom admin class for MidtermReport
-# class MidtermReportAdmin(admin.ModelAdmin):
-#     list_display = ('student', 'term', 'midterm_gpa', 'generated_by')
-#     search_fields = ('student__fullname', 'term__term_name')
-#     list_filter = ('term',)
-#     readonly_fields = ('midterm_gpa', 'generated_by')
-
-
-# # Custom admin class for ProgressiveTestOneReport
-# class ProgressiveTestOneReportAdmin(admin.ModelAdmin):
-#     list_display = ('student', 'term', 'progressive_test1_gpa', 'generated_by',)
-#     search_fields = ('student__fullname', 'term__term_name')
-#     list_filter = ('term',)
-#     readonly_fields = ('progressive_test1_gpa', 'generated_by')
-
-
-# # Custom admin class for ProgressiveTestTwoReport
-# class ProgressiveTestTwoReportAdmin(admin.ModelAdmin):
-#     list_display = ('student', 'term', 'progressive_test2_gpa', 'generated_by')
-#     search_fields = ('student__fullname', 'term__term_name')
-#     list_filter = ('term',)
-#     readonly_fields = ('progressive_test2_gpa', 'generated_by')
-
-
-# # Custom admin class for ProgressiveTestThreeReport
-# class ProgressiveTestThreeReportAdmin(admin.ModelAdmin):
-#     list_display = ('student', 'term', 'progressive_test3_gpa', 'generated_by')
-#     search_fields = ('student__fullname', 'term__term_name')
-#     list_filter = ('term',)
-#     readonly_fields = ('progressive_test3_gpa', 'generated_by')
-
-
-
-
-
-
-
 # Register the StudentReportComment model
 class StudentReportCommentAdmin(admin.ModelAdmin):
     list_display = ('student', 'class_year', 'term', 'has_academic_comment', 'has_behavioral_comment', 'created_by', 'updated_at')

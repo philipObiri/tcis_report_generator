@@ -114,7 +114,28 @@
       .gpa_grade {
         margin-top: 1rem;
       }
-      
+
+      /* Hide buttons when printing */
+      @media print {
+        .print-btn {
+          display: none !important;
+        }
+
+        button {
+          display: none !important;
+        }
+
+        body {
+          background-color: white;
+        }
+
+        .container {
+          box-shadow: none;
+          margin: 0;
+          padding: 20px;
+        }
+      }
+
       /* Responsive design for smaller screens */
       @media (max-width: 800px) {
         .navbar {

@@ -77,21 +77,21 @@ class Command(BaseCommand):
                     # Calculate grade
                     if Decimal('95') <= new_total <= Decimal('100'):
                         new_grade = 'A*'
-                    elif Decimal('80') <= new_total <= Decimal('94'):
+                    elif Decimal('80') <= new_total < Decimal('95'):
                         new_grade = 'A'
-                    elif Decimal('75') <= new_total <= Decimal('79'):
+                    elif Decimal('75') <= new_total < Decimal('80'):
                         new_grade = 'B+'
-                    elif Decimal('70') <= new_total <= Decimal('74'):
+                    elif Decimal('70') <= new_total < Decimal('75'):
                         new_grade = 'B'
-                    elif Decimal('65') <= new_total <= Decimal('69'):
+                    elif Decimal('65') <= new_total < Decimal('70'):
                         new_grade = 'C+'
-                    elif Decimal('60') <= new_total <= Decimal('64'):
+                    elif Decimal('60') <= new_total < Decimal('65'):
                         new_grade = 'C'
-                    elif Decimal('50') <= new_total <= Decimal('59'):
+                    elif Decimal('50') <= new_total < Decimal('60'):
                         new_grade = 'D'
-                    elif Decimal('45') <= new_total <= Decimal('49'):
+                    elif Decimal('45') <= new_total < Decimal('50'):
                         new_grade = 'E'
-                    elif Decimal('35') <= new_total <= Decimal('44'):
+                    elif Decimal('35') <= new_total < Decimal('45'):
                         new_grade = 'F'
                     else:
                         new_grade = 'Ungraded'

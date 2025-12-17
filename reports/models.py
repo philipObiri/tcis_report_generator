@@ -224,21 +224,21 @@ class Score(models.Model):
         # Assign grade based on rounded total_score
         if Decimal('95') <= self.total_score <= Decimal('100'):
             self.grade = 'A*'
-        elif Decimal('80') <= self.total_score <= Decimal('94'):
+        elif Decimal('80') <= self.total_score < Decimal('95'):
             self.grade = 'A'
-        elif Decimal('75') <= self.total_score <= Decimal('79'):
+        elif Decimal('75') <= self.total_score < Decimal('80'):
             self.grade = 'B+'
-        elif Decimal('70') <= self.total_score <= Decimal('74'):
+        elif Decimal('70') <= self.total_score < Decimal('75'):
             self.grade = 'B'
-        elif Decimal('65') <= self.total_score <= Decimal('69'):
+        elif Decimal('65') <= self.total_score < Decimal('70'):
             self.grade = 'C+'
-        elif Decimal('60') <= self.total_score <= Decimal('64'):
+        elif Decimal('60') <= self.total_score < Decimal('65'):
             self.grade = 'C'
-        elif Decimal('50') <= self.total_score <= Decimal('59'):
+        elif Decimal('50') <= self.total_score < Decimal('60'):
             self.grade = 'D'
-        elif Decimal('45') <= self.total_score <= Decimal('49'):
+        elif Decimal('45') <= self.total_score < Decimal('50'):
             self.grade = 'E'
-        elif Decimal('35') <= self.total_score <= Decimal('44'):
+        elif Decimal('35') <= self.total_score < Decimal('45'):
             self.grade = 'F'
         else:
             self.grade = 'Ungraded'

@@ -144,10 +144,18 @@ $(document).ready(function () {
                             studentRows += '</div>';
                             studentRows += '</td>';
 
-                            // Extract comments if available
-                            var academicComment = (item.scores && item.scores[0] && item.scores[0].academic_comment) ? item.scores[0].academic_comment : '';
-                            var behavioralComment = (item.scores && item.scores[0] && item.scores[0].behavioral_comment) ? item.scores[0].behavioral_comment : '';
+                            // Extract student-level comments (not tied to specific subject)
+                            var academicComment = item.academic_comment || '';
+                            var behavioralComment = item.behavioral_comment || '';
                             var hasComments = academicComment || behavioralComment;
+
+                            // Debug: Log to see what we're getting
+                            if (item.student_name === 'Tamar Williams' || item.student_name === 'Kirk Tamakloe') {
+                                console.log('DEBUG Student:', item.student_name);
+                                console.log('  academic_comment:', item.academic_comment);
+                                console.log('  behavioral_comment:', item.behavioral_comment);
+                                console.log('  hasComments:', hasComments);
+                            }
 
                             // Check if user is head class teacher
                             var isHeadTeacher = $('#is-head-class-teacher').val() === 'True';
@@ -489,26 +497,61 @@ $(document).ready(function () {
             return;
         }
 
-        // Store comments temporarily (will be saved with exam scores)
-        var commentBtn = $('[data-student-id="' + studentId + '"].add-comment-btn');
-        commentBtn.data('academic-comment', academicComment);
-        commentBtn.data('behavioral-comment', behavioralComment);
-        commentBtn.attr('data-academic-comment', academicComment);
-        commentBtn.attr('data-behavioral-comment', behavioralComment);
+        // Get current filter values to save comments to backend immediately
+        var termId = $('#term-select').val();
+        var classYearId = $('#class-year-select').val();
+        var levelId = $('#level-select').val();
+        var subjectId = $('#subject-select').val();
 
-        // Update button appearance
-        commentBtn.removeClass('btn-info').addClass('btn-warning');
-        commentBtn.html('✓ Comments');
-        commentBtn.attr('title', 'Edit comments');
+        // Save comments immediately to backend
+        var formData = new FormData();
+        formData.append('level', levelId);
+        formData.append('class_year', classYearId);
+        formData.append('term', termId);
+        formData.append('subject', subjectId);
+        formData.append('academic_comment_' + studentId, academicComment);
+        formData.append('behavioral_comment_' + studentId, behavioralComment);
+        formData.append('csrfmiddlewaretoken', $('input[name=csrfmiddlewaretoken]').val());
 
-        // Close modal
-        $('#studentCommentModal').modal('hide');
+        $.ajax({
+            type: 'POST',
+            url: '/dashboard/process_scores/',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                // Update button appearance
+                var commentBtn = $('[data-student-id="' + studentId + '"].add-comment-btn');
+                commentBtn.data('academic-comment', academicComment);
+                commentBtn.data('behavioral-comment', behavioralComment);
+                commentBtn.attr('data-academic-comment', academicComment);
+                commentBtn.attr('data-behavioral-comment', behavioralComment);
+                commentBtn.removeClass('btn-info').addClass('btn-warning');
+                commentBtn.html('✓ Comments');
+                commentBtn.attr('title', 'Edit comments');
 
-        Swal.fire({
-            title: 'Success!',
-            text: 'Comments saved. Don\'t forget to click "Record Scores" to save all changes.',
-            icon: 'success',
-            confirmButtonText: 'OK'
+                // Close modal
+                $('#studentCommentModal').modal('hide');
+
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Comments saved successfully!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to save comments. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
         });
     });
 
@@ -525,30 +568,67 @@ $(document).ready(function () {
             if (result.isConfirmed) {
                 var studentId = $('#comment-student-id').val();
 
-                // Clear comments
-                var commentBtn = $('[data-student-id="' + studentId + '"].add-comment-btn');
-                commentBtn.data('academic-comment', '');
-                commentBtn.data('behavioral-comment', '');
-                commentBtn.attr('data-academic-comment', '');
-                commentBtn.attr('data-behavioral-comment', '');
+                // Get current filter values to delete comments from backend
+                var termId = $('#term-select').val();
+                var classYearId = $('#class-year-select').val();
+                var levelId = $('#level-select').val();
+                var subjectId = $('#subject-select').val();
 
-                // Update button appearance
-                commentBtn.removeClass('btn-warning').addClass('btn-info');
-                commentBtn.html('+ Comments');
-                commentBtn.attr('title', 'Add comments');
+                // Delete comments from backend
+                var formData = new FormData();
+                formData.append('level', levelId);
+                formData.append('class_year', classYearId);
+                formData.append('term', termId);
+                formData.append('subject', subjectId);
+                formData.append('academic_comment_' + studentId, '');
+                formData.append('behavioral_comment_' + studentId, '');
+                formData.append('csrfmiddlewaretoken', $('input[name=csrfmiddlewaretoken]').val());
 
-                // Clear modal inputs
-                $('#academic-comment-input').val('');
-                $('#behavioral-comment-input').val('');
+                $.ajax({
+                    type: 'POST',
+                    url: '/dashboard/process_scores/',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        // Clear comments from button
+                        var commentBtn = $('[data-student-id="' + studentId + '"].add-comment-btn');
+                        commentBtn.data('academic-comment', '');
+                        commentBtn.data('behavioral-comment', '');
+                        commentBtn.attr('data-academic-comment', '');
+                        commentBtn.attr('data-behavioral-comment', '');
 
-                // Close modal
-                $('#studentCommentModal').modal('hide');
+                        // Update button appearance
+                        commentBtn.removeClass('btn-warning').addClass('btn-info');
+                        commentBtn.html('+ Comments');
+                        commentBtn.attr('title', 'Add comments');
 
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'Comments removed. Click "Record Scores" to save changes.',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
+                        // Clear modal inputs
+                        $('#academic-comment-input').val('');
+                        $('#behavioral-comment-input').val('');
+
+                        // Close modal
+                        $('#studentCommentModal').modal('hide');
+
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'Comments deleted successfully!',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to delete comments. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
                 });
             }
         });

@@ -274,23 +274,6 @@
           <td class="total-cell">{{ item.total_score|floatformat:2 }}</td>
           <td>{{ item.grade }}</td>
         </tr>
-        {% if item.academic_comment or item.behavioral_comment %}
-        <tr style="background-color: #f8f9fa;">
-          <td colspan="6" style="padding: 10px;">
-            <small><strong>Subject Comments:</strong></small>
-            {% if item.academic_comment %}
-            <div style="margin-top: 5px;">
-              <small><em>Academic:</em> {{ item.academic_comment }}</small>
-            </div>
-            {% endif %}
-            {% if item.behavioral_comment %}
-            <div style="margin-top: 5px;">
-              <small><em>Behavioral:</em> {{ item.behavioral_comment }}</small>
-            </div>
-            {% endif %}
-          </td>
-        </tr>
-        {% endif %}
         {% empty %}
         <tr>
           <td colspan="6" class="text-center">No scores available for this student in this term.</td>

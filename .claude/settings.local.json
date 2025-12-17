@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python manage.py makemigrations:*)",
       "Bash(python manage.py:*)",
-      "Bash(python test_cambridge_grading.py:*)"
+      "Bash(python test_cambridge_grading.py:*)",
+      "Bash(if not exist \"C:\\Users\\Administrator\\Desktop\\TCIS\\current\\reports\\management\" mkdir \"C:\\Users\\Administrator\\Desktop\\TCIS\\current\\reports\\management\")"
     ]
   }
 }

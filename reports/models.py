@@ -91,6 +91,30 @@ class Student(models.Model):
             self.subjects.clear()
             self.subjects.add(*self.class_year.subjects.all())
 
+
+class StudentReportComment(models.Model):
+    """
+    Store student report comments separately from scores.
+    Comments are tied to student + term, not individual subjects.
+    This ensures comments are consistent across all subjects.
+    """
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='report_comments')
+    term = models.ForeignKey('Term', on_delete=models.CASCADE, related_name='report_comments')
+    academic_comment = models.TextField(blank=True, default='')
+    behavioral_comment = models.TextField(blank=True, default='')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'term')
+        verbose_name = 'Student Report Comment'
+        verbose_name_plural = 'Student Report Comments'
+
+    def __str__(self):
+        return f"Comments for {self.student.fullname} - {self.term.term_name}"
+
+
 class Score(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='scores')

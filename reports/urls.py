@@ -35,6 +35,7 @@ urlpatterns = [
     path('reports/generate_report/', views.generate_report, name='generate_report'),
     path('reports/generate_midterm_report/', views.generate_midterm_report, name="generate_midterm_report"),
     path('reports/generate_mock_report/', views.generate_mock_report, name="generate_mock_report"),
+    path('reports/delete_mock_report/<int:report_id>/', views.delete_mock_report, name="delete_mock_report"),
     path('reports/generate_progressive_one_report/', views.generate_progressive_one_report, name="generate_progressive_one_report"),
     
 

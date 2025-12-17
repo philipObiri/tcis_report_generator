@@ -672,6 +672,24 @@ def mock_scores(request):
                             'message': f'Invalid mock score value for {student.fullname}: {posted_mock_score}'
                         })
 
+                # Handle mock report comments (only for head class teachers)
+                if is_head_class_teacher:
+                    mock_academic_comment = request.POST.get(f'mock_academic_comment_{student.id}')
+                    mock_behavioral_comment = request.POST.get(f'mock_behavioral_comment_{student.id}')
+
+                    if mock_academic_comment is not None or mock_behavioral_comment is not None:
+                        from reports.models import MockReportComment
+                        MockReportComment.objects.update_or_create(
+                            student=student,
+                            class_year=class_year,
+                            term=term,
+                            defaults={
+                                'academic_comment': mock_academic_comment or '',
+                                'behavioral_comment': mock_behavioral_comment or '',
+                                'created_by': request.user
+                            }
+                        )
+
             return JsonResponse({
                 'status': 'success',
                 'message': 'Mock Scores saved successfully!'
@@ -795,6 +813,7 @@ def process_scores_view(request):
                 from reports.models import StudentReportComment
                 StudentReportComment.objects.update_or_create(
                     student=student,
+                    class_year=class_year,
                     term=term,
                     defaults={
                         'academic_comment': academic_comment,
@@ -840,48 +859,6 @@ def process_scores_view(request):
         'is_head_class_teacher': is_head_class_teacher,
     })
 
-
-
-
-# Functional Logic to fetch all end of term scores :
-# @login_required(login_url='login')
-# def view_academic_report(request, student_id, term_id):
-#     try:
-#         student = Student.objects.get(id=student_id)
-#         scores = Score.objects.filter(student=student, term=term_id, subject__in=student.subjects.all())
-#         term = get_object_or_404(Term, id=term_id)
-        
-#         # Ensure that class_year is serialized to a string or relevant field
-#         class_year = student.class_year.name if hasattr(student.class_year, 'name') else str(student.class_year)
-
-#         # Calculate GPA based on scores (e.g., using weighted average of grades)
-#         gpa = calculate_gpa(scores)
-
-#         # Prepare data to be returned in the JSON response
-#         report = {
-#             'student_name': student.fullname,
-#             'class_year': class_year,  # Ensure it's a serializable value (e.g., string)
-#             'term': term.term_name,
-#             'gpa': gpa,
-#             'scores': [
-#                 {
-#                     'subject': score.subject.name,
-#                     'ca': score.continuous_assessment,
-#                     'exam': score.exam_score,
-#                     'total': score.total_score,  # Assuming you have a method to calculate total score
-#                     'grade': score.grade
-#                 }
-#                 for score in scores
-#             ]
-#         }
-
-#         # Return a JsonResponse with the report data
-#         return JsonResponse(report)
-
-#     except Student.DoesNotExist:
-#         return JsonResponse({'error': 'Student not found'}, status=404)
-#     except Exception as e:
-#         return JsonResponse({'error': str(e)}, status=500)
 
 
 
@@ -1494,6 +1471,14 @@ def get_subjects_by_class_year(request, class_year_id):
 ## Fetch students based on selected filters
 @login_required(login_url='login')
 def get_students_by_filters(request, level_id, class_year_id, term_id, subject_id):
+    # Check if user is head class teacher
+    is_head_class_teacher = False
+    try:
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
     try:
         # Get the selected objects based on the filters
         level = Level.objects.get(id=level_id)
@@ -1519,7 +1504,11 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
             behavioral_comment = ''
 
             try:
-                student_comment = StudentReportComment.objects.get(student=student, term=term)
+                student_comment = StudentReportComment.objects.get(
+                    student=student,
+                    class_year=class_year,
+                    term=term
+                )
                 academic_comment = student_comment.academic_comment or ''
                 behavioral_comment = student_comment.behavioral_comment or ''
                 # Debug logging
@@ -1532,12 +1521,30 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
                     print(f"DEBUG: NO StudentReportComment found for {student.fullname} in {term.term_name}")
                 pass
 
+            # Get mock report comments (separate from end-of-term comments)
+            from reports.models import MockReportComment
+            mock_academic_comment = ''
+            mock_behavioral_comment = ''
+
+            try:
+                mock_comment = MockReportComment.objects.get(
+                    student=student,
+                    class_year=class_year,
+                    term=term
+                )
+                mock_academic_comment = mock_comment.academic_comment or ''
+                mock_behavioral_comment = mock_comment.behavioral_comment or ''
+            except MockReportComment.DoesNotExist:
+                pass
+
             # Serialize the student and their scores into a dictionary
             student_info = {
                 'student_id': student.id,
                 'student_name': student.fullname,  # assuming 'fullname' is a field in your Student model
-                'academic_comment': academic_comment,  # Student-level comments
-                'behavioral_comment': behavioral_comment,  # Student-level comments
+                'academic_comment': academic_comment,  # Student-level comments (end-of-term)
+                'behavioral_comment': behavioral_comment,  # Student-level comments (end-of-term)
+                'mock_academic_comment': mock_academic_comment,  # Mock report comments
+                'mock_behavioral_comment': mock_behavioral_comment,  # Mock report comments
                 'scores': []
             }
 
@@ -1569,7 +1576,8 @@ def get_students_by_filters(request, level_id, class_year_id, term_id, subject_i
         # Return the serialized student data along with the subject name
         return JsonResponse({
             'student_data': student_data,
-            'subject_name': subject.name  # Include subject name here
+            'subject_name': subject.name,  # Include subject name here
+            'is_head_class_teacher': is_head_class_teacher  # Include head class teacher status
         })
 
     except (Level.DoesNotExist, ClassYear.DoesNotExist, Term.DoesNotExist, Subject.DoesNotExist):
@@ -1934,7 +1942,11 @@ def generate_report(request):
         behavioral_comment = ''
 
         try:
-            student_comment = StudentReportComment.objects.get(student=student, term=term)
+            student_comment = StudentReportComment.objects.get(
+                student=student,
+                class_year=class_year_obj,
+                term=term
+            )
             academic_comment = student_comment.academic_comment or ''
             behavioral_comment = student_comment.behavioral_comment or ''
         except StudentReportComment.DoesNotExist:
@@ -1976,8 +1988,11 @@ def generate_report(request):
 
         context = {
             'student_name': student_name,
+            'student_id': student.id,
             'class_year': class_year,
+            'class_year_id': class_year_obj.id,
             'term_name': term_name,
+            'term_id': term.id,
             'gpa': round(float(gpa), 2),  # Use live-calculated GPA, same as preview
             'report_data': report_data,
             'is_head_class_teacher': is_head_class_teacher,
@@ -2160,6 +2175,14 @@ def generate_midterm_report(request):
 # This logic allows me to generate midterm reports dynamically
 @login_required(login_url='login')
 def generate_mock_report(request):
+    # Check if user is head class teacher
+    is_head_class_teacher = False
+    try:
+        teacher_profile = TeacherProfile.objects.get(user=request.user)
+        is_head_class_teacher = teacher_profile.is_head_class_teacher
+    except TeacherProfile.DoesNotExist:
+        pass
+
     if request.method == 'POST':
         data = json.loads(request.body)
         student_name = data.get('student_name')
@@ -2242,25 +2265,39 @@ def generate_mock_report(request):
             # Create or update the MockReport instance for this student and term
             mock_report, created = MockReport.objects.get_or_create(
                 student=student,
-                term=term
+                term=term,
+                defaults={
+                    'mock_gpa': round(float(average_gpa), 2),
+                    'generated_by': request.user
+                }
             )
 
-            # If it's a new report, set the fields and save
-            if created:
-                # Set the necessary fields for the new report
-                mock_report.student = student
-                mock_report.term = term
-                mock_report.mock_gpa = float(average_gpa)
-                mock_report.generated_by = request.user  # Automatically set generated_by to the current user
+            # Update the report (whether new or existing)
+            mock_report.mock_gpa = round(float(average_gpa), 2)
+            if not mock_report.generated_by:
+                mock_report.generated_by = request.user
 
-                # Save the report first to generate an ID
-                mock_report.save()
+            # Save the report first to generate an ID (if new) or update it (if existing)
+            mock_report.save()
 
-                # Set the scores to the MidtermReport (many-to-many relationship)
-                mock_report.student_scores.set(scores)  # Set the full Score instances to the report
+            # Set the scores to the MockReport (many-to-many relationship)
+            mock_report.student_scores.set(scores)
 
-                # Save again after assigning the many-to-many relationship
-                mock_report.save()
+            # Get comments from MockReportComment model (separate from scores)
+            from reports.models import MockReportComment
+            academic_comment = ''
+            behavioral_comment = ''
+
+            try:
+                mock_comment = MockReportComment.objects.get(
+                    student=student,
+                    class_year=class_year_obj,
+                    term=term
+                )
+                academic_comment = mock_comment.academic_comment or ''
+                behavioral_comment = mock_comment.behavioral_comment or ''
+            except MockReportComment.DoesNotExist:
+                pass
 
             # Prepare data to be returned in the JSON response
             mock_report_data = {
@@ -2282,10 +2319,16 @@ def generate_mock_report(request):
             # Render the HTML for the report using the 'generated_mock_report.html' template
             report_html = render_to_string('generated_mock_report.html', {
                 'student_name': student.fullname,
+                'student_id': student.id,
                 'class_year': class_year_obj.name,
+                'class_year_id': class_year_obj.id,
                 'term_name': term.term_name,
+                'term_id': term.id,
                 'gpa': round(float(average_gpa), 2),  # Round to 2 decimals
                 'report_data': mock_report_data['scores'],  # Pass the scores directly
+                'academic_comment': academic_comment,
+                'behavioral_comment': behavioral_comment,
+                'is_head_class_teacher': is_head_class_teacher
             })
 
             # Return a JsonResponse with the generated report data
@@ -2305,6 +2348,29 @@ def generate_mock_report(request):
 
 
 
+@login_required(login_url='login')
+def delete_mock_report(request, report_id):
+    """Delete a mock report"""
+    try:
+        mock_report = MockReport.objects.get(id=report_id)
+
+        # Optional: Check if user has permission to delete
+        # if mock_report.generated_by != request.user and not request.user.is_staff:
+        #     return JsonResponse({'success': False, 'error': 'Permission denied.'})
+
+        student_name = mock_report.student.fullname
+        term_name = mock_report.term.term_name
+
+        mock_report.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Mock report for {student_name} - {term_name} deleted successfully.'
+        })
+    except MockReport.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Mock report not found.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 # This logic allows me to generate progressive tests one reports dynamically

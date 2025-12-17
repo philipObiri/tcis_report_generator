@@ -250,7 +250,7 @@
           <th>Score</th>
           <th>Grade</th>
           <th>GPA</th>
-        </tr>
+        </tr> 
       </thead>
       <tbody>
         {% for item in report_data %}
@@ -349,6 +349,52 @@
           </tr>
         </tbody>
       </table>
+
+      <hr style="margin: 30px 0;">
+
+      <!-- Hidden data for JavaScript -->
+      <input type="hidden" id="student-id" value="{{ student_id }}" />
+      <input type="hidden" id="class-year-id" value="{{ class_year_id }}" />
+      <input type="hidden" id="term-id" value="{{ term_id }}" />
+      <input type="hidden" id="is-head-class-teacher" value="{{ is_head_class_teacher }}" />
+
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <strong>
+            <h5>Academic Comment:</h5>
+          </strong>
+          {% if is_head_class_teacher %}
+          <button class="btn btn-sm btn-primary" id="edit-academic-btn" onclick="editComment('academic')" style="display: inline-block;">Edit</button>
+          {% endif %}
+        </div>
+        <p id="academic-comment-display" style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+          {{ academic_comment|default:"No academic comment provided." }}
+        </p>
+        <textarea id="academic-comment-edit" class="form-control" rows="4" style="display: none; margin-top: 10px;">{{ academic_comment }}</textarea>
+        <div id="academic-comment-actions" style="display: none; margin-top: 10px;">
+          <button class="btn btn-sm btn-success" onclick="saveComment('academic')">Save</button>
+          <button class="btn btn-sm btn-secondary" onclick="cancelEdit('academic')">Cancel</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <strong>
+            <h5>Behavioral Comment:</h5>
+          </strong>
+          {% if is_head_class_teacher %}
+          <button class="btn btn-sm btn-primary" id="edit-behavioral-btn" onclick="editComment('behavioral')" style="display: inline-block;">Edit</button>
+          {% endif %}
+        </div>
+        <p id="behavioral-comment-display" style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+          {{ behavioral_comment|default:"No behavioral comment provided." }}
+        </p>
+        <textarea id="behavioral-comment-edit" class="form-control" rows="4" style="display: none; margin-top: 10px;">{{ behavioral_comment }}</textarea>
+        <div id="behavioral-comment-actions" style="display: none; margin-top: 10px;">
+          <button class="btn btn-sm btn-success" onclick="saveComment('behavioral')">Save</button>
+          <button class="btn btn-sm btn-secondary" onclick="cancelEdit('behavioral')">Cancel</button>
+        </div>
+      </div>
 
       <div style="margin-top: 60px; display: flex; justify-content: flex-end; text-align: right;">
         <div style="justify-content: center; align-items: center; text-align: center;">
@@ -521,6 +567,102 @@
           document.body.removeChild(notification);
         }
       }, 3000);
+    }
+
+    // Edit comment function
+    function editComment(type) {
+      const displayElement = document.getElementById(`${type}-comment-display`);
+      const editElement = document.getElementById(`${type}-comment-edit`);
+      const actionsElement = document.getElementById(`${type}-comment-actions`);
+      const editBtn = document.getElementById(`edit-${type}-btn`);
+
+      // Hide display, show edit mode
+      displayElement.style.display = 'none';
+      editElement.style.display = 'block';
+      actionsElement.style.display = 'block';
+      editBtn.style.display = 'none';
+    }
+
+    // Cancel edit function
+    function cancelEdit(type) {
+      const displayElement = document.getElementById(`${type}-comment-display`);
+      const editElement = document.getElementById(`${type}-comment-edit`);
+      const actionsElement = document.getElementById(`${type}-comment-actions`);
+      const editBtn = document.getElementById(`edit-${type}-btn`);
+
+      // Show display, hide edit mode
+      displayElement.style.display = 'block';
+      editElement.style.display = 'none';
+      actionsElement.style.display = 'none';
+      editBtn.style.display = 'inline-block';
+    }
+
+    // Save comment function
+    function saveComment(type) {
+      const editElement = document.getElementById(`${type}-comment-edit`);
+      const newComment = editElement.value.trim();
+
+      // Get hidden values
+      const studentId = document.getElementById('student-id').value;
+      const classYearId = document.getElementById('class-year-id').value;
+      const termId = document.getElementById('term-id').value;
+
+      // Get CSRF token from cookies
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      const csrftoken = getCookie('csrftoken');
+
+      // Prepare data
+      const data = {
+        student_id: studentId,
+        class_year_id: classYearId,
+        term_id: termId,
+        comment_type: type,
+        comment: newComment
+      };
+
+      // Send AJAX request
+      fetch('/dashboard/entries/save-mock-comment/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          // Update display
+          const displayElement = document.getElementById(`${type}-comment-display`);
+          displayElement.textContent = newComment || `No ${type} comment provided.`;
+
+          // Exit edit mode
+          cancelEdit(type);
+
+          // Show success notification
+          showNotification('Comment saved successfully!', 'success');
+        } else {
+          showNotification('Error saving comment: ' + (result.error || 'Unknown error'), 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error saving comment. Please try again.', 'error');
+      });
     }
   </script>
 </body>

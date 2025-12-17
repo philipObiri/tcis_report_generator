@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from .models import (
     Level, ClassYear,
     Term, Subject, Student,TeacherProfile,
-    Score, AcademicReport, StudentReportComment
+    Score, AcademicReport, StudentReportComment, MockReportComment
     # MidtermReport,
     # ProgressiveTestOneReport, ProgressiveTestTwoReport,
     # ProgressiveTestThreeReport
@@ -132,9 +132,27 @@ class ScoreAdmin(admin.ModelAdmin):
 
 # Register the StudentReportComment model
 class StudentReportCommentAdmin(admin.ModelAdmin):
-    list_display = ('student', 'term', 'has_academic_comment', 'has_behavioral_comment', 'created_by', 'updated_at')
-    search_fields = ('student__fullname', 'term__term_name')
-    list_filter = ('term', 'created_by')
+    list_display = ('student', 'class_year', 'term', 'has_academic_comment', 'has_behavioral_comment', 'created_by', 'updated_at')
+    search_fields = ('student__fullname', 'class_year__name', 'term__term_name')
+    list_filter = ('class_year', 'term', 'created_by')
+    readonly_fields = ('created_at', 'updated_at')
+
+    def has_academic_comment(self, obj):
+        return bool(obj.academic_comment)
+    has_academic_comment.boolean = True
+    has_academic_comment.short_description = 'Academic'
+
+    def has_behavioral_comment(self, obj):
+        return bool(obj.behavioral_comment)
+    has_behavioral_comment.boolean = True
+    has_behavioral_comment.short_description = 'Behavioral'
+
+
+# Register the MockReportComment model
+class MockReportCommentAdmin(admin.ModelAdmin):
+    list_display = ('student', 'class_year', 'term', 'has_academic_comment', 'has_behavioral_comment', 'created_by', 'updated_at')
+    search_fields = ('student__fullname', 'class_year__name', 'term__term_name')
+    list_filter = ('class_year', 'term', 'created_by')
     readonly_fields = ('created_at', 'updated_at')
 
     def has_academic_comment(self, obj):
@@ -167,6 +185,7 @@ admin.site.register(TeacherProfile, TeacherProfileAdmin)
 admin.site.register(Subject, SubjectAdmin)
 admin.site.register(Score, ScoreAdmin)
 admin.site.register(StudentReportComment, StudentReportCommentAdmin)
+admin.site.register(MockReportComment, MockReportCommentAdmin)
 # admin.site.register(MidtermReport, MidtermReportAdmin)
 # admin.site.register(ProgressiveTestOneReport, ProgressiveTestOneReportAdmin)
 # admin.site.register(ProgressiveTestTwoReport, ProgressiveTestTwoReportAdmin)

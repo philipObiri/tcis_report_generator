@@ -175,9 +175,13 @@
       margin-top: 1rem;
     }
 
-    /* Hide buttons when printing */
+    /* Hide buttons and editing sections when printing */
     @media print {
       .action-buttons {
+        display: none !important;
+      }
+
+      .no-print {
         display: none !important;
       }
 
@@ -190,10 +194,11 @@
       }
 
       textarea {
-        border: none !important;
-        background-color: transparent !important;
-        resize: none !important;
-        overflow: hidden !important;
+        display: none !important;
+      }
+
+      input[type="hidden"] {
+        display: none !important;
       }
 
       body {

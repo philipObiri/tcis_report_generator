@@ -186,9 +186,13 @@
       border-radius: 4px;
     }
 
-    /* Hide buttons when printing */
+    /* Hide buttons and editing sections when printing */
     @media print {
       .action-buttons {
+        display: none !important;
+      }
+
+      .no-print {
         display: none !important;
       }
 
@@ -201,10 +205,11 @@
       }
 
       textarea {
-        border: none !important;
-        background-color: transparent !important;
-        resize: none !important;
-        overflow: hidden !important;
+        display: none !important;
+      }
+
+      input[type="hidden"] {
+        display: none !important;
       }
 
       body {
@@ -388,47 +393,60 @@
 
       <hr style="margin: 30px 0;">
 
+      <!-- Comments Section - Only visible in printed report if comments exist -->
+      {% if academic_comment or behavioral_comment %}
+      <div class="comments-display">
+        {% if academic_comment %}
+        <div style="margin-bottom: 20px;">
+          <strong>
+            <h5>Academic Comment:</h5>
+          </strong>
+          <p style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+            {{ academic_comment }}
+          </p>
+        </div>
+        {% endif %}
+
+        {% if behavioral_comment %}
+        <div style="margin-bottom: 20px;">
+          <strong>
+            <h5>Behavioral Comment:</h5>
+          </strong>
+          <p style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+            {{ behavioral_comment }}
+          </p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
       <!-- Hidden data for JavaScript -->
       <input type="hidden" id="student-id" value="{{ student_id }}" />
       <input type="hidden" id="class-year-id" value="{{ class_year_id }}" />
       <input type="hidden" id="term-id" value="{{ term_id }}" />
-      <input type="hidden" id="can-edit-comments" value="{% if is_head_class_teacher or can_print_results %}true{% else %}false{% endif %}" />
 
+      <!-- Comment Editing Section - Hidden when printing -->
       {% if is_head_class_teacher or can_print_results %}
-      <div style="margin-bottom: 20px;">
-        <strong>
-          <h5>Academic Comment:</h5>
-        </strong>
-        <textarea id="academic-comment-input" class="form-control" rows="4" placeholder="Enter academic comment...">{{ academic_comment }}</textarea>
-      </div>
+      <div class="no-print" style="margin-top: 30px; padding: 20px; background-color: #f0f8ff; border: 2px dashed #007bff; border-radius: 8px;">
+        <h5 style="color: #007bff; margin-bottom: 15px;">Edit Comments (Not visible in PDF)</h5>
 
-      <div style="margin-bottom: 20px;">
-        <strong>
-          <h5>Behavioral Comment:</h5>
-        </strong>
-        <textarea id="behavioral-comment-input" class="form-control" rows="4" placeholder="Enter behavioral comment...">{{ behavioral_comment }}</textarea>
-      </div>
+        <div style="margin-bottom: 20px;">
+          <strong>
+            <label for="academic-comment-input">Academic Comment:</label>
+          </strong>
+          <textarea id="academic-comment-input" class="form-control" rows="4" placeholder="Enter academic comment...">{{ academic_comment }}</textarea>
+        </div>
 
-      <div style="margin-bottom: 20px;">
-        <button class="btn btn-success" id="save-comments-btn" onclick="saveComments()">Save Comments</button>
-      </div>
-      {% else %}
-      <div style="margin-bottom: 20px;">
-        <strong>
-          <h5>Academic Comment:</h5>
-        </strong>
-        <p style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
-          {{ academic_comment|default:"No academic comment provided." }}
-        </p>
-      </div>
+        <div style="margin-bottom: 20px;">
+          <strong>
+            <label for="behavioral-comment-input">Behavioral Comment:</label>
+          </strong>
+          <textarea id="behavioral-comment-input" class="form-control" rows="4" placeholder="Enter behavioral comment...">{{ behavioral_comment }}</textarea>
+        </div>
 
-      <div style="margin-bottom: 20px;">
-        <strong>
-          <h5>Behavioral Comment:</h5>
-        </strong>
-        <p style="text-align: justify; line-height: 1.5; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
-          {{ behavioral_comment|default:"No behavioral comment provided." }}
-        </p>
+        <div style="margin-bottom: 20px;">
+          <button class="btn btn-success" id="save-comments-btn" onclick="saveComments()">Save Comments</button>
+        </div>
       </div>
       {% endif %}
 

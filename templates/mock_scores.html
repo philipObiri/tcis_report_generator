@@ -193,7 +193,7 @@
               <option value="Term 2">Term 2</option>
               <option value="Term 3">Term 3</option>
             </select>
-            {% if request.user.is_superuser %}
+            {% if is_head_class_teacher %}
               <button class="btn btn-primary" id="generate-report-btn">Generate Report</button>
             {% else %}
 

@@ -20,14 +20,20 @@ from .models import (
     # ProgressiveTestThreeReport
 )
 
-def export_students_to_excel(modeladmin, request, queryset):
-    queryset = queryset.select_related('class_year', 'class_year__level') \
-                       .prefetch_related('subjects')
+def _split_subjects(subjects_qs, break_after=7):
+    names = [s.name for s in subjects_qs]
+    if not names:
+        return "None"
+    groups = [names[i:i + break_after] for i in range(0, len(names), break_after)]
+    return "\n".join(", ".join(g) for g in groups)
+
+
+def _export_excel_response(queryset):
     wb = Workbook()
     ws = wb.active
     ws.title = "Students"
 
-    headers = ["Student Full Name", "Student Class", "Student Subjects"]
+    headers = ["#", "Student Full Name", "Student Class", "Student Subjects"]
     header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill(fill_type="solid", fgColor="1F4E79")
     for col_idx, header in enumerate(headers, start=1):
@@ -37,15 +43,20 @@ def export_students_to_excel(modeladmin, request, queryset):
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     for row_idx, student in enumerate(queryset, start=2):
+        row_num = row_idx - 1
         class_display = str(student.class_year) if student.class_year else "N/A"
-        subjects_display = ", ".join(s.name for s in student.subjects.all()) or "None"
-        ws.cell(row=row_idx, column=1, value=student.fullname)
-        ws.cell(row=row_idx, column=2, value=class_display)
-        ws.cell(row=row_idx, column=3, value=subjects_display)
+        subjects_display = _split_subjects(student.subjects.all())
+        ws.cell(row=row_idx, column=1, value=row_num)
+        ws.cell(row=row_idx, column=2, value=student.fullname)
+        ws.cell(row=row_idx, column=3, value=class_display)
+        subj_cell = ws.cell(row=row_idx, column=4, value=subjects_display)
+        subj_cell.alignment = Alignment(wrap_text=True, vertical="top")
+        ws.row_dimensions[row_idx].height = None
 
-    ws.column_dimensions['A'].width = 35
-    ws.column_dimensions['B'].width = 25
-    ws.column_dimensions['C'].width = 60
+    ws.column_dimensions['A'].width = 6
+    ws.column_dimensions['B'].width = 35
+    ws.column_dimensions['C'].width = 25
+    ws.column_dimensions['D'].width = 60
 
     buffer = io.BytesIO()
     wb.save(buffer)
@@ -58,13 +69,8 @@ def export_students_to_excel(modeladmin, request, queryset):
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
-export_students_to_excel.short_description = "Export selected students to Excel"
 
-
-def export_students_to_pdf(modeladmin, request, queryset):
-    queryset = queryset.select_related('class_year', 'class_year__level') \
-                       .prefetch_related('subjects')
-
+def _export_pdf_response(queryset):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=landscape(A4),
                             leftMargin=1.5*cm, rightMargin=1.5*cm,
@@ -77,19 +83,22 @@ def export_students_to_pdf(modeladmin, request, queryset):
                                  alignment=TA_CENTER, spaceAfter=4)
     subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
                                     fontSize=10, alignment=TA_CENTER, spaceAfter=12)
+    cell_style = ParagraphStyle('Cell', parent=styles['Normal'],
+                                fontSize=9, fontName='Helvetica', wordWrap='LTR')
 
     elements = []
     elements.append(Paragraph("Temple Christian International School", title_style))
     elements.append(Paragraph(f"Student List — Generated: {date.today().strftime('%B %d, %Y')}", subtitle_style))
     elements.append(Spacer(1, 0.4*cm))
 
-    table_data = [["Student Full Name", "Student Class", "Student Subjects"]]
-    for student in queryset:
+    table_data = [["#", "Student Full Name", "Student Class", "Student Subjects"]]
+    for row_num, student in enumerate(queryset, start=1):
         class_display = str(student.class_year) if student.class_year else "N/A"
-        subjects_display = ", ".join(s.name for s in student.subjects.all()) or "None"
-        table_data.append([student.fullname, class_display, subjects_display])
+        subjects_text = _split_subjects(student.subjects.all())
+        subjects_para = Paragraph(subjects_text.replace("\n", "<br/>"), cell_style)
+        table_data.append([row_num, student.fullname, class_display, subjects_para])
 
-    col_widths = [7*cm, 5*cm, 16*cm]
+    col_widths = [1.2*cm, 7.0*cm, 5.0*cm, 13.5*cm]
     table = Table(table_data, colWidths=col_widths, repeatRows=1)
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F4E79")),
@@ -115,7 +124,41 @@ def export_students_to_pdf(modeladmin, request, queryset):
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
+
+def export_students_to_excel(modeladmin, request, queryset):
+    qs = queryset.select_related('class_year', 'class_year__level') \
+                 .prefetch_related('subjects') \
+                 .order_by('fullname')
+    return _export_excel_response(qs)
+
+export_students_to_excel.short_description = "Export selected students to Excel"
+
+
+def export_all_students_to_excel(modeladmin, request, queryset):
+    qs = Student.objects.select_related('class_year', 'class_year__level') \
+                        .prefetch_related('subjects') \
+                        .order_by('fullname')
+    return _export_excel_response(qs)
+
+export_all_students_to_excel.short_description = "Export ALL students to Excel (alphabetical)"
+
+
+def export_students_to_pdf(modeladmin, request, queryset):
+    qs = queryset.select_related('class_year', 'class_year__level') \
+                 .prefetch_related('subjects') \
+                 .order_by('fullname')
+    return _export_pdf_response(qs)
+
 export_students_to_pdf.short_description = "Export selected students to PDF"
+
+
+def export_all_students_to_pdf(modeladmin, request, queryset):
+    qs = Student.objects.select_related('class_year', 'class_year__level') \
+                        .prefetch_related('subjects') \
+                        .order_by('fullname')
+    return _export_pdf_response(qs)
+
+export_all_students_to_pdf.short_description = "Export ALL students to PDF (alphabetical)"
 
 
 # Register the Level model
@@ -160,7 +203,12 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('fullname', 'class_year__name')
     list_filter = ('class_year',)
     filter_horizontal = ('subjects',)
-    actions = [export_students_to_excel, export_students_to_pdf]
+    actions = [
+        export_students_to_excel,
+        export_all_students_to_excel,
+        export_students_to_pdf,
+        export_all_students_to_pdf,
+    ]
 
 
 

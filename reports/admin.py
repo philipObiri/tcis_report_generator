@@ -203,12 +203,40 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('fullname', 'class_year__name')
     list_filter = ('class_year',)
     filter_horizontal = ('subjects',)
+    change_list_template = 'admin/reports/student/change_list.html'
     actions = [
         export_students_to_excel,
-        export_all_students_to_excel,
         export_students_to_pdf,
-        export_all_students_to_pdf,
     ]
+
+    def get_urls(self):
+        from django.urls import path
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                'export-all-excel/',
+                self.admin_site.admin_view(self.export_all_excel_view),
+                name='reports_student_export_all_excel',
+            ),
+            path(
+                'export-all-pdf/',
+                self.admin_site.admin_view(self.export_all_pdf_view),
+                name='reports_student_export_all_pdf',
+            ),
+        ]
+        return custom_urls + urls
+
+    def export_all_excel_view(self, request):
+        qs = Student.objects.select_related('class_year', 'class_year__level') \
+                            .prefetch_related('subjects') \
+                            .order_by('fullname')
+        return _export_excel_response(qs)
+
+    def export_all_pdf_view(self, request):
+        qs = Student.objects.select_related('class_year', 'class_year__level') \
+                            .prefetch_related('subjects') \
+                            .order_by('fullname')
+        return _export_pdf_response(qs)
 
 
 

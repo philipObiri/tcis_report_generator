@@ -1,5 +1,16 @@
+import io
+from datetime import date
 from django.contrib import admin
 from django.utils.html import format_html
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
 from .models import (
     Level, ClassYear,
     Term, Subject, Student,TeacherProfile,
@@ -8,6 +19,104 @@ from .models import (
     # ProgressiveTestOneReport, ProgressiveTestTwoReport,
     # ProgressiveTestThreeReport
 )
+
+def export_students_to_excel(modeladmin, request, queryset):
+    queryset = queryset.select_related('class_year', 'class_year__level') \
+                       .prefetch_related('subjects')
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Students"
+
+    headers = ["Student Full Name", "Student Class", "Student Subjects"]
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(fill_type="solid", fgColor="1F4E79")
+    for col_idx, header in enumerate(headers, start=1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    for row_idx, student in enumerate(queryset, start=2):
+        class_display = str(student.class_year) if student.class_year else "N/A"
+        subjects_display = ", ".join(s.name for s in student.subjects.all()) or "None"
+        ws.cell(row=row_idx, column=1, value=student.fullname)
+        ws.cell(row=row_idx, column=2, value=class_display)
+        ws.cell(row=row_idx, column=3, value=subjects_display)
+
+    ws.column_dimensions['A'].width = 35
+    ws.column_dimensions['B'].width = 25
+    ws.column_dimensions['C'].width = 60
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    filename = f"students_{date.today()}.xlsx"
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+export_students_to_excel.short_description = "Export selected students to Excel"
+
+
+def export_students_to_pdf(modeladmin, request, queryset):
+    queryset = queryset.select_related('class_year', 'class_year__level') \
+                       .prefetch_related('subjects')
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4),
+                            leftMargin=1.5*cm, rightMargin=1.5*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Title'],
+                                 fontSize=16, spellCheck=0,
+                                 textColor=colors.HexColor("#1F4E79"),
+                                 alignment=TA_CENTER, spaceAfter=4)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                    fontSize=10, alignment=TA_CENTER, spaceAfter=12)
+
+    elements = []
+    elements.append(Paragraph("Temple Christian International School", title_style))
+    elements.append(Paragraph(f"Student List — Generated: {date.today().strftime('%B %d, %Y')}", subtitle_style))
+    elements.append(Spacer(1, 0.4*cm))
+
+    table_data = [["Student Full Name", "Student Class", "Student Subjects"]]
+    for student in queryset:
+        class_display = str(student.class_year) if student.class_year else "N/A"
+        subjects_display = ", ".join(s.name for s in student.subjects.all()) or "None"
+        table_data.append([student.fullname, class_display, subjects_display])
+
+    col_widths = [7*cm, 5*cm, 16*cm]
+    table = Table(table_data, colWidths=col_widths, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F4E79")),
+        ('TEXTCOLOR',  (0, 0), (-1, 0), colors.white),
+        ('FONTNAME',   (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE',   (0, 0), (-1, 0), 10),
+        ('ALIGN',      (0, 0), (-1, 0), 'CENTER'),
+        ('FONTNAME',   (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE',   (0, 1), (-1, -1), 9),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#EBF3FB")]),
+        ('GRID',       (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
+        ('VALIGN',     (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(table)
+
+    doc.build(elements)
+    buffer.seek(0)
+    filename = f"students_{date.today()}.pdf"
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+export_students_to_pdf.short_description = "Export selected students to PDF"
+
 
 # Register the Level model
 class LevelAdmin(admin.ModelAdmin):
@@ -51,6 +160,7 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('fullname', 'class_year__name')
     list_filter = ('class_year',)
     filter_horizontal = ('subjects',)
+    actions = [export_students_to_excel, export_students_to_pdf]
 
 
 

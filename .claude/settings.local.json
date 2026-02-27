@@ -1,14 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python manage.py makemigrations:*)",
-      "Bash(python manage.py:*)",
-      "Bash(python test_cambridge_grading.py:*)",
-      "Bash(if not exist \"C:\\Users\\Administrator\\Desktop\\TCIS\\current\\reports\\management\" mkdir \"C:\\Users\\Administrator\\Desktop\\TCIS\\current\\reports\\management\")",
-      "Bash(if not exist \"C:\\Users\\Administrator\\Desktop\\TCIS\\current\\reports\\management\\commands\" mkdir \"C:\\Users\\Administrator\\Desktop\\TCIS\\current\\reports\\management\\commands\")",
       "Bash(python:*)",
-      "Bash(findstr:*)",
-      "Bash(dir /s /b \"C:\\Users\\Administrator\\Desktop\\TCIS\\current\\templates\")"
+      "Bash(pip install:*)"
     ]
   }
 }
